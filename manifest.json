@@ -3,7 +3,7 @@
 	"header": {
 		"name": "CanopyPlayers v0.0.1",
 		"description": "Fakeplayer addon designed to work alongside §l§aCanopy§r by §aForestOfLight§r.",
-		"uuid": "7f6b23df-a583-476b-b0e4-87457e65f7c0",
+		"uuid": "bb50de74-6e59-467b-871f-8ef829ab579f",
 		"min_engine_version": [1, 21, 20],
 		"version": [0, 0, 1]
 	},
@@ -19,7 +19,7 @@
 			"type": "script",
 			"language": "javascript",
 			"entry": "scripts/main.js",
-			"uuid": "3d753132-e3c9-4305-a995-eae30b486093",
+			"uuid": "000abe0b-dcba-43ac-a52f-ee8489a18ce5",
 			"version": [1, 0, 0]
 		}
 	],

@@ -11,6 +11,9 @@ A Minecraft Bedrock Edition fakeplayer addon designed to work alongside Canopy.
 All commands are prefixed with `./`. The `./player` command can be abbreviated to `./p`.
 
 `./player <name> join`
+
 `./player <name> rejoin`
+
 `./player <name> teleport`
+
 `./player <name> leave`
