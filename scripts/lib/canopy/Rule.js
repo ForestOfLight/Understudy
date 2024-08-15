@@ -11,9 +11,6 @@ class Rule {
         this.#description = description;
         this.#contingentRules = [];
         this.#independentRules = [];
-
-        this.register();
-        return this;
     }
 
     getName() {

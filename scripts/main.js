@@ -6,15 +6,26 @@ const extension = new CanopyExtension({
     version: '0.0.1',
 });
 
-extension.addCommand(new Command({
-    name: 'test',
-    description: 'test command',
-    callback: commandTest,
-    args: [
-        { type: 'string', name: 'message' },
-    ]
-}));
+new Rule({
+    identifier: 'commandPlayer',
+    description: 'Allows the use of the player command.',
+})
 
-function commandTest(sender, args) {
-    sender.sendMessage(`[CanopyPlayers] test ${sender.name} ${args.message}`);
+const playerCmd = new Command({
+    name: 'player',
+    description: 'Fakeplayer command',
+    usage: 'player <name> <action>',
+    callback: playerCommand,
+    args: [
+        { type: 'string', name: 'name' },
+        { type: 'string', name: 'action' }
+    ],
+    // contingentRules: [ 'commandPlayer' ]
+})
+extension.addCommand(playerCmd);
+
+function playerCommand(sender, args) {
+    const { name, action } = args;
+    if (name === null || action === null) return playerCmd.sendUsage(sender);
+    sender.sendMessage(`§aPlayer command: ${name} ${action}`);
 }

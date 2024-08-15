@@ -61,6 +61,7 @@ class CanopyExtension {
             usage: command.getUsage(),
             args: command.getArgs(),
             contingentRules: command.getContingentRules(),
+            adminOnly: command.isAdminOnly(),
             extensionName: this.name
         };
 		// console.warn(`[${this.name}] Attempting command registration: ${JSON.stringify(commandData)}`);
