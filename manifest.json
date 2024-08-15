@@ -1,0 +1,32 @@
+{
+	"format_version": 2,
+	"header": {
+		"name": "CanopyPlayers v0.0.1",
+		"description": "Fakeplayer addon designed to work alongside §l§aCanopy§r by §aForestOfLight§r.",
+		"uuid": "7f6b23df-a583-476b-b0e4-87457e65f7c0",
+		"min_engine_version": [1, 21, 20],
+		"version": [0, 0, 1]
+	},
+	"modules": [
+		{
+			"description": "Behavior Pack Module",
+			"type": "data",
+			"uuid": "47787f93-ec3c-4b0c-95fb-55a70e029041",
+			"version": [1, 0, 0]
+		},
+		{
+			"description": "Gametest Module",
+			"type": "script",
+			"language": "javascript",
+			"entry": "scripts/main.js",
+			"uuid": "3d753132-e3c9-4305-a995-eae30b486093",
+			"version": [1, 0, 0]
+		}
+	],
+	"dependencies": [
+		{
+			"module_name": "@minecraft/server",
+			"version": "1.14.0-beta"
+		}
+	]
+}
