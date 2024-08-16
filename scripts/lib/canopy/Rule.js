@@ -1,5 +1,6 @@
 import { world } from '@minecraft/server';
 
+const rules = {};
 class Rule {
     #identifier;
     #description;
@@ -11,9 +12,10 @@ class Rule {
         this.#description = description;
         this.#contingentRules = [];
         this.#independentRules = [];
+        rules[identifier] = this;
     }
 
-    getName() {
+    getID() {
         return this.#identifier;
     }
 
@@ -27,6 +29,22 @@ class Rule {
 
     getIndependentRules() {
         return this.#independentRules;
+    }
+
+    getValue() {
+        return world.getDynamicProperty(this.#identifier);
+    }
+
+    static getRule(identifier) {
+        return rules[identifier];
+    }
+
+    static getValue(identifier) {
+        this.getRule(identifier).getValue();
+    }
+
+    setValue(value) {
+        world.setDynamicProperty(this.#identifier, value);
     }
 }
 

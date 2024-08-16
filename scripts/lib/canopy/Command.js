@@ -8,9 +8,11 @@ class Command {
     #args;
     #contingentRules;
 	#adminOnly;
+	#helpEntries;
+	#helpHidden;
 	static prefix = '';
 
-	constructor({ name, description = '', usage, callback, args = [], contingentRules = [], adminOnly = false, extensionName = false }) {
+	constructor({ name, description = '', usage, callback, args = [], contingentRules = [], adminOnly = false, helpEntries = [], helpHidden = false }) {
 		this.#name = name;
         this.#description = description;
         this.#usage = usage;
@@ -18,6 +20,8 @@ class Command {
         this.#args = args;
         this.#contingentRules = contingentRules;
 		this.#adminOnly = adminOnly;
+		this.#helpEntries = helpEntries;
+		this.#helpHidden = helpHidden;
 	}
 
 	getName() {
@@ -29,37 +33,48 @@ class Command {
 	}
 
 	getUsage() {
-		return this.#usage;
-	}
-
-	getArgs() {
-		return this.#args;
-	}
-
-	getContingentRules() {
-		return this.#contingentRules;
-	}
-
-	isAdminOnly() {
-		return this.#adminOnly;
-	}
-
-	runCallback(sender, args) {
-		this.#callback(sender, args);
-	}
-
-	getUsage() {
 		return Command.prefix + this.#usage;
 	}
 
+	getCallback() {
+		return this.#callback;
+	}
+	
+	getArgs() {
+		return this.#args;
+	}
+	
+	getContingentRules() {
+		return this.#contingentRules;
+	}
+	
+	isAdminOnly() {
+		return this.#adminOnly;
+	}
+	
+	getHelpEntries() {
+		return this.#helpEntries;
+	}
+
+	isHelpHidden() {
+		return this.#helpHidden;
+	}
+	
+	runCallback(sender, args) {
+		this.#callback(sender, args);
+	}
+	
 	sendUsage(sender) {
 		sender.sendMessage(`§cUsage: ${Command.prefix}${this.#usage}`);
 	}
+
+	static recievePrefix(scriptEventReceive) {
+		if (scriptEventReceive.id !== 'canopyExtension:commandPrefix' || scriptEventReceive.sourceType !== 'Server') return;
+		Command.prefix = scriptEventReceive.message;
+		system.afterEvents.scriptEventReceive.unsubscribe(Command.recievePrefix);
+	}
 }
 
-system.afterEvents.scriptEventReceive.subscribe((event) => {
-	if (event.id !== 'canopyExtension:commandPrefix' || event.sourceType !== 'Server') return;
-	Command.prefix = event.message;
-});
+system.afterEvents.scriptEventReceive.subscribe((event) => Command.recievePrefix(event), { namespaces: ['canopyExtension'] });
 
 export default Command;
