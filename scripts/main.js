@@ -48,5 +48,5 @@ extension.addCommand(commandPlayerAliasCommand);
 function playerCommand(sender, args) {
     const { name, action } = args;
     if (name === null || action === null) return commandPlayerCommand.sendUsage(sender);
-    sender.sendMessage(`§a${sender.name} command: ${name} ${action}`);
+    sender.sendMessage(`§a${sender.name} ./player command: ${name} ${action}`);
 }
