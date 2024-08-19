@@ -1,10 +1,8 @@
-import { CanopyExtension, Command, Rule } from 'lib/canopy/CanopyExtension';
-
-const extension = new CanopyExtension({
-    name: 'CanopyPlayers',
-    description: 'Fakeplayers for Canopy',
-    version: '0.0.1',
-});
+import { Command, Rule } from 'lib/canopy/CanopyExtension';
+import extension from 'config';
+import GameTestManager from 'classes/GameTestManager';
+import CanopyPlayerManager from 'classes/CanopyPlayerManager';
+import { stringifyLocation } from 'utils';
 
 const commandPlayerRule = new Rule({
     identifier: 'commandPlayer',
@@ -14,7 +12,7 @@ extension.addRule(commandPlayerRule);
 
 const commandPlayerCommand = new Command({
     name: 'player',
-    description: 'Main CanopyPlayer command. (Alias: p)',
+    description: `Main ${extension.name} command. (Alias: p)`,
     usage: 'player <name> <action>',
     callback: playerCommand,
     args: [
@@ -45,8 +43,38 @@ const commandPlayerAliasCommand = new Command({
 })
 extension.addCommand(commandPlayerAliasCommand);
 
+GameTestManager.startPlayers();
+
 function playerCommand(sender, args) {
     const { name, action } = args;
     if (name === null || action === null) return commandPlayerCommand.sendUsage(sender);
-    sender.sendMessage(`§a${sender.name} command: ${name} ${action}`);
+
+    if (action === 'join')
+        joinAction(sender, name);
+    else if (action === 'rejoin')
+        rejoinAction(sender, name);
+    else if (action === 'tp')
+        tpAction(sender, name);
+    else if (action === 'leave')
+        leaveAction(sender, name);
+    else
+        sender.sendMessage(`§cInvalid action: ${action}`);
+}
+
+function joinAction(sender, name) { 
+    console.warn(`[CanopyPlayers] ${name} joining at ${stringifyLocation(sender.location)}`);
+    CanopyPlayerManager.newPlayer(name);
+    CanopyPlayerManager.spawnPlayer(name, sender.location, 'survival');
+}
+
+function rejoinAction(sender, name) {
+    throw new Error(`[CanopyPlayers] Method not implemented.`);
+}
+
+function tpAction(sender, name) {
+    throw new Error(`[CanopyPlayers] Method not implemented.`);
+}
+
+function leaveAction(sender, name) {
+    throw new Error(`[CanopyPlayers] Method not implemented.`);
 }

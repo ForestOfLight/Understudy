@@ -6,8 +6,8 @@ class CanopyExtension {
     name;
     description;
     version;
-    commands = {};
-    rules = {};
+    #commands = {};
+    #rules = {};
 
     constructor({ name = 'Unnamed', description = '', version = '1.0.0' }) {
         if (name.includes(' ')) {
@@ -35,7 +35,7 @@ class CanopyExtension {
         if (!(command instanceof Command)) {
             throw new Error('Command must be an instance of Command.');
         }
-        this.commands[command.getName()] = command;
+        this.#commands[command.getName()] = command;
         this.registerCommand(command);
     }
     
@@ -69,8 +69,8 @@ class CanopyExtension {
                 throw new Error(`Sender ${senderName} of ${commandName} not found.`);
             }
             const args = JSON.parse(event.message.slice(extensionName.length + senderName.length + commandName.length + 3));
-            console.warn(`[${this.name}] Received command callback: ${commandName} ${JSON.stringify(args)}`);
-            this.commands[commandName].runCallback(sender, args);
+            // console.warn(`[${this.name}] Received command callback: ${commandName} ${JSON.stringify(args)}`);
+            this.#commands[commandName].runCallback(sender, args);
         }, { namespaces: ['canopyExtension'] });
     }
 
@@ -78,7 +78,7 @@ class CanopyExtension {
         if (!(rule instanceof Rule)) {
             throw new Error('Rule must be an instance of Rule.');
         }
-        this.rules[rule.getID()] = rule;
+        this.#rules[rule.getID()] = rule;
         this.registerRule(rule);
     }
 
@@ -101,7 +101,7 @@ class CanopyExtension {
             const extensionName = splitMessage[0];
             if (extensionName !== this.name) return;
             const ruleID = splitMessage[1];
-            const rule = this.rules[ruleID];
+            const rule = this.#rules[ruleID];
             if (!rule) {
                 throw new Error(`Rule ${ruleID} not found.`);
             }
@@ -118,7 +118,7 @@ class CanopyExtension {
             const extensionName = splitMessage[0];
             if (extensionName !== this.name) return;
             const ruleID = splitMessage[1];
-            const rule = this.rules[ruleID];
+            const rule = this.#rules[ruleID];
             if (!rule) {
                 throw new Error(`Rule ${ruleID} not found.`);
             }
