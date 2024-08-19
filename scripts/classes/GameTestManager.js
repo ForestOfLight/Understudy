@@ -1,25 +1,46 @@
 import extension from 'config';
-import { CanopyPlayerManager } from 'classes/CanopyPlayerManager';
+import CanopyPlayerManager from 'classes/CanopyPlayerManager';
 import * as gametest from '@minecraft/server-gametest';
 import { system, world } from '@minecraft/server';
+import { subtractVectors } from 'utils';
+
+const TEST_MAX_TICKS = 72000;
+const TEST_START_POSITION = { x: -22, z: 29 };
+const LOADER_ENTITY_ID = 'canopyplayers:loader';
 
 class GameTestManager {
-    testName = 'players';
-    test = null;
+    static testName = 'players';
+    static test = null;
+    static #startupComplete = false;
 
     static startPlayers() {
         gametest.register(extension.name, this.testName, (test) => {
             this.test = test;
             this.startPlayerLoop();
-        }).structureName(`${extension.name}:${this.testName}`);
-        world.getDimension('overworld').runCommandAsync(`execute positioned 0 100 0 run gametest run ${extension.name}:${this.testName}`);
-        console.warn(`[CanopyPlayers] Started ${extension.name}:${this.testName} test.`);
+        }).maxTicks(TEST_MAX_TICKS).structureName(`${extension.name}:${this.testName}`);
+        this.placeGametestStructure();
+        this.#startupComplete = true;
+    }
+
+    static placeGametestStructure() {
+        const dimension = world.getDimension('overworld');
+        const loaderEntity = dimension.spawnEntity(LOADER_ENTITY_ID, world.getAllPlayers()[0]?.location);
+        loaderEntity.teleport({ x: TEST_START_POSITION.x, y: 0, z: TEST_START_POSITION.z }, { dimension: dimension });
+        system.runTimeout(() => {
+            const testStartPosition = dimension.getTopmostBlock(TEST_START_POSITION)?.location
+            dimension.runCommandAsync(`fill ${testStartPosition.x + 2} ${testStartPosition.y + 1} ${testStartPosition.z + 2} ${testStartPosition.x - 1} ${testStartPosition.y + 2} ${testStartPosition.z} minecraft:air`);
+            dimension.runCommandAsync(`execute positioned ${testStartPosition.x} ${testStartPosition.y} ${testStartPosition.z - 1} run gametest run ${extension.name}:${this.testName}`);
+            dimension.getEntities({ type: LOADER_ENTITY_ID }).forEach(entity => entity.remove());
+            // If this logic is still making the structures stack, you can try to subtract 1 from the y value of the fill command when testStartPosition.y is 319.
+        }, 1);
     }
 
     static startPlayerLoop() {
         system.runInterval(() => {
+            if (!this.#startupComplete) return;
             for (const player of CanopyPlayerManager.players) {
-                if (player.nextAction.length > 0) {
+                if (player.nextActions.length > 0) {
+                    console.warn(`[CanopyPlayers] Running next actions for ${player.name}: ${JSON.stringify(player.nextActions)}`);
                     this.runNextActions(player);
                 }
                 if (player.continuousActions.length > 0) {
@@ -43,6 +64,9 @@ class GameTestManager {
             case 'tp':
                 this.tpAction(player, actionData);
                 break;
+            case 'look':
+                this.lookAction(player, actionData);
+                break;
             default:
                 player.sendMessage(`§cInvalid action for ${player.name}: ${action}`);
                 break;
@@ -57,18 +81,27 @@ class GameTestManager {
     }
 
     static joinAction(player, actionData) {
-        player.simulatedPlayer = this.test.spawnSimulatedPlayer(actionData.location, player.name, actionData.gameMode);
+        player.simulatedPlayer = this.test.spawnSimulatedPlayer(this.getRelativeCoords(actionData.location), player.name, actionData.gameMode);
         player.isConnected = true;
     }
 
     static leaveAction(player) {
-        player.simulatedPlayer.disconnect();
         this.test.removeSimulatedPlayer(player.simulatedPlayer);
+        world.sendMessage(`§e${player.name} left the game`);
+        player.simulatedPlayer = null;
         player.isConnected = false;
     }
 
     static tpAction(player, actionData) {
         player.simulatedPlayer.teleport(actionData.location, actionData.rotation);
+    }
+
+    static lookAction(player, actionData) {
+        player.simulatedPlayer.lookAtLocation(this.getRelativeCoords(actionData.location));
+    }
+
+    static getRelativeCoords(location) {
+        return subtractVectors(location, this.test.worldLocation({ x: 0, y: 0, z: 0 }));
     }
 }
 

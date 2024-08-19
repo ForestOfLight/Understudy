@@ -5,7 +5,7 @@
 		"description": "Fakeplayer addon designed to work alongside §l§aCanopy§r by §aForestOfLight§r.",
 		"uuid": "bb50de74-6e59-467b-871f-8ef829ab579f",
 		"min_engine_version": [1, 21, 20],
-		"version": [0, 0, 1]
+		"version": [0, 1, 0]
 	},
 	"modules": [
 		{
