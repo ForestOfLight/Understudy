@@ -105,7 +105,7 @@ class CanopyExtension {
             if (!rule) {
                 throw new Error(`Rule ${ruleID} not found.`);
             }
-            const value = rule.getValue();
+            let value = rule.getValue();
             // console.warn(`[${this.name}] Sending rule value: ${ruleID} ${value}`);
             world.getDimension('overworld').runCommandAsync(`scriptevent canopyExtension:ruleValueResponse ${this.name} ${ruleID} ${value}`);
         }, { namespaces: ['canopyExtension'] });
