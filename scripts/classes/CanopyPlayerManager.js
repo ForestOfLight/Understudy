@@ -14,15 +14,13 @@ class CanopyPlayerManager {
         return player;
     }
 
-    static spawnPlayer(player, location, rotation, gameMode) {
-        player.join(location, rotation, gameMode);
+    static spawnPlayer(player) {
         if (this.#nametagPrefix) {
             player.simulatedPlayer.nameTag = `[${this.#nametagPrefix}§r] ${player.name}`;
         }
     }
 
     static removePlayer(player) {
-        player.leave();
         const runner = system.runInterval(() => {
             if (player.simulatedPlayer === null) {
                 system.clearRun(runner);
@@ -30,10 +28,6 @@ class CanopyPlayerManager {
                 this.players.splice(index, 1);
             }
         });
-    }
-
-    static lookAt(player, location) {
-        player.look(location);
     }
 
     static getPlayer(name) {

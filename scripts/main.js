@@ -28,7 +28,7 @@ const commandPlayerCommand = new Command({
         { usage: `player <name> rejoin`, description: `Make a player rejoin at its last location.` },
         { usage: `player <name> tp`, description: `Make a player teleport to you.` },
         { usage: `player <name> leave`, description: `Make a player leave the game.` },
-        { usage: `player <name> look [x y z]`, description: `Make a player look at you or another location.` }
+        { usage: `player <name> look [block/entity/me/x y z]`, description: `Make a player look at you or another location.` }
     ]
 })
 extension.addCommand(commandPlayerCommand);
@@ -58,17 +58,20 @@ function playerCommand(sender, args) {
         case 'join':
             joinAction(sender, name);
             break;
+        case 'leave':
+            leaveAction(sender, name);
+            break;
         case 'rejoin':
             rejoinAction(sender, name);
+            break;
+        case 'respawn':
+            respawnAction(sender, name);
             break;
         case 'tp':
             tpAction(sender, name);
             break;
-        case 'leave':
-            leaveAction(sender, name);
-            break;
-        case 'look':
-            lookAction(sender, name, arg1, arg2, arg3);
+        case 'target':
+            targetAction(sender, name, arg1, arg2, arg3);
             break;
         default:
             sender.sendMessage(`§cInvalid action: ${action}`);
@@ -77,49 +80,83 @@ function playerCommand(sender, args) {
 }
 
 function joinAction(sender, name) {
-    if (CanopyPlayerManager.getPlayer(name) !== undefined) {
+    if (CanopyPlayerManager.isOnline(name)) {
         sender.sendMessage(`§cPlayer ${name} is already online.`);
         return;
     }
     const simPlayer = CanopyPlayerManager.newPlayer(name);
-    CanopyPlayerManager.spawnPlayer(simPlayer, sender.location, sender.getRotation(), 'survival');
-}
-
-function rejoinAction(sender, name) {
-    throw new Error(`[CanopyPlayers] Method not implemented.`);
-}
-
-function tpAction(sender, name) {
-    throw new Error(`[CanopyPlayers] Method not implemented.`);
+    CanopyPlayerManager.spawnPlayer(simPlayer);
+    simPlayer.join(sender.location, sender.getRotation(), sender.dimension.id, sender.getGameMode());
 }
 
 function leaveAction(sender, name) {
     const simPlayer = CanopyPlayerManager.getPlayer(name);
     if (!CanopyPlayerManager.isOnline(name)) {
-        sender.sendMessage(`§cPlayer ${name} not found.`);
+        sender.sendMessage(`§cPlayer ${name} is not online.`);
         return;
     }
+    simPlayer.leave();
     CanopyPlayerManager.removePlayer(simPlayer);
 }
 
-function lookAction(sender, name, arg1, arg2, arg3) {
-    if (!CanopyPlayerManager.isOnline(name)) {
-        sender.sendMessage(`§cPlayer ${name} not found.`);
+function rejoinAction(sender, name) {
+    if (CanopyPlayerManager.isOnline(name)) {
+        sender.sendMessage(`§cPlayer ${name} is already online.`);
         return;
     }
+    const simPlayer = CanopyPlayerManager.newPlayer(name);
+    CanopyPlayerManager.spawnPlayer(simPlayer);
+    simPlayer.rejoin();
+}
+
+function respawnAction(sender, name) {
+    const simPlayer = CanopyPlayerManager.getPlayer(name);
+    if (!CanopyPlayerManager.isOnline(name)) {
+        sender.sendMessage(`§cPlayer ${name} is not online.`);
+        return;
+    }
+    simPlayer.respawn();
+}
+
+function tpAction(sender, name) {
+    const simPlayer = CanopyPlayerManager.getPlayer(name);
+    if (!CanopyPlayerManager.isOnline(name)) {
+        sender.sendMessage(`§cPlayer ${name} is not online.`);
+        return;
+    }
+    simPlayer.tp(sender.location, sender.getRotation(), sender.dimension.id);
+}
+
+function targetAction(sender, name, arg1, arg2, arg3) {
+    if (!CanopyPlayerManager.isOnline(name)) {
+        sender.sendMessage(`§cPlayer ${name} is not online.`);
+        return;
+    }
+
     const simPlayer = CanopyPlayerManager.getPlayer(name);
     if (arg1 === 'me') {
-        simPlayer.look(sender.getHeadLocation());
+        simPlayer.targetLocation(sender);
     } else if (arg1 === 'block') {
         const block = sender.getBlockFromViewDirection({ maxDistance: 16*64 })?.block;
         if (block === undefined) {
             sender.sendMessage(`§cNo block in view.`);
             return;
         }
-        simPlayer.look({ x: block.x + 0.5, y: block.y + 0.5, z: block.z + 0.5 });
+        simPlayer.targetLocation(block);
+    } else if (arg1 === 'entity') {
+        const entity = sender.getEntitiesFromViewDirection({ maxDistance: 16*64 })[0]?.entity;
+        if (entity === undefined) {
+            sender.sendMessage(`§cNo entity in view.`);
+            return;
+        }
+        simPlayer.targetLocation(entity);
     } else if (arg1 !== null && arg2 !== null && arg3 !== null) {
-        simPlayer.look(makeVector3(arg1, arg2, arg3));
+        if (isNaN(arg1) || isNaN(arg2) || isNaN(arg3)) {
+            sender.sendMessage(`§cInvalid coordinates: ${arg1}, ${arg2}, ${arg3}`);
+            return;
+        }
+        simPlayer.targetLocation(makeVector3(arg1, arg2, arg3));
     } else {
-        sender.sendMessage(`§cInvalid action: ${arg1}, expected 'block', 'me', or coordinates.`);
+        sender.sendMessage(`§cInvalid target action: ${arg1}. Expected 'block', 'entity', 'me', or coordinates.`);
     }
 }

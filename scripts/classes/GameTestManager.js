@@ -2,7 +2,7 @@ import extension from 'config';
 import CanopyPlayerManager from 'classes/CanopyPlayerManager';
 import * as gametest from '@minecraft/server-gametest';
 import { system, world } from '@minecraft/server';
-import { subtractVectors } from 'utils';
+import { subtractVectors, getLookAtLocation, stringifyLocation } from 'utils';
 
 const TEST_MAX_TICKS = 72000;
 const TEST_START_POSITION = { x: -22, z: 29 };
@@ -24,7 +24,8 @@ class GameTestManager {
 
     static placeGametestStructure() {
         const dimension = world.getDimension('overworld');
-        const loaderEntity = dimension.spawnEntity(LOADER_ENTITY_ID, world.getAllPlayers()[0]?.location);
+        const onlinePlayer = world.getAllPlayers()[0];
+        const loaderEntity = onlinePlayer.dimension.spawnEntity(LOADER_ENTITY_ID, onlinePlayer.location);
         loaderEntity.teleport({ x: TEST_START_POSITION.x, y: 0, z: TEST_START_POSITION.z }, { dimension: dimension });
         system.runTimeout(() => {
             const testStartPosition = dimension.getTopmostBlock(TEST_START_POSITION)?.location
@@ -61,11 +62,14 @@ class GameTestManager {
             case 'leave':
                 this.leaveAction(player, actionData);
                 break;
+            case 'respawn':
+                this.respawnAction(player, actionData);
+                break;
             case 'tp':
                 this.tpAction(player, actionData);
                 break;
             case 'look':
-                this.lookAction(player, actionData);
+                this.targetAction(player, actionData);
                 break;
             default:
                 player.sendMessage(`§cInvalid action for ${player.name}: ${action}`);
@@ -82,6 +86,7 @@ class GameTestManager {
 
     static joinAction(player, actionData) {
         player.simulatedPlayer = this.test.spawnSimulatedPlayer(this.getRelativeCoords(actionData.location), player.name, actionData.gameMode);
+        this.tpAction(player, actionData);
         player.isConnected = true;
     }
 
@@ -92,12 +97,27 @@ class GameTestManager {
         player.isConnected = false;
     }
 
-    static tpAction(player, actionData) {
-        player.simulatedPlayer.teleport(actionData.location, actionData.rotation);
+    static respawnAction(player, actionData) {
+        player.simulatedPlayer.respawn();
+        this.tpAction(player, actionData);
     }
 
-    static lookAction(player, actionData) {
-        player.simulatedPlayer.lookAtLocation(this.getRelativeCoords(actionData.location));
+    static tpAction(player, actionData) {
+        player.simulatedPlayer.teleport(actionData.location, { rotation: actionData.rotation, dimension: world.getDimension(actionData.dimensionId) });
+        player.simulatedPlayer.lookAtLocation(this.getRelativeCoords(getLookAtLocation(actionData.location, actionData.rotation)));
+    }
+
+    static targetAction(player, actionData) {
+        if (actionData.entityId !== undefined) {
+            const target = world.getEntity(actionData.entityId);
+            if (target === undefined)
+                throw new Error(`[CanopyPlayers] Entity with ID ${actionData.entityId} not found`);
+            player.simulatedPlayer.lookAtEntity(target);
+        } else if (actionData.blockPos !== undefined) {
+            player.simulatedPlayer.lookAtBlock(this.getRelativeCoords(actionData.blockPos));
+        } else {
+            player.simulatedPlayer.lookAtLocation(this.getRelativeCoords(actionData.location));
+        }
     }
 
     static getRelativeCoords(location) {
