@@ -15,20 +15,20 @@ Understudy is an addon for Minecraft Bedrock Edition that allows you to spawn an
 ## Usage
 All commands are prefixed with `./`. The `./player` command can be abbreviated to `./p`. The player command is disabled until enabled with the `commandPlayer` rule. Do `./help` for more information.
 
-> **`./player <name> join`**  
+**Usage: `./player <name> join`**  
 Spawn a player with the given name at your current location in your current game mode.
 
-> **`./player <name> leave`**  
+**Usage: `./player <name> leave`**  
 Remove the player with the given name. 
 
-> **`./player <name> rejoin`**  
+**Usage: `./player <name> rejoin`**  
 Spawn a player with the given name at its last location, if it has one.
 
-> **`./player <name> tp`**  
+**Usage: `./player <name> tp`**  
 Teleport the player with the given name to your current location.
 
-> **`./player <name> respawn`**  
+**Usage: `./player <name> respawn`**  
 Respawn the player with the given name.
 
-> **`./player <name> look [block/entity/me/x y z]`**  
+**Usage: `./player <name> look [block/entity/me/x y z]`**  
 Make the player with the given name look at the specified target. "block" and "entity" will make the player look at the block or entity you are looking at. "me" will make the player look at you. "x y z" will make the player look at the specified coordinates.
