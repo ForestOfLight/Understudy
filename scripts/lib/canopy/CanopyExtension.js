@@ -123,7 +123,7 @@ class CanopyExtension {
                 throw new Error(`Rule ${ruleID} not found.`);
             }
             const value = splitMessage[2];
-            console.warn(`[${this.name}] Setting rule value: ${ruleID} ${value}`);
+            // console.warn(`[${this.name}] Setting rule value: ${ruleID} ${value}`);
             rule.setValue(value);
         }, { namespaces: ['canopyExtension'] });
     }

@@ -2,7 +2,7 @@
     "format_version": "1.20.40",
     "minecraft:entity": {
         "description": {
-            "identifier": "canopyplayers:loader",
+            "identifier": "understudy:loader",
             "is_summonable": true,
             "is_spawnable": false,
             "is_experimental": false,

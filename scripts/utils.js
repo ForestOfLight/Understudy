@@ -24,4 +24,8 @@ function getLookAtLocation(location, rotation) {
     return { x: location.x + x, y: location.y + y + eyeHeight, z: location.z + z };
 }
 
-export { stringifyLocation, subtractVectors, makeVector3, getLookAtLocation };
+function isNumeric(value) {
+    return !isNaN(parseFloat(value)) && isFinite(value);
+}
+
+export { stringifyLocation, subtractVectors, makeVector3, getLookAtLocation, isNumeric };

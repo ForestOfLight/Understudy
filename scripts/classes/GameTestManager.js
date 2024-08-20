@@ -1,24 +1,25 @@
 import extension from 'config';
-import CanopyPlayerManager from 'classes/CanopyPlayerManager';
+import UnderstudyManager from 'classes/UnderstudyManager';
 import * as gametest from '@minecraft/server-gametest';
 import { system, world } from '@minecraft/server';
-import { subtractVectors, getLookAtLocation, stringifyLocation } from 'utils';
+import { subtractVectors, getLookAtLocation } from 'utils';
 
-const TEST_MAX_TICKS = 72000;
-const TEST_START_POSITION = { x: -22, z: 29 };
-const LOADER_ENTITY_ID = 'canopyplayers:loader';
+const TEST_MAX_TICKS = 630720000; // 1 year
+const TEST_START_POSITION = { x: 1000000, z: 1000000 };
+const LOADER_ENTITY_ID = 'understudy:loader';
 
 class GameTestManager {
     static testName = 'players';
     static test = null;
     static #startupComplete = false;
 
-    static startPlayers() {
+    static startPlayers(savedGameRules) {
         gametest.register(extension.name, this.testName, (test) => {
             this.test = test;
             this.startPlayerLoop();
         }).maxTicks(TEST_MAX_TICKS).structureName(`${extension.name}:${this.testName}`);
         this.placeGametestStructure();
+        this.setGameRules(savedGameRules);
         this.#startupComplete = true;
     }
 
@@ -36,12 +37,27 @@ class GameTestManager {
         }, 1);
     }
 
+    static setGameRules(newGameRules) {
+        system.runTimeout(() => {
+            const updatedGameRules = {};
+            for (const gamerule in newGameRules) {
+                if (world.gameRules[gamerule] !== newGameRules[gamerule]) {
+                    world.gameRules[gamerule] = newGameRules[gamerule];
+                    updatedGameRules[gamerule] = world.gameRules[gamerule];
+                }
+            }
+            if (Object.keys(updatedGameRules).length > 0) {
+                console.warn(`[Understudy] Gametest messed with gamerules. Rolling back these: ${Object.keys(updatedGameRules).map(rule => `${rule} = ${updatedGameRules[rule]}`).join(', ')}`);
+            }
+        }, 2);
+    }
+
     static startPlayerLoop() {
         system.runInterval(() => {
             if (!this.#startupComplete) return;
-            for (const player of CanopyPlayerManager.players) {
+            for (const player of UnderstudyManager.players) {
                 if (player.nextActions.length > 0) {
-                    console.warn(`[CanopyPlayers] Running next actions for ${player.name}: ${JSON.stringify(player.nextActions)}`);
+                    console.warn(`[Understudy] Running next actions for ${player.name}: ${JSON.stringify(player.nextActions)}`);
                     this.runNextActions(player);
                 }
                 if (player.continuousActions.length > 0) {
@@ -111,7 +127,7 @@ class GameTestManager {
         if (actionData.entityId !== undefined) {
             const target = world.getEntity(actionData.entityId);
             if (target === undefined)
-                throw new Error(`[CanopyPlayers] Entity with ID ${actionData.entityId} not found`);
+                throw new Error(`[Understudy] Entity with ID ${actionData.entityId} not found`);
             player.simulatedPlayer.lookAtEntity(target);
         } else if (actionData.blockPos !== undefined) {
             player.simulatedPlayer.lookAtBlock(this.getRelativeCoords(actionData.blockPos));

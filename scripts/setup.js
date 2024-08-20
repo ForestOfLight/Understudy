@@ -1,6 +1,7 @@
 import { world, system } from '@minecraft/server';
 import GameTestManager from 'classes/GameTestManager';
 
+const savedGameRules = getGameRules();
 let firstJoin = false;
 
 world.afterEvents.playerJoin.subscribe((event) => {
@@ -10,14 +11,14 @@ world.afterEvents.playerJoin.subscribe((event) => {
             if (!firstJoin && player?.isValid()) {
                 system.clearRun(runner);
                 firstJoin = true;
-                onValidWorld(player);
+                onValidWorld();
             }
         });
     });
 });
 
-function onValidWorld(player) {
-    GameTestManager.startPlayers();
+function onValidWorld() {
+    GameTestManager.startPlayers(savedGameRules);
 }
 
 const players = world.getAllPlayers();
@@ -26,5 +27,13 @@ if (players[0]?.isValid()) {
 }
 
 function onScriptReload() {
-    GameTestManager.startPlayers();
+    GameTestManager.startPlayers(savedGameRules);
+}
+
+function getGameRules() {
+    const gameRuleMap = {};
+    for (const gamerule in world.gameRules) {
+        gameRuleMap[gamerule] = world.gameRules[gamerule];
+    }
+    return gameRuleMap;
 }

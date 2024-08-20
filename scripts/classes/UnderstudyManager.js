@@ -1,15 +1,15 @@
-import CanopyPlayer from 'classes/CanopyPlayer';
+import Understudy from 'classes/Understudy';
 import { system } from '@minecraft/server';
 
-class CanopyPlayerManager {
+class UnderstudyManager {
     static players = [];
     static #nametagPrefix = false;
 
     static newPlayer(name) {
         if (this.players.find(p => p.name === name)) {
-            throw new Error(`[CanopyPlayers] Player with name ${name} already exists.`);
+            throw new Error(`[Understudy] Player with name ${name} already exists.`);
         }
-        const player = new CanopyPlayer(name);
+        const player = new Understudy(name);
         this.players.push(player);
         return player;
     }
@@ -57,4 +57,4 @@ class CanopyPlayerManager {
     }
 }
 
-export default CanopyPlayerManager;
+export default UnderstudyManager;

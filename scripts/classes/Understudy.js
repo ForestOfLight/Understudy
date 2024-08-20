@@ -1,6 +1,6 @@
-import { Block, Entity, Player, world } from "@minecraft/server";
+import { Block, Entity, world } from "@minecraft/server";
 
-class CanopyPlayer {
+class Understudy {
     constructor(name) {
         this.name = name;
         this.isConnected = false;
@@ -42,7 +42,15 @@ class CanopyPlayer {
     }
 
     rejoin() {
-        const playerInfo = JSON.parse(world.getDynamicProperty(`${this.name}:playerinfo`));
+        let playerInfo;
+        try {
+            playerInfo = JSON.parse(world.getDynamicProperty(`${this.name}:playerinfo`));
+        } catch (error) {
+            if (error.name === 'SyntaxError') {
+                throw new Error(`[Understudy] Player ${this.name} has no player info saved`);
+            }
+            throw error;
+        }
         const actionData = { 
             type: 'join', 
             location: playerInfo.location, 
@@ -74,7 +82,7 @@ class CanopyPlayer {
         this.nextActions.push(actionData);
     }
 
-    targetLocation(target) {
+    lookLocation(target) {
         let actionData = { type: 'look' };
         if (target instanceof Block) {
             actionData.blockPos = target?.location;
@@ -84,10 +92,10 @@ class CanopyPlayer {
             actionData.location = target;
         }
         if (actionData.location === undefined && actionData.entityId === undefined && actionData.blockPos === undefined)
-            throw new Error(`[CanopyPlayers] Invalid target provided for ${this.name}`);
+            throw new Error(`[Understudy] Invalid target provided for ${this.name}`);
         this.target = target;
         this.nextActions.push(actionData);
     }
 }
 
-export default CanopyPlayer;
+export default Understudy;
