@@ -5,14 +5,15 @@
 [![Discord](https://badgen.net/discord/members/9KGche8fxm?icon=discord&label=Discord&list=what)](https://discord.gg/9KGche8fxm)
 
 # Understudy
-A Minecraft Bedrock Edition simulated player addon designed to work alongside Canopy. This addon allows you to control any number of simulated players that act almost exactly like real players.
+A Minecraft Bedrock Edition simulated player addon designed to work alongside **Canopy**. This addon allows you to control any number of simulated players that act almost exactly like real players.
 
 > [!IMPORTANT]
 > This addon is a **Canopy Extension**, which means **Canopy** must be installed in your world to use it.
-> This addon also requires the Beta APIs experimental features to be enabled in your world settings.
+
+**Canopy** can be downloaded here: https://github.com/ForestOfLight/Canopy
 
 ## Usage
-All commands are prefixed with `./`. The `./player` command can be abbreviated to `./p`. The player command is disabled until enabled with the `commandPlayer` **Canopy** rule. Do `./help` for more information.
+All commands are prefixed with `./`. The `./player` command can be abbreviated to `./p`. The player command is disabled until enabled with the `commandPlayer` rule. Do `./help` for more information.
 
 **`./player <name> join`**  
 Spawn a player with the given name at your current location in your current game mode.
