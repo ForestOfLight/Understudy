@@ -10,7 +10,7 @@ class Command {
 	#adminOnly;
 	#helpEntries;
 	#helpHidden;
-	static prefix = '';
+	static #prefix = '';
 
 	constructor({ name, description = '', usage, callback, args = [], contingentRules = [], adminOnly = false, helpEntries = [], helpHidden = false }) {
 		this.#name = name;
@@ -65,13 +65,17 @@ class Command {
 	}
 	
 	sendUsage(sender) {
-		sender.sendMessage(`§cUsage: ${Command.prefix}${this.#usage}`);
+		sender.sendMessage(`§cUsage: ${Command.#prefix}${this.#usage}`);
 	}
 
 	static recievePrefix(scriptEventReceive) {
 		if (scriptEventReceive.id !== 'canopyExtension:commandPrefix' || scriptEventReceive.sourceType !== 'Server') return;
-		Command.prefix = scriptEventReceive.message;
+		Command.#prefix = scriptEventReceive.message;
 		system.afterEvents.scriptEventReceive.unsubscribe(Command.recievePrefix);
+	}
+
+	static getPrefix() {
+		return Command.#prefix;
 	}
 }
 

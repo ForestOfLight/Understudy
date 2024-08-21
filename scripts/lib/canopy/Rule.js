@@ -7,11 +7,11 @@ class Rule {
     #contingentRules;
     #independentRules;
 
-    constructor({ identifier, description, contingentRules, independentRules }) {
+    constructor({ identifier, description, contingentRules = [], independentRules = [] }) {
         this.#identifier = identifier;
         this.#description = description;
-        this.#contingentRules = [];
-        this.#independentRules = [];
+        this.#contingentRules = contingentRules;
+        this.#independentRules = independentRules;
         rules[identifier] = this;
     }
 
