@@ -2,7 +2,7 @@ import { Command, Rule } from 'lib/canopy/CanopyExtension';
 import extension from 'config';
 import 'setup';
 import UnderstudyManager from 'classes/UnderstudyManager';
-import { makeVector3, isNumeric } from 'utils';
+import { makeVector3, isNumeric, PLAYER_EYE_HEIGHT, getLookAtLocation } from 'utils';
 
 const commandPlayerRule = new Rule({
     identifier: 'commandPlayer',
@@ -29,7 +29,7 @@ const commandPlayerCommand = new Command({
         { usage: `player <name> rejoin`, description: `Make a player rejoin at its last location.` },
         { usage: `player <name> respawn`, description: `Make a player respawn after dying.` },
         { usage: `player <name> tp`, description: `Make a player teleport to you.` },
-        { usage: `player <name> look [block/entity/me/x y z]`, description: `Make a player look at you or another location.` }
+        { usage: `player <name> look [up/down/north/south/east/west/block/entity/me/x y z/pitch yaw]`, description: `Make a player look in specified directions.` }
     ]
 })
 extension.addCommand(commandPlayerCommand);
@@ -74,6 +74,9 @@ function playerCommand(sender, args) {
             break;
         case 'look':
             lookAction(sender, name, arg1, arg2, arg3);
+            break;
+        case 'move':
+            moveAction(sender, name, arg1, arg2, arg3);
             break;
         default:
             sender.sendMessage(`§cInvalid action: ${action}`);
@@ -156,13 +159,52 @@ function lookAction(sender, name, arg1, arg2, arg3) {
             return;
         }
         simPlayer.lookLocation(entity);
+    } else if (['up', 'down', 'north', 'south', 'east', 'west'].includes(arg1)) {
+        simPlayer.lookLocation(processLookCardinals(simPlayer.simulatedPlayer, arg1));
     } else if (arg1 !== null && arg2 !== null && arg3 !== null) {
-        if (isNaN(arg1) || isNaN(arg2) || isNaN(arg3)) {
+        if (!isNumeric(arg1) || !isNumeric(arg2) || !isNumeric(arg3)) {
             sender.sendMessage(`§cInvalid coordinates: ${arg1}, ${arg2}, ${arg3}`);
             return;
         }
         simPlayer.lookLocation(makeVector3(arg1, arg2, arg3));
+    } else if (arg1 !== null && arg2 !== null && arg3 === null) {
+        if (!isNumeric(arg1) || !isNumeric(arg2)) {
+            sender.sendMessage(`§cInvalid pitch or yaw: ${arg1}, ${arg2}`);
+            return;
+        }
+        simPlayer.lookLocation(getLookAtLocation(simPlayer.simulatedPlayer.location, { x: arg1, y: arg2 }));
     } else {
         sender.sendMessage(`§cInvalid target action: ${arg1}. Expected 'block', 'entity', 'me', or coordinates.`);
+    }
+}
+
+function processLookCardinals(simulatedPlayer, direction) {
+    const directions = {
+        'up': { x: 0, y: 1, z: 0 },
+        'down': { x: 0, y: -1, z: 0 },
+        'north': { x: 0, y: 0, z: -1 },
+        'south': { x: 0, y: 0, z: 1 },
+        'east': { x: 1, y: 0, z: 0 },
+        'west': { x: -1, y: 0, z: 0 }
+    };
+    if (!directions[direction]) {
+        throw new Error(`[Understudy] Invalid look direction: ${direction}`);
+    }
+    return {x: simulatedPlayer.location.x + directions[direction].x, y: simulatedPlayer.location.y + directions[direction].y + PLAYER_EYE_HEIGHT, z: simulatedPlayer.location.z + directions[direction].z};
+}
+
+function moveAction(sender, name, arg1, arg2, arg3) {
+    if (!UnderstudyManager.isOnline(name)) {
+        sender.sendMessage(`§cPlayer ${name} is not online.`);
+        return;
+    }
+
+    const simPlayer = UnderstudyManager.getPlayer(name);
+    if (['forward', 'back', 'left', 'right'].includes(arg1)) {
+        simPlayer.moveRelative(arg1);
+    } else if (arg1 !== null && arg2 !== null && arg3 !== null && isNumeric(arg1) && isNumeric(arg2) && isNumeric(arg3)) {
+        simPlayer.moveLocation(makeVector3(arg1, arg2, arg3));
+    } else {
+        sender.sendMessage(`§cInvalid move action: ${[arg1, arg2, arg3].join(', ')}. Expected 'forward', 'back', 'left', 'right', or coordinates.`);
     }
 }

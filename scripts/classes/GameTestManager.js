@@ -87,8 +87,14 @@ class GameTestManager {
             case 'look':
                 this.targetAction(player, actionData);
                 break;
+            case 'moveLocation':
+                this.moveLocationAction(player, actionData);
+                break;
+            case 'moveRelative':
+                this.moveRelativeAction(player, actionData);
+                break;
             default:
-                player.sendMessage(`§cInvalid action for ${player.name}: ${action}`);
+                player.sendMessage(`§cInvalid action for ${player.name}: ${type}`);
                 break;
         }
     }
@@ -134,6 +140,25 @@ class GameTestManager {
         } else {
             player.simulatedPlayer.lookAtLocation(this.getRelativeCoords(actionData.location));
         }
+    }
+
+    static moveLocationAction(player, actionData) {
+        // If too far away, use multiple navigations
+        const navResult = player.simulatedPlayer.navigateToLocation(this.getRelativeCoords(actionData.location));
+        system.runTimeout(() => {
+            const simPlayerVelocity = player.simulatedPlayer.getVelocity();
+            if (simPlayerVelocity.x === 0 && simPlayerVelocity.y === 0 && simPlayerVelocity.z === 0) {
+                player.simulatedPlayer.chat(`Cannot not reach location!`);
+            }
+        }, 1);
+    }
+
+    static moveRelativeAction(player, actionData) {
+        const direction = actionData.direction;
+        if (direction === 'forward') player.simulatedPlayer.moveRelative(0, 1);
+        else if (direction === 'back') player.simulatedPlayer.moveRelative(0, -1);
+        else if (direction === 'left') player.simulatedPlayer.moveRelative(1, 0);
+        else if (direction === 'right') player.simulatedPlayer.moveRelative(-1, 0);
     }
 
     static getRelativeCoords(location) {

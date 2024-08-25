@@ -1,3 +1,5 @@
+const PLAYER_EYE_HEIGHT = 1.62001002;
+
 function stringifyLocation(location, precision = 2) {
     return '[' + location.x.toFixed(precision) + ' ' + location.y.toFixed(precision) + ' ' + location.z.toFixed(precision) + ']';
 }
@@ -14,18 +16,17 @@ function makeVector3(x, y, z) {
 }
 
 function getLookAtLocation(location, rotation) {
-    const eyeHeight = 1.62001002;
     const pitch = rotation.x;
     const yaw = rotation.y + 90;
     const xz = Math.cos(pitch * Math.PI / 180);
     const x = xz * Math.cos(yaw * Math.PI / 180);
     const y = Math.sin(-pitch * Math.PI / 180);
     const z = xz * Math.sin(yaw * Math.PI / 180);
-    return { x: location.x + x, y: location.y + y + eyeHeight, z: location.z + z };
+    return { x: location.x + x, y: location.y + y + PLAYER_EYE_HEIGHT, z: location.z + z };
 }
 
 function isNumeric(value) {
     return !isNaN(parseFloat(value)) && isFinite(value);
 }
 
-export { stringifyLocation, subtractVectors, makeVector3, getLookAtLocation, isNumeric };
+export { PLAYER_EYE_HEIGHT, stringifyLocation, subtractVectors, makeVector3, getLookAtLocation, isNumeric };

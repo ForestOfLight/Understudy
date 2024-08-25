@@ -96,6 +96,16 @@ class Understudy {
         this.target = target;
         this.nextActions.push(actionData);
     }
+
+    moveLocation(location) {
+        const actionData = { type: 'moveLocation', location: location };
+        this.nextActions.push(actionData);
+    }
+
+    moveRelative(direction) {
+        const actionData = { type: 'moveRelative', direction: direction };
+        this.nextActions.push(actionData);
+    }
 }
 
 export default Understudy;
