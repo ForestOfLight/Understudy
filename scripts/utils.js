@@ -16,12 +16,13 @@ function makeVector3(x, y, z) {
 }
 
 function getLookAtLocation(location, rotation) {
+    const extraDistance = 1000;
     const pitch = rotation.x;
     const yaw = rotation.y + 90;
     const xz = Math.cos(pitch * Math.PI / 180);
-    const x = xz * Math.cos(yaw * Math.PI / 180);
+    const x = xz * Math.cos(yaw * Math.PI / 180) * extraDistance;
     const y = Math.sin(-pitch * Math.PI / 180);
-    const z = xz * Math.sin(yaw * Math.PI / 180);
+    const z = xz * Math.sin(yaw * Math.PI / 180) * extraDistance;
     return { x: location.x + x, y: location.y + y + PLAYER_EYE_HEIGHT, z: location.z + z };
 }
 

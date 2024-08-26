@@ -85,13 +85,22 @@ class GameTestManager {
                 this.tpAction(player, actionData);
                 break;
             case 'look':
-                this.targetAction(player, actionData);
+                this.lookAction(player, actionData);
                 break;
             case 'moveLocation':
                 this.moveLocationAction(player, actionData);
                 break;
             case 'moveRelative':
                 this.moveRelativeAction(player, actionData);
+                break;
+            case 'dropSelected':
+                this.dropSelectedAction(player);
+                break;
+            case 'claimProjectiles':
+                this.claimprojectilesAction(player);
+                break;
+            case 'stopAll':
+                this.stopAllAction(player);
                 break;
             default:
                 player.sendMessage(`§cInvalid action for ${player.name}: ${type}`);
@@ -129,7 +138,7 @@ class GameTestManager {
         player.simulatedPlayer.lookAtLocation(this.getRelativeCoords(getLookAtLocation(actionData.location, actionData.rotation)));
     }
 
-    static targetAction(player, actionData) {
+    static lookAction(player, actionData) {
         if (actionData.entityId !== undefined) {
             const target = world.getEntity(actionData.entityId);
             if (target === undefined)
@@ -143,12 +152,20 @@ class GameTestManager {
     }
 
     static moveLocationAction(player, actionData) {
-        // If too far away, use multiple navigations
-        const navResult = player.simulatedPlayer.navigateToLocation(this.getRelativeCoords(actionData.location));
+        if (actionData.entityId !== undefined) {
+            const target = world.getEntity(actionData.entityId);
+            if (target === undefined)
+                throw new Error(`[Understudy] Entity with ID ${actionData.entityId} not found`);
+            player.simulatedPlayer.navigateToEntity(target);
+        } else if (actionData.blockPos !== undefined) {
+            player.simulatedPlayer.navigateToBlock(this.getRelativeCoords(actionData.blockPos));
+        } else {
+            player.simulatedPlayer.navigateToLocation(this.getRelativeCoords(actionData.location));
+        }
         system.runTimeout(() => {
             const simPlayerVelocity = player.simulatedPlayer.getVelocity();
             if (simPlayerVelocity.x === 0 && simPlayerVelocity.y === 0 && simPlayerVelocity.z === 0) {
-                player.simulatedPlayer.chat(`Cannot not reach location!`);
+                player.simulatedPlayer.chat(`§cCannot reach location!`);
             }
         }, 1);
     }
@@ -163,6 +180,47 @@ class GameTestManager {
 
     static getRelativeCoords(location) {
         return subtractVectors(location, this.test.worldLocation({ x: 0, y: 0, z: 0 }));
+    }
+
+    static dropSelectedAction(player) {
+        player.simulatedPlayer.dropSelectedItem();
+    }
+
+    static claimprojectilesAction(player) {
+        const projectiles = this.getProjectilesInRange(player.simulatedPlayer, 25);
+        if (projectiles.length === 0)
+            return player.simulatedPlayer.chat('§7No projectiles found in range.');
+        
+        const numChanged = this.changeProjectileOwner(projectiles, player.simulatedPlayer);
+        player.simulatedPlayer.chat(`§7Successfully became the owner of ${numChanged} projectiles.`)
+    }
+
+    static getProjectilesInRange(player, radius) {
+        const radiusProjectiles = new Array();
+        const radiusEntities = player.dimension.getEntities({ location: player.location, maxDistance: radius });
+        for (const entity of radiusEntities) {
+            if (entity?.hasComponent('minecraft:projectile'))
+                radiusProjectiles.push(entity);
+        }
+        return radiusProjectiles;
+    }
+
+    static changeProjectileOwner(projectiles, owner) {
+        for (const projectile of projectiles) {
+            if (!projectile)
+                continue;
+            projectile.getComponent('minecraft:projectile').owner = owner;
+        }
+        return projectiles.length;
+    }
+    
+    static stopAllAction(player) {
+        player.simulatedPlayer.stopMoving();
+        player.simulatedPlayer.stopBuild();
+        player.simulatedPlayer.stopInteracting();
+        player.simulatedPlayer.stopUsingItem();
+        player.simulatedPlayer.stopSwimming();
+        player.simulatedPlayer.stopGliding();
     }
 }
 

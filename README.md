@@ -32,3 +32,15 @@ Respawn the player with the given name.
 
 **Usage: `./player <name> look [up/down/noth/south/east/west/block/entity/me/x y z/pitch yaw]`**  
 Make the player with the given name look at the specified target. "up", "down", "north", "south", "east", "west" will make the player look in different cardinal directions. "block" and "entity" will make the player look at the block or entity you are looking at. "me" will make the player look at you. "x y z" will make the player look at the specified coordinates. "pitch yaw" will make the player look at the specified pitch and yaw (in degrees).
+
+**Usage: `./player <name> move [forward/back/left/right/block/entity/me/x y z]`**  
+Make the player with the given name move in the specified direction or (navigate) to the specified location. "forward", "back", "left", "right" will make the player move continuously relative to the direction they are facing. "block" and "entity" will make the player move towards the block or entity you are looking at. "me" will make the player move towards you. "x y z" will make the player move towards the specified coordinates. This uses Minecraft's normal pathfinding system, so the player won't be able to navigate very far very far at once.
+
+**Usage: `./player <name> drop`**  
+Make the player with the given name drop their selected item.
+
+**Usage: `./player <name> claimprojectiles`**  
+Make the player with the given name become the owner of all projectiles within a 25 block radius.
+
+**Usage: `./player <name> stop`**  
+Stop all actions the player with the given name is doing.

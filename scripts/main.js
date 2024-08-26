@@ -29,7 +29,11 @@ const commandPlayerCommand = new Command({
         { usage: `player <name> rejoin`, description: `Make a player rejoin at its last location.` },
         { usage: `player <name> respawn`, description: `Make a player respawn after dying.` },
         { usage: `player <name> tp`, description: `Make a player teleport to you.` },
-        { usage: `player <name> look [up/down/north/south/east/west/block/entity/me/x y z/pitch yaw]`, description: `Make a player look in specified directions.` }
+        { usage: `player <name> look [up/down/north/south/east/west/block/entity/me/x y z/pitch yaw]`, description: `Make a player look in specified directions.` },
+        { usage: `player <name> move [forward/back/left/right/block/entity/me/x y z]`, description: `Make a player move in specified directions.` },
+        { usage: `player <name> drop`, description: `Make a player drop the item their selected item.` },
+        { usage: `player <name> claimprojectiles`, description: `Make a player claim all projectiles within a 25 block radius.` },
+        { usage: `player <name> stop`, description: `Stop all actions for a player.` },
     ]
 })
 extension.addCommand(commandPlayerCommand);
@@ -77,6 +81,15 @@ function playerCommand(sender, args) {
             break;
         case 'move':
             moveAction(sender, name, arg1, arg2, arg3);
+            break;
+        case 'drop':
+            dropAction(sender, name);
+            break;
+        case 'claimprojectiles':
+            claimProjectilesAction(sender, name);
+            break;
+        case 'stop':
+            stopAction(sender, name);
             break;
         default:
             sender.sendMessage(`§cInvalid action: ${action}`);
@@ -174,7 +187,7 @@ function lookAction(sender, name, arg1, arg2, arg3) {
         }
         simPlayer.lookLocation(getLookAtLocation(simPlayer.simulatedPlayer.location, { x: arg1, y: arg2 }));
     } else {
-        sender.sendMessage(`§cInvalid target action: ${arg1}. Expected 'block', 'entity', 'me', or coordinates.`);
+        sender.sendMessage(`§cInvalid target action: ${arg1}. Expected 'up', 'down', 'north', 'south', 'east', 'west', 'block', 'entity', 'me', coordinates, or pitch and yaw.`);
     }
 }
 
@@ -200,11 +213,57 @@ function moveAction(sender, name, arg1, arg2, arg3) {
     }
 
     const simPlayer = UnderstudyManager.getPlayer(name);
-    if (['forward', 'back', 'left', 'right'].includes(arg1)) {
+    if (arg1 === 'me') {
+        simPlayer.moveLocation(sender);
+    } else if (['forward', 'back', 'left', 'right'].includes(arg1)) {
         simPlayer.moveRelative(arg1);
+    } else if (arg1 === 'block') {
+        const block = sender.getBlockFromViewDirection({ maxDistance: 16*64 })?.block;
+        if (block === undefined) {
+            sender.sendMessage(`§cNo block in view.`);
+            return;
+        }
+        simPlayer.moveLocation(block);
+    } else if (arg1 === 'entity') {
+        const entity = sender.getEntitiesFromViewDirection({ maxDistance: 16*64 })[0]?.entity;
+        if (entity === undefined) {
+            sender.sendMessage(`§cNo entity in view.`);
+            return;
+        }
+        simPlayer.moveLocation(entity);
     } else if (arg1 !== null && arg2 !== null && arg3 !== null && isNumeric(arg1) && isNumeric(arg2) && isNumeric(arg3)) {
         simPlayer.moveLocation(makeVector3(arg1, arg2, arg3));
     } else {
-        sender.sendMessage(`§cInvalid move action: ${[arg1, arg2, arg3].join(', ')}. Expected 'forward', 'back', 'left', 'right', or coordinates.`);
+        sender.sendMessage(`§cInvalid move action: ${[arg1, arg2, arg3].join(', ')}. Expected 'forward', 'back', 'left', 'right', 'block', 'entity', 'me', or coordinates.`);
     }
+}
+
+function dropAction(sender, name) {
+    if (!UnderstudyManager.isOnline(name)) {
+        sender.sendMessage(`§cPlayer ${name} is not online.`);
+        return;
+    }
+
+    const simPlayer = UnderstudyManager.getPlayer(name);
+    simPlayer.dropSelected();
+}
+
+function claimProjectilesAction(sender, name) {
+    if (!UnderstudyManager.isOnline(name)) {
+        sender.sendMessage(`§cPlayer ${name} is not online.`);
+        return;
+    }
+
+    const simPlayer = UnderstudyManager.getPlayer(name);
+    simPlayer.claimProjectiles();
+}
+
+function stopAction(sender, name) {
+    if (!UnderstudyManager.isOnline(name)) {
+        sender.sendMessage(`§cPlayer ${name} is not online.`);
+        return;
+    }
+
+    const simPlayer = UnderstudyManager.getPlayer(name);
+    simPlayer.stopAll();
 }

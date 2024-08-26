@@ -7,7 +7,17 @@ class Understudy {
         this.simulatedPlayer = null;
         this.nextActions = [];
         this.continuousActions = [];
-        this.target = null;
+    }
+
+    savePlayerInfo({ location, rotation, dimensionId, gameMode } = {}) {
+        // save inventory?
+        const playerInfo = { 
+            location: location || this.simulatedPlayer.location, 
+            rotation: rotation || this.simulatedPlayer.headRotation, 
+            dimensionId: dimensionId || this.simulatedPlayer.dimension.id, 
+            gameMode: gameMode || this.simulatedPlayer.getGameMode() 
+        };
+        world.setDynamicProperty(`${this.name}:playerinfo`, JSON.stringify(playerInfo));
     }
 
     join(location, rotation, dimensionId, gameMode) {
@@ -19,26 +29,13 @@ class Understudy {
             gameMode: gameMode 
         };
         this.nextActions.push(actionData);
-        const playerInfo = { 
-            location: location, 
-            rotation: rotation, 
-            dimensionId: dimensionId, 
-            gameMode: gameMode
-        };
-        world.setDynamicProperty(`${this.name}:playerinfo`, JSON.stringify(playerInfo));
+        this.savePlayerInfo(actionData);
     }
 
     leave() {
         const actionData = { type: 'leave' };
         this.nextActions.push(actionData);
-        const playerInfo = { 
-            location: this.simulatedPlayer.location, 
-            rotation: this.simulatedPlayer.headRotation, 
-            dimensionId: this.simulatedPlayer.dimension.id, 
-            gameMode: this.simulatedPlayer.getGameMode() 
-        };
-        world.setDynamicProperty(`${this.name}:playerinfo`, JSON.stringify(playerInfo));
-        // save inventory?
+        this.savePlayerInfo();
     }
 
     rejoin() {
@@ -80,10 +77,11 @@ class Understudy {
             rotation 
         };
         this.nextActions.push(actionData);
+        this.savePlayerInfo(actionData);
     }
 
     lookLocation(target) {
-        let actionData = { type: 'look' };
+        const actionData = { type: 'look' };
         if (target instanceof Block) {
             actionData.blockPos = target?.location;
         } else if (target instanceof Entity) {
@@ -93,18 +91,42 @@ class Understudy {
         }
         if (actionData.location === undefined && actionData.entityId === undefined && actionData.blockPos === undefined)
             throw new Error(`[Understudy] Invalid target provided for ${this.name}`);
-        this.target = target;
         this.nextActions.push(actionData);
     }
 
-    moveLocation(location) {
-        const actionData = { type: 'moveLocation', location: location };
+    moveLocation(target) {
+        const actionData = { type: 'moveLocation' };
+        if (target instanceof Block) {
+            actionData.blockPos = target?.location;
+        } else if (target instanceof Entity) {
+            actionData.entityId = target?.id;
+        } else {
+            actionData.location = target;
+        }
+        if (actionData.location === undefined && actionData.entityId === undefined && actionData.blockPos === undefined)
+            throw new Error(`[Understudy] Invalid target provided for ${this.name}`);
         this.nextActions.push(actionData);
     }
 
     moveRelative(direction) {
         const actionData = { type: 'moveRelative', direction: direction };
         this.nextActions.push(actionData);
+    }
+
+    dropSelected() {
+        const actionData = { type: 'dropSelected' };
+        this.nextActions.push(actionData);
+    }
+
+    claimProjectiles() {
+        const actionData = { type: 'claimProjectiles' };
+        this.nextActions.push(actionData);
+    }
+
+    stopAll() {
+        const actionData = { type: 'stopAll' };
+        this.nextActions.push(actionData);
+        this.savePlayerInfo();
     }
 }
 
