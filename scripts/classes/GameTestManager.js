@@ -96,6 +96,12 @@ class GameTestManager {
             case 'attack':
                 this.attackAction(player);
                 break;
+            case 'interact':
+                this.interactAction(player);
+                break;
+            case 'build':
+                this.buildAction(player);
+                break;
             case 'break':
                 this.breakAction(player);
                 break;
@@ -134,8 +140,17 @@ class GameTestManager {
                 case 'attack':
                     this.attackAction(player);
                     break;
+                case 'interact':
+                    this.interactAction(player);
+                    break;
+                case 'build':
+                    this.buildAction(player);
+                    break;
                 case 'break':
                     this.breakAction(player);
+                    break;
+                case 'dropSelected':
+                    this.dropSelectedAction(player);
                     break;
                 case 'jump':
                     this.jumpAction(player);
@@ -219,6 +234,15 @@ class GameTestManager {
         player.simulatedPlayer.attack();
     }
 
+    static interactAction(player) {
+        player.simulatedPlayer.interact();
+    }
+
+    static buildAction(player) {
+        player.simulatedPlayer.startBuild();
+        player.simulatedPlayer.stopBuild();
+    }
+
     static breakAction(player) {
         const lookingAtLocation = player.simulatedPlayer.getBlockFromViewDirection({ maxDistance: 6 })?.block?.location;
         if (lookingAtLocation === undefined)
@@ -271,9 +295,11 @@ class GameTestManager {
         player.simulatedPlayer.stopMoving();
         player.simulatedPlayer.stopBuild();
         player.simulatedPlayer.stopInteracting();
+        player.simulatedPlayer.stopBreakingBlock();
         player.simulatedPlayer.stopUsingItem();
         player.simulatedPlayer.stopSwimming();
         player.simulatedPlayer.stopGliding();
+        player.simulatedPlayer.stopUsingItem();
         player.clearContinuousActions();
 
         this.stopHeadRotation(player);

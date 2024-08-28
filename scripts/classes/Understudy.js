@@ -168,48 +168,17 @@ class Understudy {
         this.nextActions.push(actionData);
     }
 
-    attack(isContinuous, interval) {
-        if (!isContinuous && this.hasContinuousAction('attack'))
-            this.removeContinuousAction('attack');
+    variableTimingAction(actionType, isContinuous, interval) {
+        if (!isContinuous && this.hasContinuousAction(actionType))
+            this.removeContinuousAction(actionType);
 
-        const actionData = { type: 'attack' };
+        const actionData = { type: actionType };
         if (interval)
             actionData.interval = interval;
-        if (isContinuous) {
-            this.addContinuousAction(actionData);
-        } else {
-            this.nextActions.push(actionData);
-        }
-    }
-
-    breakBlock(isContinuous) {
-        if (!isContinuous && this.hasContinuousAction('break'))
-            this.removeContinuousAction('break');
-
-        const actionData = { type: 'break' };
         if (isContinuous)
             this.addContinuousAction(actionData);
         else
             this.nextActions.push(actionData);
-    }
-
-    dropSelected() {
-        const actionData = { type: 'dropSelected' };
-        this.nextActions.push(actionData);
-    }
-
-    jump(isContinuous, interval) {
-        if (!isContinuous && this.hasContinuousAction('jump'))
-            this.removeContinuousAction('jump');
-
-        const actionData = { type: 'jump' };
-        if (interval)
-            actionData.interval = interval;
-        if (isContinuous) {
-            this.addContinuousAction(actionData);
-        } else {
-            this.nextActions.push(actionData);
-        }
     }
 
     sprint(shouldSprint) {

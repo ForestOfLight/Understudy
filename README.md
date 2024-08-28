@@ -39,11 +39,17 @@ Make the player with the given name move in the specified direction or (navigate
 **Usage: `./player <name> attack [once/continuous/interval] [intervalDuration]`**  
 Make the player with the given name attack. "once" will make the player attack once. "continuous" will make the player attack continuously. "interval" will make the player attack at regular intervals specified by the last argument. If the last two arguments are not specified, "once" is assumed.
 
-**Usage: `./player <name> break`**  
-Make the player with the given name break the block they are looking at.
+**Usage: `./player <name> interact [once/continuous/interval] [intervalDuration]`**  
+Make the player with the given name interact with the block they are looking at. "once" will make the player interact once. "continuous" will make the player interact continuously. "interval" will make the player interact at regular intervals specified by the last argument. If the last two arguments are not specified, "once" is assumed.
 
-**Usage: `./player <name> drop`**  
-Make the player with the given name drop their selected item.
+**Usage: `./player <name> build [once/continuous/interval] [intervalDuration]`**  
+Make the player with the given name place a block at the block they are looking at. "once" will make the player place a block once. "continuous" will make the player place a block continuously. "interval" will make the player place a block at regular intervals specified by the last argument. If the last two arguments are not specified, "once" is assumed.
+
+**Usage: `./player <name> break [once/continuous/interval] [intervalDuration]`**  
+Make the player with the given name break the block they are looking at. "once" will make the player break the block once. "continuous" will make the player break the block continuously. "interval" will make the player break the block at regular intervals specified by the last argument. If the last two arguments are not specified, "once" is assumed.
+
+**Usage: `./player <name> drop [once/continuous/interval] [intervalDuration]`**  
+Make the player with the given name drop their selected item. "once" will make the player drop their selected item once. "continuous" will make the player drop their selected item continuously. "interval" will make the player drop their selected item at regular intervals specified by the last argument. If the last two arguments are not specified, "once" is assumed.
 
 **Usage: `./player <name> jump [once/continuous/interval] [intervalDuration]`**  
 Make the player with the given name jump. "once" will make the player jump once. "continuous" will make the player jump continuously. "interval" will make the player attack at regular intervals specified by the last argument. If the last two arguments are not specified, "once" is assumed.
