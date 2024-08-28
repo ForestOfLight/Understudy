@@ -59,3 +59,8 @@ Make the player with the given name become the owner of all projectiles within a
 
 **Usage: `./player <name> stop`**  
 Stop all actions the player with the given name is doing.
+
+### Debug
+
+**Usage: `./resetgamerules`**  
+Resets randomtickspeed, dodaylightcycle, and domobspawning to their default values if they are disabled.
