@@ -33,6 +33,7 @@ const commandPlayerCommand = new Command({
         { usage: `player <name> look [up/down/north/south/east/west/block/entity/me/x y z/pitch yaw]`, description: `Make a player look in specified directions.` },
         { usage: `player <name> move [forward/back/left/right/block/entity/me/x y z]`, description: `Make a player move in specified directions.` },
         { usage: `player <name> attack [once/continuous/interval] [intervalDuration]`, description: `Make a player attack.` },
+        { usage: `player <name> break [once/continuous]`, description: `Make a player break a block.` },
         { usage: `player <name> drop`, description: `Make a player drop their selected item.` },
         { usage: `player <name> jump [once/continuous/interval] [intervalDuration]`, description: `Make a player jump.` },
         { usage: `player <name> sprint`, description: `Make a player sprint.` },
