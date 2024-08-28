@@ -87,6 +87,9 @@ function playerCommand(sender, args) {
         case 'move':
             moveAction(sender, name, arg1, arg2, arg3);
             break;
+        case 'attack':
+            attackAction(sender, name, arg1, arg2);
+            break;
         case 'drop':
             dropAction(sender, name);
             break;
@@ -252,6 +255,33 @@ function moveAction(sender, name, arg1, arg2, arg3) {
     }
 }
 
+function attackAction(sender, name, arg1, arg2) {
+    if (!UnderstudyManager.isOnline(name)) {
+        sender.sendMessage(`§cPlayer ${name} is not online.`);
+        return;
+    }
+
+    let isContinuous = false;
+    if (['once', 'continuous', 'interval', null].includes(arg1)) {
+        isContinuous = arg1 === 'continuous';
+    } else {
+        sender.sendMessage(`§cInvalid attack action: ${arg1}. Expected 'once', 'continuous' or 'interval'.`);
+        return;
+    }
+
+    let intervalDuration = 0;
+    if (arg1 === 'interval' && isNumeric(arg2)) {
+        isContinuous = true;
+        intervalDuration = arg2;
+    } else {
+        sender.sendMessage(`§cInvalid interval duration: ${arg2}. Expected a number.`);
+        return;
+    }
+
+    const simPlayer = UnderstudyManager.getPlayer(name);
+    simPlayer.attack(isContinuous, intervalDuration);
+}
+
 function dropAction(sender, name) {
     if (!UnderstudyManager.isOnline(name)) {
         sender.sendMessage(`§cPlayer ${name} is not online.`);
@@ -281,7 +311,8 @@ function jumpAction(sender, name, arg1, arg2) {
         isContinuous = true;
         intervalDuration = arg2;
     } else {
-        intervalDuration = 0;
+        sender.sendMessage(`§cInvalid interval duration: ${arg2}. Expected a number.`);
+        return;
     }
     
     const simPlayer = UnderstudyManager.getPlayer(name);

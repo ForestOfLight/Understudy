@@ -36,14 +36,14 @@ Make the player with the given name look at the specified target. "up", "down", 
 **Usage: `./player <name> move [forward/back/left/right/block/entity/me/x y z]`**  
 Make the player with the given name move in the specified direction or (navigate) to the specified location. "forward", "back", "left", "right" will make the player move continuously relative to the direction they are facing. "block" and "entity" will make the player move towards the block or entity you are looking at. "me" will make the player move towards you. "x y z" will make the player move towards the specified coordinates. This uses Minecraft's normal pathfinding system, so the player won't be able to navigate very far very far at once.
 
-<!-- **Usage: `./player <name> attack [once/continuous/interval] [intervalDuration]`**  
-Make the player with the given name attack. "once" will make the player attack once. "continuous" will make the player attack continuously. "interval" will make the player attack at regular intervals specified by the last argument. -->
+**Usage: `./player <name> attack [once/continuous/interval] [intervalDuration]`**  
+Make the player with the given name attack. "once" will make the player attack once. "continuous" will make the player attack continuously. "interval" will make the player attack at regular intervals specified by the last argument. If the last two arguments are not specified, "once" is assumed.
 
 **Usage: `./player <name> drop`**  
 Make the player with the given name drop their selected item.
 
-**Usage: `./player <name> jump [once/continuous]`**  
-Make the player with the given name jump. "once" will make the player jump once. "continuous" will make the player jump continuously. If the last argument is not specified, "once" is assumed.
+**Usage: `./player <name> jump [once/continuous/interval] [intervalDuration]`**  
+Make the player with the given name jump. "once" will make the player jump once. "continuous" will make the player jump continuously. "interval" will make the player attack at regular intervals specified by the last argument. If the last two arguments are not specified, "once" is assumed.
 
 **Usage: `./player <name> sprint`**  
 Make the player with the given name sprint.

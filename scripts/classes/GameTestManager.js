@@ -94,6 +94,9 @@ class GameTestManager {
             case 'moveRelative':
                 this.moveRelativeAction(player, actionData);
                 break;
+            case 'attack':
+                this.attackAction(player);
+                break;
             case 'dropSelected':
                 this.dropSelectedAction(player);
                 break;
@@ -126,6 +129,9 @@ class GameTestManager {
                 continue;
 
             switch (type) {
+                case 'attack':
+                    this.attackAction(player);
+                    break;
                 case 'jump':
                     this.jumpAction(player);
                     break;
@@ -202,6 +208,10 @@ class GameTestManager {
 
     static getRelativeCoords(location) {
         return subtractVectors(location, this.test.worldLocation({ x: 0, y: 0, z: 0 }));
+    }
+
+    static attackAction(player) {
+        player.simulatedPlayer.attack();
     }
 
     static dropSelectedAction(player) {

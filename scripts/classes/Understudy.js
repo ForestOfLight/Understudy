@@ -168,6 +168,20 @@ class Understudy {
         this.nextActions.push(actionData);
     }
 
+    attack(isContinuous, interval) {
+        if (!isContinuous && this.hasContinuousAction('attack'))
+            this.removeContinuousAction('attack');
+
+        const actionData = { type: 'attack' };
+        if (interval)
+            actionData.interval = interval;
+        if (isContinuous) {
+            this.addContinuousAction(actionData);
+        } else {
+            this.nextActions.push(actionData);
+        }
+    }
+
     dropSelected() {
         const actionData = { type: 'dropSelected' };
         this.nextActions.push(actionData);
