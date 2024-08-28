@@ -32,8 +32,9 @@ const commandPlayerCommand = new Command({
         { usage: `player <name> tp`, description: `Make a player teleport to you.` },
         { usage: `player <name> look [up/down/north/south/east/west/block/entity/me/x y z/pitch yaw]`, description: `Make a player look in specified directions.` },
         { usage: `player <name> move [forward/back/left/right/block/entity/me/x y z]`, description: `Make a player move in specified directions.` },
+        { usage: `player <name> attack [once/continuous/interval] [intervalDuration]`, description: `Make a player attack.` },
         { usage: `player <name> drop`, description: `Make a player drop their selected item.` },
-        { usage: `player <name> jump [once/continuous]`, description: `Make a player jump.` },
+        { usage: `player <name> jump [once/continuous/interval] [intervalDuration]`, description: `Make a player jump.` },
         { usage: `player <name> sprint`, description: `Make a player sprint.` },
         { usage: `player <name> unsprint`, description: `Make a player stop sprinting.` },
         { usage: `player <name> claimprojectiles [radius]`, description: `Make a player the owner of all projectiles within a radius.` },
@@ -90,7 +91,7 @@ function playerCommand(sender, args) {
             dropAction(sender, name);
             break;
         case 'jump':
-            jumpAction(sender, name, arg1);
+            jumpAction(sender, name, arg1, arg2);
             break;
         case 'sprint':
             sprintAction(sender, name);
@@ -261,22 +262,30 @@ function dropAction(sender, name) {
     simPlayer.dropSelected();
 }
 
-function jumpAction(sender, name, arg1) {
+function jumpAction(sender, name, arg1, arg2) {
     if (!UnderstudyManager.isOnline(name)) {
         sender.sendMessage(`§cPlayer ${name} is not online.`);
         return;
     }
 
     let isContinuous = false;
-    if (['once', 'continuous', null].includes(arg1)) {
+    if (['once', 'continuous', 'interval', null].includes(arg1)) {
         isContinuous = arg1 === 'continuous';
     } else {
-        sender.sendMessage(`§cInvalid jump action: ${arg1}. Expected 'once' or 'continuous'.`);
+        sender.sendMessage(`§cInvalid jump action: ${arg1}. Expected 'once', 'continuous' or 'interval'.`);
         return;
+    }
+
+    let intervalDuration = 0;
+    if (arg1 === 'interval' && isNumeric(arg2)) {
+        isContinuous = true;
+        intervalDuration = arg2;
+    } else {
+        intervalDuration = 0;
     }
     
     const simPlayer = UnderstudyManager.getPlayer(name);
-    simPlayer.jump(isContinuous);
+    simPlayer.jump(isContinuous, intervalDuration);
 }
 
 function sprintAction(sender, name) {

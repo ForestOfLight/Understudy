@@ -1,5 +1,5 @@
 import { Block, Entity, Player, world } from "@minecraft/server";
-import { getLookAtRotation } from "utils";
+import { getLookAtRotation, isNumeric } from "utils";
 
 class Understudy {
     #lookTarget;
@@ -46,6 +46,19 @@ class Understudy {
     onTick() {
         if (this.#lookTarget === undefined)
             this.removeLookTarget();
+    }
+
+    addContinuousAction(actionData) {
+        if (!this.hasContinuousAction(actionData.type)) {
+            this.continuousActions.push(actionData);
+            return;
+        }
+        const action = this.continuousActions.find(action => action.type === actionData.type) || actionData;
+        if (isNumeric(actionData.interval)) {
+            action.interval = actionData.interval;
+        } else {
+            action.interval = undefined;
+        }
     }
 
     hasContinuousAction(actionType) {
@@ -160,15 +173,18 @@ class Understudy {
         this.nextActions.push(actionData);
     }
 
-    jump(isContinuous) {
+    jump(isContinuous, interval) {
         if (!isContinuous && this.hasContinuousAction('jump'))
             this.removeContinuousAction('jump');
 
         const actionData = { type: 'jump' };
-        if (isContinuous)
-            this.continuousActions.push(actionData);
-        else
+        if (interval)
+            actionData.interval = interval;
+        if (isContinuous) {
+            this.addContinuousAction(actionData);
+        } else {
             this.nextActions.push(actionData);
+        }
     }
 
     sprint(shouldSprint) {

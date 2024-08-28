@@ -61,6 +61,7 @@ class GameTestManager {
                     this.runNextActions(player);
                 }
                 if (player.continuousActions.length > 0) {
+                    console.warn(`[Understudy] Running continuous actions for ${player.name}: ${JSON.stringify(player.continuousActions)}`);
                     this.runContinuousActions(player);
                 }
             }
@@ -121,6 +122,8 @@ class GameTestManager {
             if (player.simulatedPlayer === null) 
                 return;
             const type = actionData.type
+            if (actionData.interval !== undefined && system.currentTick % actionData.interval !== 0)
+                continue;
 
             switch (type) {
                 case 'jump':
