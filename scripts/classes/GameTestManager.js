@@ -1,7 +1,7 @@
 import extension from 'config';
 import UnderstudyManager from 'classes/UnderstudyManager';
 import * as gametest from '@minecraft/server-gametest';
-import { system, world } from '@minecraft/server';
+import { system, world, Block, Entity, Player } from '@minecraft/server';
 import { subtractVectors, getLookAtLocation } from 'utils';
 
 const TEST_MAX_TICKS = 630720000; // 1 year
@@ -96,23 +96,38 @@ class GameTestManager {
             case 'dropSelected':
                 this.dropSelectedAction(player);
                 break;
+            case 'jump':
+                this.jumpAction(player);
+                break;
             case 'claimProjectiles':
-                this.claimprojectilesAction(player);
+                this.claimprojectilesAction(player, actionData);
                 break;
             case 'stopAll':
                 this.stopAllAction(player);
                 break;
             default:
-                player.sendMessage(`§cInvalid action for ${player.name}: ${type}`);
+                console.warn(`[Understudy] Invalid action for ${player.name}: ${type}`);
                 break;
         }
     }
 
     static runContinuousActions(player) {
-        const actionData = player.continuousActions.shift();
-        const type = actionData.type
+        player.onTick();
 
-        switch (type) {}
+        for (const actionData of player.continuousActions) {
+            if (player.simulatedPlayer === null) 
+                return;
+            const type = actionData.type
+
+            switch (type) {
+                case 'jump':
+                    this.jumpAction(player);
+                    break;
+                default:
+                    console.warn(`[Understudy] Invalid continuous action for ${player.name}: ${type}`);
+                    break;
+            }
+        }
     }
 
     static joinAction(player, actionData) {
@@ -126,6 +141,7 @@ class GameTestManager {
         world.sendMessage(`§e${player.name} left the game`);
         player.simulatedPlayer = null;
         player.isConnected = false;
+        player.removeLookTarget();
     }
 
     static respawnAction(player, actionData) {
@@ -134,7 +150,7 @@ class GameTestManager {
     }
 
     static tpAction(player, actionData) {
-        player.simulatedPlayer.teleport(actionData.location, { rotation: actionData.rotation, dimension: world.getDimension(actionData.dimensionId) });
+        player.simulatedPlayer.teleport(actionData.location, { dimension: world.getDimension(actionData.dimensionId) });
         player.simulatedPlayer.lookAtLocation(this.getRelativeCoords(getLookAtLocation(actionData.location, actionData.rotation)));
     }
 
@@ -165,7 +181,7 @@ class GameTestManager {
         system.runTimeout(() => {
             const simPlayerVelocity = player.simulatedPlayer.getVelocity();
             if (simPlayerVelocity.x === 0 && simPlayerVelocity.y === 0 && simPlayerVelocity.z === 0) {
-                player.simulatedPlayer.chat(`§cCannot reach location!`);
+                player.simulatedPlayer.chat(`§7Location is too far away.`);
             }
         }, 1);
     }
@@ -173,7 +189,7 @@ class GameTestManager {
     static moveRelativeAction(player, actionData) {
         const direction = actionData.direction;
         if (direction === 'forward') player.simulatedPlayer.moveRelative(0, 1);
-        else if (direction === 'back') player.simulatedPlayer.moveRelative(0, -1);
+        else if (direction === 'backward') player.simulatedPlayer.moveRelative(0, -1);
         else if (direction === 'left') player.simulatedPlayer.moveRelative(1, 0);
         else if (direction === 'right') player.simulatedPlayer.moveRelative(-1, 0);
     }
@@ -186,13 +202,17 @@ class GameTestManager {
         player.simulatedPlayer.dropSelectedItem();
     }
 
-    static claimprojectilesAction(player) {
-        const projectiles = this.getProjectilesInRange(player.simulatedPlayer, 25);
+    static jumpAction(player) {
+        player.simulatedPlayer.jump();
+    }
+
+    static claimprojectilesAction(player, actionData) {
+        const projectiles = this.getProjectilesInRange(player.simulatedPlayer, actionData.radius);
         if (projectiles.length === 0)
-            return player.simulatedPlayer.chat('§7No projectiles found in range.');
+            return player.simulatedPlayer.chat(`§7No projectiles found within ${actionData.radius} blocks.`);
         
         const numChanged = this.changeProjectileOwner(projectiles, player.simulatedPlayer);
-        player.simulatedPlayer.chat(`§7Successfully became the owner of ${numChanged} projectiles.`)
+        player.simulatedPlayer.chat(`§7Successfully became the owner of ${numChanged} projectiles.`);
     }
 
     static getProjectilesInRange(player, radius) {
@@ -221,6 +241,23 @@ class GameTestManager {
         player.simulatedPlayer.stopUsingItem();
         player.simulatedPlayer.stopSwimming();
         player.simulatedPlayer.stopGliding();
+        player.clearContinuousActions();
+
+        this.stopHeadRotation(player);
+    }
+
+    static stopHeadRotation(player) {
+        const target = player.getLookTarget();
+        if (target === null) return;
+        player.removeLookTarget();
+        if (target instanceof Player)
+            this.lookAction(player, { type: 'look', location: target.getHeadLocation() });
+        else if (target instanceof Entity)
+            this.lookAction(player, { type: 'look', location: target.location });
+        else if (target instanceof Block)
+            this.lookAction(player, { type: 'look', blockPos: target.location });
+        else
+            this.lookAction(player, { type: 'look', location: target });
     }
 }
 

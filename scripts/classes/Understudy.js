@@ -1,23 +1,63 @@
-import { Block, Entity, world } from "@minecraft/server";
+import { Block, Entity, Player, world } from "@minecraft/server";
+import { getLookAtRotation } from "utils";
 
 class Understudy {
+    #lookTarget;
+
     constructor(name) {
         this.name = name;
         this.isConnected = false;
         this.simulatedPlayer = null;
         this.nextActions = [];
         this.continuousActions = [];
+        this.#lookTarget = null;
+    }
+
+    getLookTarget() {
+        return this.#lookTarget;
+    }
+
+    removeLookTarget() {
+        this.#lookTarget = null;
+    }
+
+    getHeadRotation() {
+        if (this.#lookTarget === null) 
+            return this.simulatedPlayer.headRotation;
+        let targetLocation;
+        if (this.#lookTarget instanceof Player)
+            targetLocation = this.#lookTarget.getHeadLocation();
+        else
+            targetLocation = this.#lookTarget.location;
+        return getLookAtRotation(this.simulatedPlayer.location, targetLocation);
     }
 
     savePlayerInfo({ location, rotation, dimensionId, gameMode } = {}) {
         // save inventory?
         const playerInfo = { 
             location: location || this.simulatedPlayer.location, 
-            rotation: rotation || this.simulatedPlayer.headRotation, 
+            rotation: rotation || this.getHeadRotation(), 
             dimensionId: dimensionId || this.simulatedPlayer.dimension.id, 
             gameMode: gameMode || this.simulatedPlayer.getGameMode() 
         };
         world.setDynamicProperty(`${this.name}:playerinfo`, JSON.stringify(playerInfo));
+    }
+
+    onTick() {
+        if (this.#lookTarget === undefined)
+            this.removeLookTarget();
+    }
+
+    hasContinuousAction(actionType) {
+        return this.continuousActions.some(action => action.type === actionType);
+    }
+
+    removeContinuousAction(actionType) {
+        this.continuousActions = this.continuousActions.filter(action => action.type !== actionType);
+    }
+
+    clearContinuousActions() {
+        this.continuousActions = [];
     }
 
     join(location, rotation, dimensionId, gameMode) {
@@ -33,9 +73,9 @@ class Understudy {
     }
 
     leave() {
+        this.savePlayerInfo();
         const actionData = { type: 'leave' };
         this.nextActions.push(actionData);
-        this.savePlayerInfo();
     }
 
     rejoin() {
@@ -84,8 +124,10 @@ class Understudy {
         const actionData = { type: 'look' };
         if (target instanceof Block) {
             actionData.blockPos = target?.location;
+            this.#lookTarget = target;
         } else if (target instanceof Entity) {
             actionData.entityId = target?.id;
+            this.#lookTarget = target;
         } else {
             actionData.location = target;
         }
@@ -118,8 +160,19 @@ class Understudy {
         this.nextActions.push(actionData);
     }
 
-    claimProjectiles() {
-        const actionData = { type: 'claimProjectiles' };
+    jump(isContinuous) {
+        if (!isContinuous && this.hasContinuousAction('jump'))
+            this.removeContinuousAction('jump');
+
+        const actionData = { type: 'jump' };
+        if (isContinuous)
+            this.continuousActions.push(actionData);
+        else
+            this.nextActions.push(actionData);
+    }
+
+    claimProjectiles(radius) {
+        const actionData = { type: 'claimProjectiles', radius: radius };
         this.nextActions.push(actionData);
     }
 

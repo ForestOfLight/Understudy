@@ -3,6 +3,7 @@ import extension from 'config';
 import 'setup';
 import UnderstudyManager from 'classes/UnderstudyManager';
 import { makeVector3, isNumeric, PLAYER_EYE_HEIGHT, getLookAtLocation } from 'utils';
+import { world } from '@minecraft/server';
 
 const commandPlayerRule = new Rule({
     identifier: 'commandPlayer',
@@ -31,8 +32,9 @@ const commandPlayerCommand = new Command({
         { usage: `player <name> tp`, description: `Make a player teleport to you.` },
         { usage: `player <name> look [up/down/north/south/east/west/block/entity/me/x y z/pitch yaw]`, description: `Make a player look in specified directions.` },
         { usage: `player <name> move [forward/back/left/right/block/entity/me/x y z]`, description: `Make a player move in specified directions.` },
-        { usage: `player <name> drop`, description: `Make a player drop the item their selected item.` },
-        { usage: `player <name> claimprojectiles`, description: `Make a player claim all projectiles within a 25 block radius.` },
+        { usage: `player <name> drop`, description: `Make a player drop their selected item.` },
+        { usage: `player <name> jump [once/continuous]`, description: `Make a player jump.` },
+        { usage: `player <name> claimprojectiles [radius]`, description: `Make a player the owner of all projectiles within a radius.` },
         { usage: `player <name> stop`, description: `Stop all actions for a player.` },
     ]
 })
@@ -85,8 +87,11 @@ function playerCommand(sender, args) {
         case 'drop':
             dropAction(sender, name);
             break;
+        case 'jump':
+            jumpAction(sender, name, arg1);
+            break;
         case 'claimprojectiles':
-            claimProjectilesAction(sender, name);
+            claimProjectilesAction(sender, name, arg1);
             break;
         case 'stop':
             stopAction(sender, name);
@@ -98,7 +103,7 @@ function playerCommand(sender, args) {
 }
 
 function joinAction(sender, name) {
-    if (UnderstudyManager.isOnline(name)) {
+    if (UnderstudyManager.isOnline(name) || world.getPlayers({ name }).length > 0) {
         sender.sendMessage(`§cPlayer ${name} is already online.`);
         return;
     }
@@ -215,7 +220,7 @@ function moveAction(sender, name, arg1, arg2, arg3) {
     const simPlayer = UnderstudyManager.getPlayer(name);
     if (arg1 === 'me') {
         simPlayer.moveLocation(sender);
-    } else if (['forward', 'back', 'left', 'right'].includes(arg1)) {
+    } else if (['forward', 'backward', 'left', 'right'].includes(arg1)) {
         simPlayer.moveRelative(arg1);
     } else if (arg1 === 'block') {
         const block = sender.getBlockFromViewDirection({ maxDistance: 16*64 })?.block;
@@ -248,14 +253,35 @@ function dropAction(sender, name) {
     simPlayer.dropSelected();
 }
 
-function claimProjectilesAction(sender, name) {
+function jumpAction(sender, name, arg1) {
     if (!UnderstudyManager.isOnline(name)) {
         sender.sendMessage(`§cPlayer ${name} is not online.`);
         return;
     }
 
+    let isContinuous = false;
+    if (['once', 'continuous', null].includes(arg1)) {
+        isContinuous = arg1 === 'continuous';
+    } else {
+        sender.sendMessage(`§cInvalid jump action: ${arg1}. Expected 'once' or 'continuous'.`);
+        return;
+    }
+    
     const simPlayer = UnderstudyManager.getPlayer(name);
-    simPlayer.claimProjectiles();
+    simPlayer.jump(isContinuous);
+}
+
+function claimProjectilesAction(sender, name, arg1) {
+    if (!UnderstudyManager.isOnline(name)) {
+        sender.sendMessage(`§cPlayer ${name} is not online.`);
+        return;
+    }
+
+    let radius = 25;
+    if (isNumeric(arg1))
+        radius = arg1; 
+    const simPlayer = UnderstudyManager.getPlayer(name);
+    simPlayer.claimProjectiles(radius);
 }
 
 function stopAction(sender, name) {

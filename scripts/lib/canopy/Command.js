@@ -33,7 +33,7 @@ class Command {
 	}
 
 	getUsage() {
-		return Command.prefix + this.#usage;
+		return Command.#prefix + this.#usage;
 	}
 
 	getCallback() {

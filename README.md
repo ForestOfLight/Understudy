@@ -39,7 +39,10 @@ Make the player with the given name move in the specified direction or (navigate
 **Usage: `./player <name> drop`**  
 Make the player with the given name drop their selected item.
 
-**Usage: `./player <name> claimprojectiles`**  
+**Usage: `./player <name> jump [once/continuous]`**  
+Make the player with the given name jump. "once" will make the player jump once. "continuous" will make the player jump continuously. If the last argument is not specified, "once" is assumed.
+
+**Usage: `./player <name> claimprojectiles [radius]`**  
 Make the player with the given name become the owner of all projectiles within a 25 block radius.
 
 **Usage: `./player <name> stop`**  
