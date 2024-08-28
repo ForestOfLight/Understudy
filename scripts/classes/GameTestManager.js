@@ -99,6 +99,9 @@ class GameTestManager {
             case 'jump':
                 this.jumpAction(player);
                 break;
+            case 'sprint':
+                this.sprintAction(player, actionData);
+                break;
             case 'claimProjectiles':
                 this.claimprojectilesAction(player, actionData);
                 break;
@@ -204,6 +207,11 @@ class GameTestManager {
 
     static jumpAction(player) {
         player.simulatedPlayer.jump();
+    }
+
+    static sprintAction(player, actionData) {
+        player.simulatedPlayer.isSprinting = actionData.shouldSprint;
+        console.warn(`[Understudy] isSprinting: ${player.simulatedPlayer.isSprinting}`);
     }
 
     static claimprojectilesAction(player, actionData) {

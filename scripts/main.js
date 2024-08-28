@@ -34,6 +34,8 @@ const commandPlayerCommand = new Command({
         { usage: `player <name> move [forward/back/left/right/block/entity/me/x y z]`, description: `Make a player move in specified directions.` },
         { usage: `player <name> drop`, description: `Make a player drop their selected item.` },
         { usage: `player <name> jump [once/continuous]`, description: `Make a player jump.` },
+        { usage: `player <name> sprint`, description: `Make a player sprint.` },
+        { usage: `player <name> unsprint`, description: `Make a player stop sprinting.` },
         { usage: `player <name> claimprojectiles [radius]`, description: `Make a player the owner of all projectiles within a radius.` },
         { usage: `player <name> stop`, description: `Stop all actions for a player.` },
     ]
@@ -89,6 +91,12 @@ function playerCommand(sender, args) {
             break;
         case 'jump':
             jumpAction(sender, name, arg1);
+            break;
+        case 'sprint':
+            sprintAction(sender, name);
+            break;
+        case 'unsprint':
+            unsprintAction(sender, name);
             break;
         case 'claimprojectiles':
             claimProjectilesAction(sender, name, arg1);
@@ -269,6 +277,26 @@ function jumpAction(sender, name, arg1) {
     
     const simPlayer = UnderstudyManager.getPlayer(name);
     simPlayer.jump(isContinuous);
+}
+
+function sprintAction(sender, name) {
+    if (!UnderstudyManager.isOnline(name)) {
+        sender.sendMessage(`§cPlayer ${name} is not online.`);
+        return;
+    }
+
+    const simPlayer = UnderstudyManager.getPlayer(name);
+    simPlayer.sprint(true);
+}
+
+function unsprintAction(sender, name) {
+    if (!UnderstudyManager.isOnline(name)) {
+        sender.sendMessage(`§cPlayer ${name} is not online.`);
+        return;
+    }
+
+    const simPlayer = UnderstudyManager.getPlayer(name);
+    simPlayer.sprint(false);
 }
 
 function claimProjectilesAction(sender, name, arg1) {

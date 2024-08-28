@@ -171,6 +171,11 @@ class Understudy {
             this.nextActions.push(actionData);
     }
 
+    sprint(shouldSprint) {
+        const actionData = { type: 'sprint', shouldSprint: shouldSprint };
+        this.nextActions.push(actionData);
+    }
+
     claimProjectiles(radius) {
         const actionData = { type: 'claimProjectiles', radius: radius };
         this.nextActions.push(actionData);

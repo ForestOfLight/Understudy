@@ -42,6 +42,12 @@ Make the player with the given name drop their selected item.
 **Usage: `./player <name> jump [once/continuous]`**  
 Make the player with the given name jump. "once" will make the player jump once. "continuous" will make the player jump continuously. If the last argument is not specified, "once" is assumed.
 
+**Usage: `./player <name> sprint`**  
+Make the player with the given name sprint.
+
+**Usage: `./player <name> unsprint`**
+Make the player with the given name stop sprinting.
+
 **Usage: `./player <name> claimprojectiles [radius]`**  
 Make the player with the given name become the owner of all projectiles within a 25 block radius.
 
