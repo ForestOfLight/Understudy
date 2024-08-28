@@ -39,6 +39,9 @@ Make the player with the given name move in the specified direction or (navigate
 **Usage: `./player <name> attack [once/continuous/interval] [intervalDuration]`**  
 Make the player with the given name attack. "once" will make the player attack once. "continuous" will make the player attack continuously. "interval" will make the player attack at regular intervals specified by the last argument. If the last two arguments are not specified, "once" is assumed.
 
+**Usage: `./player <name> break`**  
+Make the player with the given name break the block they are looking at.
+
 **Usage: `./player <name> drop`**  
 Make the player with the given name drop their selected item.
 

@@ -90,6 +90,9 @@ function playerCommand(sender, args) {
         case 'attack':
             attackAction(sender, name, arg1, arg2);
             break;
+        case 'break':
+            breakAction(sender, name, arg1);
+            break;
         case 'drop':
             dropAction(sender, name);
             break;
@@ -280,6 +283,24 @@ function attackAction(sender, name, arg1, arg2) {
 
     const simPlayer = UnderstudyManager.getPlayer(name);
     simPlayer.attack(isContinuous, intervalDuration);
+}
+
+function breakAction(sender, name, arg1) {
+    if (!UnderstudyManager.isOnline(name)) {
+        sender.sendMessage(`§cPlayer ${name} is not online.`);
+        return;
+    }
+
+    let isContinuous = false;
+    if (['once', 'continuous', null].includes (arg1)) {
+        isContinuous = arg1 === 'continuous';
+    } else {
+        sender.sendMessage(`§cInvalid break action: ${arg1}. Expected 'once' or 'continuous'.`);
+        return;
+    }
+
+    const simPlayer = UnderstudyManager.getPlayer(name);
+    simPlayer.breakBlock(isContinuous);
 }
 
 function dropAction(sender, name) {

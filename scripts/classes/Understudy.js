@@ -182,6 +182,17 @@ class Understudy {
         }
     }
 
+    breakBlock(isContinuous) {
+        if (!isContinuous && this.hasContinuousAction('break'))
+            this.removeContinuousAction('break');
+
+        const actionData = { type: 'break' };
+        if (isContinuous)
+            this.addContinuousAction(actionData);
+        else
+            this.nextActions.push(actionData);
+    }
+
     dropSelected() {
         const actionData = { type: 'dropSelected' };
         this.nextActions.push(actionData);

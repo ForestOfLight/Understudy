@@ -57,11 +57,10 @@ class GameTestManager {
             if (!this.#startupComplete) return;
             for (const player of UnderstudyManager.players) {
                 if (player.nextActions.length > 0) {
-                    console.warn(`[Understudy] Running next actions for ${player.name}: ${JSON.stringify(player.nextActions)}`);
+                    // console.warn(`[Understudy] Running next actions for ${player.name}: ${JSON.stringify(player.nextActions)}`);
                     this.runNextActions(player);
                 }
                 if (player.continuousActions.length > 0) {
-                    console.warn(`[Understudy] Running continuous actions for ${player.name}: ${JSON.stringify(player.continuousActions)}`);
                     this.runContinuousActions(player);
                 }
             }
@@ -97,6 +96,9 @@ class GameTestManager {
             case 'attack':
                 this.attackAction(player);
                 break;
+            case 'break':
+                this.breakAction(player);
+                break;
             case 'dropSelected':
                 this.dropSelectedAction(player);
                 break;
@@ -131,6 +133,9 @@ class GameTestManager {
             switch (type) {
                 case 'attack':
                     this.attackAction(player);
+                    break;
+                case 'break':
+                    this.breakAction(player);
                     break;
                 case 'jump':
                     this.jumpAction(player);
@@ -212,6 +217,13 @@ class GameTestManager {
 
     static attackAction(player) {
         player.simulatedPlayer.attack();
+    }
+
+    static breakAction(player) {
+        const lookingAtLocation = player.simulatedPlayer.getBlockFromViewDirection({ maxDistance: 6 })?.block?.location;
+        if (lookingAtLocation === undefined)
+            return;
+        player.simulatedPlayer.breakBlock(this.getRelativeCoords(lookingAtLocation));
     }
 
     static dropSelectedAction(player) {
