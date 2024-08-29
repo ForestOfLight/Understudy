@@ -56,8 +56,10 @@ extension.addCommand(commandPlayerAliasCommand);
 
 function playerCommand(sender, args) {
     let { name, action, arg1, arg2, arg3 } = args;
-    if (name === null || action === null) return commandPlayerCommand.sendUsage(sender);
-    if (isNumeric(name)) name = name.toString();
+    if (name === null || action === null)
+        return commandPlayerCommand.sendUsage(sender);
+    if (isNumeric(name)) 
+        name = name.toString();
 
     switch (action) {
         case 'join':
@@ -276,7 +278,7 @@ function attackAction(sender, name, arg1, arg2) {
     if (arg1 === 'interval' && isNumeric(arg2)) {
         isContinuous = true;
         intervalDuration = arg2;
-    } else {
+    } else if (arg2 !== null) {
         sender.sendMessage(`§cInvalid interval duration: ${arg2}. Expected a number.`);
         return;
     }
@@ -292,7 +294,7 @@ function interactAction(sender, name, arg1, arg2) {
     }
 
     let isContinuous = false;
-    if (['once', 'continuous', 'inteval', null].includes(arg1)) {
+    if (['once', 'continuous', 'interval', null].includes(arg1)) {
         isContinuous = arg1 === 'continuous';
     } else {
         sender.sendMessage(`§cInvalid interact action: ${arg1}. Expected 'once', 'continuous' or 'interval'.`);
@@ -303,7 +305,7 @@ function interactAction(sender, name, arg1, arg2) {
     if (arg1 === 'interval' && isNumeric(arg2)) {
         isContinuous = true;
         intervalDuration = arg2;
-    } else {
+    } else if (arg2 !== null) {
         sender.sendMessage(`§cInvalid interval duration: ${arg2}. Expected a number.`);
         return;
     }
@@ -312,7 +314,7 @@ function interactAction(sender, name, arg1, arg2) {
     simPlayer.variableTimingAction('interact', isContinuous, intervalDuration);
 }
 
-function breakAction(sender, name, arg1) {
+function breakAction(sender, name, arg1, arg2) {
     if (!UnderstudyManager.isOnline(name)) {
         sender.sendMessage(`§cPlayer ${name} is not online.`);
         return;
@@ -330,7 +332,7 @@ function breakAction(sender, name, arg1) {
     if (arg1 === 'interval' && isNumeric(arg2)) {
         isContinuous = true;
         intervalDuration = arg2;
-    } else {
+    } else if (arg2 !== null) {
         sender.sendMessage(`§cInvalid interval duration: ${arg2}. Expected a number.`);
         return;
     }
@@ -339,7 +341,7 @@ function breakAction(sender, name, arg1) {
     simPlayer.variableTimingAction('break', isContinuous);
 }
 
-function buildAction(sender, name, arg1) {
+function buildAction(sender, name, arg1, arg2) {
     if (!UnderstudyManager.isOnline(name)) {
         sender.sendMessage(`§cPlayer ${name} is not online.`);
         return;
@@ -356,7 +358,7 @@ function buildAction(sender, name, arg1) {
     if (arg1 === 'interval' && isNumeric(arg2)) {
         isContinuous = true;
         intervalDuration = arg2;
-    } else {
+    } else if (arg2 !== null) {
         sender.sendMessage(`§cInvalid interval duration: ${arg2}. Expected a number.`);
         return;
     }
@@ -365,7 +367,7 @@ function buildAction(sender, name, arg1) {
     simPlayer.variableTimingAction('build', isContinuous);
 }
 
-function dropAction(sender, name) {
+function dropAction(sender, name, aeg1, arg2) {
     if (!UnderstudyManager.isOnline(name)) {
         sender.sendMessage(`§cPlayer ${name} is not online.`);
         return;
@@ -383,7 +385,7 @@ function dropAction(sender, name) {
     if (arg1 === 'interval' && isNumeric(arg2)) {
         isContinuous = true;
         intervalDuration = arg2;
-    } else {
+    } else if (arg2 !== null) {
         sender.sendMessage(`§cInvalid interval duration: ${arg2}. Expected a number.`);
         return;
     }
@@ -410,7 +412,7 @@ function jumpAction(sender, name, arg1, arg2) {
     if (arg1 === 'interval' && isNumeric(arg2)) {
         isContinuous = true;
         intervalDuration = arg2;
-    } else {
+    } else if (arg2 !== null) {
         sender.sendMessage(`§cInvalid interval duration: ${arg2}. Expected a number.`);
         return;
     }

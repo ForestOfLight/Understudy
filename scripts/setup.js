@@ -18,7 +18,6 @@ world.afterEvents.playerJoin.subscribe((event) => {
 });
 
 world.afterEvents.gameRuleChange.subscribe((event) => {
-    console.warn(`Game rule change detected: ${event.rule} = ${event.value}`);
     world.setDynamicProperty(`gamerule:${event.rule}`, event.value);
 });
 

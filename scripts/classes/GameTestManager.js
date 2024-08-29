@@ -56,7 +56,6 @@ class GameTestManager {
             if (!this.#startupComplete) return;
             for (const player of UnderstudyManager.players) {
                 if (player.nextActions.length > 0) {
-                    // console.warn(`[Understudy] Running next actions for ${player.name}: ${JSON.stringify(player.nextActions)}`);
                     this.runNextActions(player);
                 }
                 if (player.continuousActions.length > 0) {
@@ -129,7 +128,7 @@ class GameTestManager {
         player.onTick();
 
         for (const actionData of player.continuousActions) {
-            if (player.simulatedPlayer === null) 
+            if (player.simulatedPlayer === null)
                 return;
             const type = actionData.type
             if (actionData.interval !== undefined && system.currentTick % actionData.interval !== 0)
