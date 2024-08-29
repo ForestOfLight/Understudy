@@ -7,7 +7,6 @@ import { subtractVectors, getLookAtLocation, decrementSlot, swapSlots } from 'ut
 const TEST_MAX_TICKS = 630720000; // 1 year
 const TEST_START_POSITION = { x: 1000000, z: 1000000 };
 const LOADER_ENTITY_ID = 'understudy:loader';
-const PLAYER_LOOP_RUNNER = null;
 
 class GameTestManager {
     static testName = 'players';

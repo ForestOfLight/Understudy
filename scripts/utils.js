@@ -1,4 +1,4 @@
-import { ItemStack } from "@minecraft/server";
+import { world, ItemStack } from "@minecraft/server";
 
 const PLAYER_EYE_HEIGHT = 1.62001002;
 
@@ -68,6 +68,14 @@ function swapSlots(player, slotNumber1, slotNumber2) {
     invContainer.setItem(slotNumber2, slot1);
 }
 
+function broadcastActionBar(message, sender) {
+    let players;
+    if (sender) players = world.getPlayers({ excludeNames: [sender.name] });
+    else players = world.getAllPlayers();
+    players.forEach(player => player?.onScreenDisplay.setActionBar(message));
+}
+
 export { 
-    PLAYER_EYE_HEIGHT, stringifyLocation, subtractVectors, makeVector3, getLookAtLocation, isNumeric, getLookAtRotation, decrementSlot, swapSlots
+    PLAYER_EYE_HEIGHT, stringifyLocation, subtractVectors, makeVector3, getLookAtLocation, isNumeric, getLookAtRotation, decrementSlot, swapSlots,
+    broadcastActionBar
 };

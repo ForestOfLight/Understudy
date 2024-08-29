@@ -11,7 +11,7 @@ const commandPlayerCommand = new Command({
     callback: playerCommand,
     args: [
         { type: 'string|number', name: 'name' },
-        { type: 'string', name: 'action' },
+        { type: 'string|number', name: 'action' },
         { type: 'string|number', name: 'arg1', },
         { type: 'string|number', name: 'arg2', },
         { type: 'string|number', name: 'arg3', },
@@ -27,6 +27,7 @@ const commandPlayerCommand = new Command({
         { usage: `player <name> move [forward/back/left/right/block/entity/me/x y z]`, description: `Make a player move in specified directions.` },
         { usage: `player <name> attack [once/continuous/interval] [intervalDuration]`, description: `Make a player attack.` },
         { usage: `player <name> interact [once/continuous/interval] [intervalDuration]`, description: `Make a player interact with a block or entity.` },
+        { usage: `player <name> use [once/continuous/interval] [intervalDuration]`, description: `Make a player use an item.` },
         { usage: `player <name> build [once/continuous/interval] [intervalDuration]`, description: `Make a player place a block.` },
         { usage: `player <name> break [once/continuous/interval] [intervalDuration]`, description: `Make a player break a block.` },
         { usage: `player <name> drop [once/continuous/interval] [intervalDuration]`, description: `Make a player drop their selected item.` },
@@ -38,6 +39,7 @@ const commandPlayerCommand = new Command({
         { usage: `player <name> unsprint`, description: `Make a player stop sprinting.` },
         { usage: `player <name> claimprojectiles [radius]`, description: `Make a player the owner of all projectiles within a radius.` },
         { usage: `player <name> stop`, description: `Stop all actions for a player.` },
+        { usage: `player prefix <prefix>`, description: `Set a prefix player nametags.` },
     ]
 })
 extension.addCommand(commandPlayerCommand);
@@ -49,7 +51,7 @@ const commandPlayerAliasCommand = new Command({
     callback: playerCommand,
     args: [
         { type: 'string|number', name: 'name' },
-        { type: 'string', name: 'action' },
+        { type: 'string|number', name: 'action' },
         { type: 'string|number', name: 'arg1', },
         { type: 'string|number', name: 'arg2', },
         { type: 'string|number', name: 'arg3', },
@@ -63,8 +65,11 @@ function playerCommand(sender, args) {
     let { name, action, arg1, arg2, arg3 } = args;
     if (name === null || action === null)
         return commandPlayerCommand.sendUsage(sender);
-    if (isNumeric(name)) 
-        name = name.toString();
+    name = isNumeric(name) ? name.toString() : name;
+    action = isNumeric(action) ? action.toString() : action;
+
+    if (name === 'prefix')
+        return UnderstudyManager.setNametagPrefix(action);
 
     switch (action) {
         case 'join':
@@ -139,8 +144,8 @@ function joinAction(sender, name) {
         return;
     }
     const simPlayer = UnderstudyManager.newPlayer(name);
-    UnderstudyManager.spawnPlayer(simPlayer);
     simPlayer.join(sender.location, sender.getRotation(), sender.dimension.id, sender.getGameMode());
+    UnderstudyManager.spawnPlayer(simPlayer);
 }
 
 function leaveAction(sender, name) {

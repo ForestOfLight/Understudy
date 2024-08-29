@@ -86,6 +86,8 @@ class Understudy {
     }
 
     leave() {
+        if (this.simulatedPlayer === null)
+            throw new Error(`[Understudy] Player ${this.name} is not connected`);
         this.savePlayerInfo();
         const actionData = { type: 'leave' };
         this.nextActions.push(actionData);

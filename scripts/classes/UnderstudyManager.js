@@ -1,9 +1,9 @@
 import Understudy from 'classes/Understudy';
-import { system } from '@minecraft/server';
+import { system, world } from '@minecraft/server';
+import { broadcastActionBar } from 'utils';
 
 class UnderstudyManager {
     static players = [];
-    static #nametagPrefix = false;
 
     static newPlayer(name) {
         if (this.players.find(p => p.name === name)) {
@@ -15,9 +15,12 @@ class UnderstudyManager {
     }
 
     static spawnPlayer(player) {
-        if (this.#nametagPrefix) {
-            player.simulatedPlayer.nameTag = `[${this.#nametagPrefix}§r] ${player.name}`;
-        }
+        system.runTimeout(() => {
+            const prefix = world.getDynamicProperty('nametagPrefix');
+            if (prefix) {
+                player.simulatedPlayer.nameTag = `[${prefix}§r] ${player.name}`;
+            }
+        }, 1);
     }
 
     static removePlayer(player) {
@@ -39,16 +42,18 @@ class UnderstudyManager {
     }
 
     static setNametagPrefix(prefix) {
-        if (prefix === false) {
-            this.#nametagPrefix = false;
+        if (prefix === '#none') {
+            world.setDynamicProperty('nametagPrefix', '');
             for (const player of this.players) {
                 player.simulatedPlayer.nameTag = player.name;
             }
+            broadcastActionBar('§7Understudy prefix removed.');
         } else {
-            this.#nametagPrefix = prefix;
+            world.setDynamicProperty('nametagPrefix', prefix);
             for (const player of this.players) {
-                player.simulatedPlayer.nameTag = `[${this.#nametagPrefix}§r] ${player.name}`;
+                player.simulatedPlayer.nameTag = `[${prefix}§r] ${player.name}`;
             }
+            broadcastActionBar(`§7Understudy prefix set to "§r${prefix}§r§7".`);
         }
     }
 
