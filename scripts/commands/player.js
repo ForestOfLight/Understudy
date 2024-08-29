@@ -31,6 +31,7 @@ const commandPlayerCommand = new Command({
         { usage: `player <name> break [once/continuous/interval] [intervalDuration]`, description: `Make a player break a block.` },
         { usage: `player <name> drop [once/continuous/interval] [intervalDuration]`, description: `Make a player drop their selected item.` },
         { usage: `player <name> dropStack [once/continuous/interval] [intervalDuration]`, description: `Make a player drop their selected item stack.` },
+        { usage: `player <name> dropAll [once/continuous/interval] [intervalDuration]`, description: `Make a player drop all items in their inventory.` },
         { usage: `player <name> jump [once/continuous/interval] [intervalDuration]`, description: `Make a player jump.` },
         { usage: `player <name> select [slotNumber]`, description: `Make a player select a slot.` },
         { usage: `player <name> sprint`, description: `Make a player sprint.` },
@@ -104,6 +105,9 @@ function playerCommand(sender, args) {
             break;
         case 'dropStack':
             dropStackAction(sender, name, arg1, arg2);
+            break;
+        case 'dropAll':
+            dropAllAction(sender, name, arg1, arg2);
             break;
         case 'jump':
             jumpAction(sender, name, arg1, arg2);
@@ -431,6 +435,33 @@ function dropStackAction(sender, name, arg1, arg2) {
     simPlayer.variableTimingAction('dropStack', isContinuous, intervalDuration);
 }
 
+function dropAllAction(sender, name, arg1, arg2) {
+    if (!UnderstudyManager.isOnline(name)) {
+        sender.sendMessage(`§cPlayer ${name} is not online.`);
+        return;
+    }
+
+    let isContinuous = false;
+    if (['once', 'continuous', 'interval', null].includes(arg1)) {
+        isContinuous = arg1 === 'continuous';
+    } else {
+        sender.sendMessage(`§cInvalid drop action: ${arg1}. Expected 'once', 'continuous' or 'interval'.`);
+        return;
+    }
+
+    let intervalDuration = 0;
+    if (arg1 === 'interval' && isNumeric(arg2)) {
+        isContinuous = true;
+        intervalDuration = arg2;
+    } else if (arg2 !== null) {
+        sender.sendMessage(`§cInvalid interval duration: ${arg2}. Expected a number.`);
+        return;
+    }
+
+    const simPlayer = UnderstudyManager.getPlayer(name);
+    simPlayer.variableTimingAction('dropAll', isContinuous, intervalDuration);
+}
+
 function jumpAction(sender, name, arg1, arg2) {
     if (!UnderstudyManager.isOnline(name)) {
         sender.sendMessage(`§cPlayer ${name} is not online.`);
@@ -465,8 +496,8 @@ function selectSlotAction(sender, name, arg1) {
     }
 
     const simPlayer = UnderstudyManager.getPlayer(name);
-    if (!isNumeric(arg1)) {
-        sender.sendMessage(`§cInvalid slot number: ${arg1}. Expected a number.`);
+    if (!isNumeric(arg1) || arg1 < 0 || arg1 > 8) {
+        sender.sendMessage(`§cInvalid slot number: ${arg1}. Expected a number fom 0 to 8.`);
         return;
     }
     simPlayer.selectSlot(arg1);

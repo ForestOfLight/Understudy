@@ -112,6 +112,9 @@ class GameTestManager {
             case 'dropStack':
                 this.dropStackAction(player);
                 break;
+            case 'dropAll':
+                this.dropAllAction(player);
+                break;
             case 'jump':
                 this.jumpAction(player);
                 break;
@@ -161,6 +164,9 @@ class GameTestManager {
                     break;
                 case 'dropStack':
                     this.dropStackAction(player);
+                    break;
+                case 'dropAll':
+                    this.dropAllAction(player);
                     break;
                 case 'jump':
                     this.jumpAction(player);
@@ -287,6 +293,20 @@ class GameTestManager {
 
     static dropStackAction(player) {
         player.simulatedPlayer.dropSelectedItem();
+    }
+
+    static dropAllAction(player) {
+        const invContainer = player.simulatedPlayer.getComponent('minecraft:inventory')?.container;
+        if (!invContainer)
+            return;
+        const selectedSlot = player.simulatedPlayer.selectedSlotIndex;
+        player.simulatedPlayer.selectedSlotIndex = 0;
+        player.simulatedPlayer.dropSelectedItem();
+        for (let i = 0; i < invContainer.size; i++) {
+            invContainer.moveItem(i, player.simulatedPlayer.selectedSlotIndex, invContainer);
+            player.simulatedPlayer.dropSelectedItem();
+        }
+        player.simulatedPlayer.selectedSlotIndex = selectedSlot;
     }
 
     static jumpAction(player) {

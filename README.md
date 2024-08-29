@@ -51,13 +51,16 @@ Make the player with the given name break the block they are looking at. "once" 
 **Usage: `./player <name> drop [once/continuous/interval] [intervalDuration]`**  
 Make the player with the given name drop their selected item. "once" will make the player drop their selected item once. "continuous" will make the player drop their selected item continuously. "interval" will make the player drop their selected item at regular intervals specified by the last argument. If the last two arguments are not specified, "once" is assumed.
 
-**Usage `./player <name> dropStack [once/continuous/interval] [intervalDuration]`**
+**Usage `./player <name> dropStack [once/continuous/interval] [intervalDuration]`**  
 Make the player with the given name drop their entire stack of the selected item. "once" will make the player drop their entire stack of the selected item once. "continuous" will make the player drop their entire stack of the selected item continuously. "interval" will make the player drop their entire stack of the selected item at regular intervals specified by the last argument. If the last two arguments are not specified, "once" is assumed.
+
+**Usage: `./player <name> dropAll [once/continuous/interval] [intervalDuration]`**  
+Make the player with the given name drop all of their items. "once" will make the player drop all of their items once. "continuous" will make the player drop all of their items continuously. "interval" will make the player drop all of their items at regular intervals specified by the last argument. If the last two arguments are not specified, "once" is assumed.
 
 **Usage: `./player <name> jump [once/continuous/interval] [intervalDuration]`**  
 Make the player with the given name jump. "once" will make the player jump once. "continuous" will make the player jump continuously. "interval" will make the player attack at regular intervals specified by the last argument. If the last two arguments are not specified, "once" is assumed.
 
-**Usage: `./player <name> select <slotNumber>`**
+**Usage: `./player <name> select <slotNumber>`**  
 Make the player with the given name select the item in the specified slot.
 
 **Usage: `./player <name> sprint`**  
