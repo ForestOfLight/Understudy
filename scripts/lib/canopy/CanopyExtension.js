@@ -127,6 +127,10 @@ class CanopyExtension {
             rule.setValue(value);
         }, { namespaces: ['canopyExtension'] });
     }
+
+    getRuleValue(ruleID) {
+        return this.#rules[ruleID].getValue();
+    }
 }
 
 export { CanopyExtension, Command, Rule };

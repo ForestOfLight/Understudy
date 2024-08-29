@@ -2,7 +2,7 @@ import { Command } from 'lib/canopy/CanopyExtension';
 import extension from 'config';
 import UnderstudyManager from 'classes/UnderstudyManager';
 import { makeVector3, isNumeric, PLAYER_EYE_HEIGHT, getLookAtLocation } from 'utils';
-import { world } from '@minecraft/server';
+import { Block, Player, world } from '@minecraft/server';
 
 const commandPlayerCommand = new Command({
     name: 'player',
@@ -41,7 +41,7 @@ const commandPlayerCommand = new Command({
         { usage: `player <name> stop`, description: `Stop all actions for a player.` },
         { usage: `player prefix <prefix>`, description: `Set a prefix player nametags.` },
     ]
-})
+});
 extension.addCommand(commandPlayerCommand);
 
 const commandPlayerAliasCommand = new Command({
@@ -58,7 +58,7 @@ const commandPlayerAliasCommand = new Command({
     ],
     contingentRules: [ 'commandPlayer' ],
     helpHidden: true
-})
+});
 extension.addCommand(commandPlayerAliasCommand);
 
 function playerCommand(sender, args) {
@@ -136,6 +136,7 @@ function playerCommand(sender, args) {
             stopAction(sender, name);
             break;
         default:
+            if (sender instanceof Player === false) return;
             sender.sendMessage(`§cInvalid action: ${action}`);
             break;
     }
@@ -143,17 +144,22 @@ function playerCommand(sender, args) {
 
 function joinAction(sender, name) {
     if (UnderstudyManager.isOnline(name) || world.getPlayers({ name }).length > 0) {
+        if (sender instanceof Player === false) return;
         sender.sendMessage(`§cPlayer ${name} is already online.`);
         return;
     }
     const simPlayer = UnderstudyManager.newPlayer(name);
-    simPlayer.join(sender.location, sender.getRotation(), sender.dimension.id, sender.getGameMode());
+    if (sender instanceof Block)
+        simPlayer.join({ x: sender.x + .5, y: sender.y + 1, z: sender.z + .5 }, sender.dimension.id);
+    else
+        simPlayer.join(sender.location, sender.dimension.id, sender.getRotation(), sender.getGameMode());
     UnderstudyManager.spawnPlayer(simPlayer);
 }
 
 function leaveAction(sender, name) {
     const simPlayer = UnderstudyManager.getPlayer(name);
     if (!UnderstudyManager.isOnline(name)) {
+        if (sender instanceof Player === false) return;
         sender.sendMessage(`§cPlayer ${name} is not online.`);
         return;
     }
@@ -163,6 +169,7 @@ function leaveAction(sender, name) {
 
 function rejoinAction(sender, name) {
     if (UnderstudyManager.isOnline(name)) {
+        if (sender instanceof Player === false) return;
         sender.sendMessage(`§cPlayer ${name} is already online.`);
         return;
     }
@@ -171,13 +178,17 @@ function rejoinAction(sender, name) {
     try {
         simPlayer.rejoin();
     } catch (error) {
-        simPlayer.join(sender.location, sender.getRotation(), sender.dimension.id, sender.getGameMode());
+        if (sender instanceof Block)
+            simPlayer.join({ x: sender.x + .5, y: sender.y + 1, z: sender.z + .5 }, sender.dimension.id);
+        else
+            simPlayer.join(sender.location, sender.dimension.id, sender.getRotation(), sender.getGameMode());
     }
 }
 
 function respawnAction(sender, name) {
     const simPlayer = UnderstudyManager.getPlayer(name);
     if (!UnderstudyManager.isOnline(name)) {
+        if (sender instanceof Player === false) return;
         sender.sendMessage(`§cPlayer ${name} is not online.`);
         return;
     }
@@ -187,14 +198,19 @@ function respawnAction(sender, name) {
 function tpAction(sender, name) {
     const simPlayer = UnderstudyManager.getPlayer(name);
     if (!UnderstudyManager.isOnline(name)) {
+        if (sender instanceof Player === false) return;
         sender.sendMessage(`§cPlayer ${name} is not online.`);
         return;
     }
-    simPlayer.tp(sender.location, sender.getRotation(), sender.dimension.id);
+    if (sender instanceof Player === false) 
+        simPlayer.tp({ x: sender.x + .5, y: sender.y + 1, z: sender.z + .5 }, simPlayer.getHeadRotation(), sender.dimension.id);
+    else
+        simPlayer.tp(sender.location, sender.getRotation(), sender.dimension.id);
 }
 
 function lookAction(sender, name, arg1, arg2, arg3) {
     if (!UnderstudyManager.isOnline(name)) {
+        if (sender instanceof Player === false) return;
         sender.sendMessage(`§cPlayer ${name} is not online.`);
         return;
     }
@@ -203,6 +219,7 @@ function lookAction(sender, name, arg1, arg2, arg3) {
     if (arg1 === 'me') {
         simPlayer.lookLocation(sender);
     } else if (arg1 === 'block') {
+        if (sender instanceof Player === false) return;
         const block = sender.getBlockFromViewDirection({ maxDistance: 16*64 })?.block;
         if (block === undefined) {
             sender.sendMessage(`§cNo block in view.`);
@@ -210,6 +227,7 @@ function lookAction(sender, name, arg1, arg2, arg3) {
         }
         simPlayer.lookLocation(block);
     } else if (arg1 === 'entity') {
+        if (sender instanceof Player === false) return;
         const entity = sender.getEntitiesFromViewDirection({ maxDistance: 16*64 })[0]?.entity;
         if (entity === undefined) {
             sender.sendMessage(`§cNo entity in view.`);
@@ -220,17 +238,20 @@ function lookAction(sender, name, arg1, arg2, arg3) {
         simPlayer.lookLocation(processLookCardinals(simPlayer.simulatedPlayer, arg1));
     } else if (arg1 !== null && arg2 !== null && arg3 !== null) {
         if (!isNumeric(arg1) || !isNumeric(arg2) || !isNumeric(arg3)) {
+            if (sender instanceof Player === false) return;
             sender.sendMessage(`§cInvalid coordinates: ${arg1}, ${arg2}, ${arg3}`);
             return;
         }
         simPlayer.lookLocation(makeVector3(arg1, arg2, arg3));
     } else if (arg1 !== null && arg2 !== null && arg3 === null) {
         if (!isNumeric(arg1) || !isNumeric(arg2)) {
+            if (sender instanceof Player === false) return;
             sender.sendMessage(`§cInvalid pitch or yaw: ${arg1}, ${arg2}`);
             return;
         }
         simPlayer.lookLocation(getLookAtLocation(simPlayer.simulatedPlayer.location, { x: arg1, y: arg2 }));
     } else {
+        if (sender instanceof Player === false) return;
         sender.sendMessage(`§cInvalid target action: ${arg1}. Expected 'up', 'down', 'north', 'south', 'east', 'west', 'block', 'entity', 'me', coordinates, or pitch and yaw.`);
     }
 }
@@ -252,6 +273,7 @@ function processLookCardinals(simulatedPlayer, direction) {
 
 function moveAction(sender, name, arg1, arg2, arg3) {
     if (!UnderstudyManager.isOnline(name)) {
+        if (sender instanceof Player === false) return;
         sender.sendMessage(`§cPlayer ${name} is not online.`);
         return;
     }
@@ -262,6 +284,7 @@ function moveAction(sender, name, arg1, arg2, arg3) {
     } else if (['forward', 'backward', 'left', 'right'].includes(arg1)) {
         simPlayer.moveRelative(arg1);
     } else if (arg1 === 'block') {
+        if (sender instanceof Player === false) return;
         const block = sender.getBlockFromViewDirection({ maxDistance: 16*64 })?.block;
         if (block === undefined) {
             sender.sendMessage(`§cNo block in view.`);
@@ -269,6 +292,7 @@ function moveAction(sender, name, arg1, arg2, arg3) {
         }
         simPlayer.moveLocation(block);
     } else if (arg1 === 'entity') {
+        if (sender instanceof Player === false) return;
         const entity = sender.getEntitiesFromViewDirection({ maxDistance: 16*64 })[0]?.entity;
         if (entity === undefined) {
             sender.sendMessage(`§cNo entity in view.`);
@@ -284,6 +308,7 @@ function moveAction(sender, name, arg1, arg2, arg3) {
 
 function attackAction(sender, name, arg1, arg2) {
     if (!UnderstudyManager.isOnline(name)) {
+        if (sender instanceof Player === false) return;
         sender.sendMessage(`§cPlayer ${name} is not online.`);
         return;
     }
@@ -292,6 +317,7 @@ function attackAction(sender, name, arg1, arg2) {
     if (['once', 'continuous', 'interval', null].includes(arg1)) {
         isContinuous = arg1 === 'continuous';
     } else {
+        if (sender instanceof Player === false) return;
         sender.sendMessage(`§cInvalid attack action: ${arg1}. Expected 'once', 'continuous' or 'interval'.`);
         return;
     }
@@ -301,6 +327,7 @@ function attackAction(sender, name, arg1, arg2) {
         isContinuous = true;
         intervalDuration = arg2;
     } else if (arg2 !== null) {
+        if (sender instanceof Player === false) return;
         sender.sendMessage(`§cInvalid interval duration: ${arg2}. Expected a number.`);
         return;
     }
@@ -311,6 +338,7 @@ function attackAction(sender, name, arg1, arg2) {
 
 function interactAction(sender, name, arg1, arg2) {
     if (!UnderstudyManager.isOnline(name)) {
+        if (sender instanceof Player === false) return;
         sender.sendMessage(`§cPlayer ${name} is not online.`);
         return;
     }
@@ -319,6 +347,7 @@ function interactAction(sender, name, arg1, arg2) {
     if (['once', 'continuous', 'interval', null].includes(arg1)) {
         isContinuous = arg1 === 'continuous';
     } else {
+        if (sender instanceof Player === false) return;
         sender.sendMessage(`§cInvalid interact action: ${arg1}. Expected 'once', 'continuous' or 'interval'.`);
         return;
     }
@@ -328,6 +357,7 @@ function interactAction(sender, name, arg1, arg2) {
         isContinuous = true;
         intervalDuration = arg2;
     } else if (arg2 !== null) {
+        if (sender instanceof Player === false) return;
         sender.sendMessage(`§cInvalid interval duration: ${arg2}. Expected a number.`);
         return;
     }
@@ -338,6 +368,7 @@ function interactAction(sender, name, arg1, arg2) {
 
 function useAction(sender, name, arg1, arg2) {
     if (!UnderstudyManager.isOnline(name)) {
+        if (sender instanceof Player === false) return;
         sender.sendMessage(`§cPlayer ${name} is not online.`);
         return;
     }
@@ -346,6 +377,7 @@ function useAction(sender, name, arg1, arg2) {
     if (['once', 'continuous', 'interval', null].includes(arg1)) {
         isContinuous = arg1 === 'continuous';
     } else {
+        if (sender instanceof Player === false) return;
         sender.sendMessage(`§cInvalid use action: ${arg1}. Expected 'once', 'continuous' or 'interval'.`);
         return;
     }
@@ -355,6 +387,7 @@ function useAction(sender, name, arg1, arg2) {
         isContinuous = true;
         intervalDuration = arg2;
     } else if (arg2 !== null) {
+        if (sender instanceof Player === false) return;
         sender.sendMessage(`§cInvalid interval duration: ${arg2}. Expected a number.`);
         return;
     }
@@ -365,6 +398,7 @@ function useAction(sender, name, arg1, arg2) {
 
 function breakAction(sender, name, arg1, arg2) {
     if (!UnderstudyManager.isOnline(name)) {
+        if (sender instanceof Player === false) return;
         sender.sendMessage(`§cPlayer ${name} is not online.`);
         return;
     }
@@ -373,6 +407,7 @@ function breakAction(sender, name, arg1, arg2) {
     if (['once', 'continuous', 'interval', null].includes(arg1)) {
         isContinuous = arg1 === 'continuous';
     } else {
+        if (sender instanceof Player === false) return;
         sender.sendMessage(`§cInvalid break action: ${arg1}. Expected 'once', 'continuous' or 'interval'.`);
         return;
     }
@@ -382,6 +417,7 @@ function breakAction(sender, name, arg1, arg2) {
         isContinuous = true;
         intervalDuration = arg2;
     } else if (arg2 !== null) {
+        if (sender instanceof Player === false) return;
         sender.sendMessage(`§cInvalid interval duration: ${arg2}. Expected a number.`);
         return;
     }
@@ -392,6 +428,7 @@ function breakAction(sender, name, arg1, arg2) {
 
 function buildAction(sender, name, arg1, arg2) {
     if (!UnderstudyManager.isOnline(name)) {
+        if (sender instanceof Player === false) return;
         sender.sendMessage(`§cPlayer ${name} is not online.`);
         return;
     }
@@ -399,6 +436,7 @@ function buildAction(sender, name, arg1, arg2) {
     if (['once', 'continuous', 'interval', null].includes(arg1)) {
         isContinuous = arg1 === 'continuous';
     } else {
+        if (sender instanceof Player === false) return;
         sender.sendMessage(`§cInvalid build action: ${arg1}. Expected 'once', 'continuous' or 'interval'.`);
         return;
     }
@@ -408,6 +446,7 @@ function buildAction(sender, name, arg1, arg2) {
         isContinuous = true;
         intervalDuration = arg2;
     } else if (arg2 !== null) {
+        if (sender instanceof Player === false) return;
         sender.sendMessage(`§cInvalid interval duration: ${arg2}. Expected a number.`);
         return;
     }
@@ -418,6 +457,7 @@ function buildAction(sender, name, arg1, arg2) {
 
 function dropAction(sender, name, arg1, arg2) {
     if (!UnderstudyManager.isOnline(name)) {
+        if (sender instanceof Player === false) return;
         sender.sendMessage(`§cPlayer ${name} is not online.`);
         return;
     }
@@ -426,6 +466,7 @@ function dropAction(sender, name, arg1, arg2) {
     if (['once', 'continuous', 'interval', null].includes(arg1)) {
         isContinuous = arg1 === 'continuous';
     } else {
+        if (sender instanceof Player === false) return;
         sender.sendMessage(`§cInvalid drop action: ${arg1}. Expected 'once', 'continuous' or 'interval'.`);
         return;
     }
@@ -435,6 +476,7 @@ function dropAction(sender, name, arg1, arg2) {
         isContinuous = true;
         intervalDuration = arg2;
     } else if (arg2 !== null) {
+        if (sender instanceof Player === false) return;
         sender.sendMessage(`§cInvalid interval duration: ${arg2}. Expected a number.`);
         return;
     }
@@ -445,6 +487,7 @@ function dropAction(sender, name, arg1, arg2) {
 
 function dropStackAction(sender, name, arg1, arg2) {
     if (!UnderstudyManager.isOnline(name)) {
+        if (sender instanceof Player === false) return;
         sender.sendMessage(`§cPlayer ${name} is not online.`);
         return;
     }
@@ -453,6 +496,7 @@ function dropStackAction(sender, name, arg1, arg2) {
     if (['once', 'continuous', 'interval', null].includes(arg1)) {
         isContinuous = arg1 === 'continuous';
     } else {
+        if (sender instanceof Player === false) return;
         sender.sendMessage(`§cInvalid drop action: ${arg1}. Expected 'once', 'continuous' or 'interval'.`);
         return;
     }
@@ -462,6 +506,7 @@ function dropStackAction(sender, name, arg1, arg2) {
         isContinuous = true;
         intervalDuration = arg2;
     } else if (arg2 !== null) {
+        if (sender instanceof Player === false) return;
         sender.sendMessage(`§cInvalid interval duration: ${arg2}. Expected a number.`);
         return;
     }
@@ -472,6 +517,7 @@ function dropStackAction(sender, name, arg1, arg2) {
 
 function dropAllAction(sender, name, arg1, arg2) {
     if (!UnderstudyManager.isOnline(name)) {
+        if (sender instanceof Player === false) return;
         sender.sendMessage(`§cPlayer ${name} is not online.`);
         return;
     }
@@ -480,6 +526,7 @@ function dropAllAction(sender, name, arg1, arg2) {
     if (['once', 'continuous', 'interval', null].includes(arg1)) {
         isContinuous = arg1 === 'continuous';
     } else {
+        if (sender instanceof Player === false) return;
         sender.sendMessage(`§cInvalid drop action: ${arg1}. Expected 'once', 'continuous' or 'interval'.`);
         return;
     }
@@ -489,6 +536,7 @@ function dropAllAction(sender, name, arg1, arg2) {
         isContinuous = true;
         intervalDuration = arg2;
     } else if (arg2 !== null) {
+        if (sender instanceof Player === false) return;
         sender.sendMessage(`§cInvalid interval duration: ${arg2}. Expected a number.`);
         return;
     }
@@ -499,6 +547,7 @@ function dropAllAction(sender, name, arg1, arg2) {
 
 function jumpAction(sender, name, arg1, arg2) {
     if (!UnderstudyManager.isOnline(name)) {
+        if (sender instanceof Player === false) return;
         sender.sendMessage(`§cPlayer ${name} is not online.`);
         return;
     }
@@ -507,6 +556,7 @@ function jumpAction(sender, name, arg1, arg2) {
     if (['once', 'continuous', 'interval', null].includes(arg1)) {
         isContinuous = arg1 === 'continuous';
     } else {
+        if (sender instanceof Player === false) return;
         sender.sendMessage(`§cInvalid jump action: ${arg1}. Expected 'once', 'continuous' or 'interval'.`);
         return;
     }
@@ -516,6 +566,7 @@ function jumpAction(sender, name, arg1, arg2) {
         isContinuous = true;
         intervalDuration = arg2;
     } else if (arg2 !== null) {
+        if (sender instanceof Player === false) return;
         sender.sendMessage(`§cInvalid interval duration: ${arg2}. Expected a number.`);
         return;
     }
@@ -526,12 +577,14 @@ function jumpAction(sender, name, arg1, arg2) {
 
 function selectSlotAction(sender, name, arg1) {
     if (!UnderstudyManager.isOnline(name)) {
+        if (sender instanceof Player === false) return;
         sender.sendMessage(`§cPlayer ${name} is not online.`);
         return;
     }
 
     const simPlayer = UnderstudyManager.getPlayer(name);
     if (!isNumeric(arg1) || arg1 < 0 || arg1 > 8) {
+        if (sender instanceof Player === false) return;
         sender.sendMessage(`§cInvalid slot number: ${arg1}. Expected a number fom 0 to 8.`);
         return;
     }
@@ -540,6 +593,7 @@ function selectSlotAction(sender, name, arg1) {
 
 function sprintAction(sender, name) {
     if (!UnderstudyManager.isOnline(name)) {
+        if (sender instanceof Player === false) return;
         sender.sendMessage(`§cPlayer ${name} is not online.`);
         return;
     }
@@ -550,6 +604,7 @@ function sprintAction(sender, name) {
 
 function unsprintAction(sender, name) {
     if (!UnderstudyManager.isOnline(name)) {
+        if (sender instanceof Player === false) return;
         sender.sendMessage(`§cPlayer ${name} is not online.`);
         return;
     }
@@ -560,6 +615,7 @@ function unsprintAction(sender, name) {
 
 function claimProjectilesAction(sender, name, arg1) {
     if (!UnderstudyManager.isOnline(name)) {
+        if (sender instanceof Player === false) return;
         sender.sendMessage(`§cPlayer ${name} is not online.`);
         return;
     }
@@ -573,6 +629,7 @@ function claimProjectilesAction(sender, name, arg1) {
 
 function stopAction(sender, name) {
     if (!UnderstudyManager.isOnline(name)) {
+        if (sender instanceof Player === false) return;
         sender.sendMessage(`§cPlayer ${name} is not online.`);
         return;
     }
@@ -580,3 +637,5 @@ function stopAction(sender, name) {
     const simPlayer = UnderstudyManager.getPlayer(name);
     simPlayer.stopAll();
 }
+
+export { playerCommand };

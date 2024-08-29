@@ -42,6 +42,9 @@ Make the player with the given name attack. "once" will make the player attack o
 **Usage: `./player <name> interact [once/continuous/interval] [intervalDuration]`**  
 Make the player with the given name interact with the block they are looking at. "once" will make the player interact once. "continuous" will make the player interact continuously. "interval" will make the player interact at regular intervals specified by the last argument. If the last two arguments are not specified, "once" is assumed.
 
+**Usage: `./player <name> use [once/continuous/interval] [intervalDuration]`**  
+Make the player with the given name use the item they are holding. "once" will make the player use the item once. "continuous" will make the player use the item continuously. "interval" will make the player use the item at regular intervals specified by the last argument. If the last two arguments are not specified, "once" is assumed.
+
 **Usage: `./player <name> build [once/continuous/interval] [intervalDuration]`**  
 Make the player with the given name place a block at the block they are looking at. "once" will make the player place a block once. "continuous" will make the player place a block continuously. "interval" will make the player place a block at regular intervals specified by the last argument. If the last two arguments are not specified, "once" is assumed.
 
@@ -75,5 +78,5 @@ Make the player with the given name become the owner of all projectiles within a
 **Usage: `./player <name> stop`**  
 Stop all actions the player with the given name is doing.
 
-**Usage: `./player prefix <prefix/#none>`**
+**Usage: `./player prefix <prefix/#none>`**  
 Set a nametag prefix for all simulated players. Use `#none` to remove the prefix.

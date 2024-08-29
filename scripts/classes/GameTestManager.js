@@ -54,8 +54,7 @@ class GameTestManager {
     }
 
     static startPlayerLoop() {
-        system.runInterval(() => {
-            if (!this.#startupComplete) return;
+        system.runInterval(() => {if (!this.#startupComplete) return;
             for (const player of UnderstudyManager.players) {
                 if (player.nextActions.length > 0) {
                     this.runNextActions(player);

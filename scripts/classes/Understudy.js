@@ -73,12 +73,12 @@ class Understudy {
         this.continuousActions = [];
     }
 
-    join(location, rotation, dimensionId, gameMode) {
+    join(location, dimensionId, rotation = { x: 0, y: 0}, gameMode = "survival") {
         const actionData = { 
             type: 'join', 
             location: location, 
-            rotation: rotation, 
             dimensionId: dimensionId, 
+            rotation: rotation, 
             gameMode: gameMode 
         };
         this.nextActions.push(actionData);
