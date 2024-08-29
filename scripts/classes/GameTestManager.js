@@ -2,7 +2,7 @@ import extension from 'config';
 import UnderstudyManager from 'classes/UnderstudyManager';
 import * as gametest from '@minecraft/server-gametest';
 import { system, world, Block, Entity, Player } from '@minecraft/server';
-import { subtractVectors, getLookAtLocation } from 'utils';
+import { subtractVectors, getLookAtLocation, decrementSlot, swapSlots } from 'utils';
 
 const TEST_MAX_TICKS = 630720000; // 1 year
 const TEST_START_POSITION = { x: 1000000, z: 1000000 };
@@ -106,11 +106,17 @@ class GameTestManager {
             case 'break':
                 this.breakAction(player);
                 break;
-            case 'dropSelected':
-                this.dropSelectedAction(player);
+            case 'drop':
+                this.dropAction(player);
+                break;
+            case 'dropStack':
+                this.dropStackAction(player);
                 break;
             case 'jump':
                 this.jumpAction(player);
+                break;
+            case 'select':
+                this.selectSlotAction(player, actionData);
                 break;
             case 'sprint':
                 this.sprintAction(player, actionData);
@@ -150,8 +156,11 @@ class GameTestManager {
                 case 'break':
                     this.breakAction(player);
                     break;
-                case 'dropSelected':
-                    this.dropSelectedAction(player);
+                case 'drop':
+                    this.dropAction(player);
+                    break;
+                case 'dropStack':
+                    this.dropStackAction(player);
                     break;
                 case 'jump':
                     this.jumpAction(player);
@@ -240,8 +249,14 @@ class GameTestManager {
     }
 
     static buildAction(player) {
+        const selectedSlot = player.simulatedPlayer.selectedSlotIndex;
+        swapSlots(player.simulatedPlayer, 0, selectedSlot);
         player.simulatedPlayer.startBuild();
         player.simulatedPlayer.stopBuild();
+        if (['survival', 'adventure'].includes(player.simulatedPlayer.getGameMode()))
+            decrementSlot(player.simulatedPlayer, player.simulatedPlayer.selectedSlotIndex);
+        swapSlots(player.simulatedPlayer, 0, selectedSlot);
+        player.simulatedPlayer.selectedSlotIndex = selectedSlot;
     }
 
     static breakAction(player) {
@@ -251,7 +266,26 @@ class GameTestManager {
         player.simulatedPlayer.breakBlock(this.getRelativeCoords(lookingAtLocation));
     }
 
-    static dropSelectedAction(player) {
+    static dropAction(player) {
+        const invContainer = player.simulatedPlayer.getComponent('minecraft:inventory')?.container;
+        if (!invContainer)
+            return;
+        const itemStack = invContainer.getItem(player.simulatedPlayer.selectedSlotIndex);
+        if (itemStack === undefined)
+            return;
+        const savedAmount = itemStack.amount;
+        if (savedAmount > 1) {
+            itemStack.amount = 1;
+            invContainer.setItem(player.simulatedPlayer.selectedSlotIndex, itemStack);
+            player.simulatedPlayer.dropSelectedItem();
+            itemStack.amount = savedAmount - 1;
+            invContainer.setItem(player.simulatedPlayer.selectedSlotIndex, itemStack);
+        } else {
+            player.simulatedPlayer.dropSelectedItem();
+        }
+    }
+
+    static dropStackAction(player) {
         player.simulatedPlayer.dropSelectedItem();
     }
 
@@ -259,9 +293,12 @@ class GameTestManager {
         player.simulatedPlayer.jump();
     }
 
+    static selectSlotAction(player, actionData) {
+        player.simulatedPlayer.selectedSlotIndex = actionData.slot;
+    }
+
     static sprintAction(player, actionData) {
         player.simulatedPlayer.isSprinting = actionData.shouldSprint;
-        console.warn(`[Understudy] isSprinting: ${player.simulatedPlayer.isSprinting}`);
     }
 
     static claimprojectilesAction(player, actionData) {

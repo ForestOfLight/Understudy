@@ -1,3 +1,5 @@
+import { ItemStack } from "@minecraft/server";
+
 const PLAYER_EYE_HEIGHT = 1.62001002;
 
 function stringifyLocation(location, precision = 2) {
@@ -40,6 +42,32 @@ function isNumeric(value) {
     return !isNaN(parseFloat(value)) && isFinite(value);
 }
 
+function decrementSlot(player, slotNumber) {
+    const invContainer = player?.getComponent('minecraft:inventory')?.container;
+    if (!invContainer)
+        throw new Error('[Understudy] Player does not have an inventory container.');
+    const slot = invContainer.getSlot(slotNumber);
+    try {
+        if (slot.amount === 1)
+            slot.setItem(new ItemStack('minecraft:air'));
+        else
+            slot.amount--;
+    } catch (error) {
+        if (error.name !== 'InvalidContainerSlotError')
+            throw error;
+    }
+}
+
+function swapSlots(player, slotNumber1, slotNumber2) {
+    const invContainer = player?.getComponent('minecraft:inventory')?.container;
+    if (!invContainer)
+        throw new Error('[Understudy] Player does not have an inventory container.');
+    const slot1 = invContainer.getItem(slotNumber1);
+    const slot2 = invContainer.getItem(slotNumber2);
+    invContainer.setItem(slotNumber1, slot2);
+    invContainer.setItem(slotNumber2, slot1);
+}
+
 export { 
-    PLAYER_EYE_HEIGHT, stringifyLocation, subtractVectors, makeVector3, getLookAtLocation, isNumeric, getLookAtRotation 
+    PLAYER_EYE_HEIGHT, stringifyLocation, subtractVectors, makeVector3, getLookAtLocation, isNumeric, getLookAtRotation, decrementSlot, swapSlots
 };

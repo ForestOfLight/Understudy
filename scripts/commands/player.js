@@ -26,9 +26,12 @@ const commandPlayerCommand = new Command({
         { usage: `player <name> look [up/down/north/south/east/west/block/entity/me/x y z/pitch yaw]`, description: `Make a player look in specified directions.` },
         { usage: `player <name> move [forward/back/left/right/block/entity/me/x y z]`, description: `Make a player move in specified directions.` },
         { usage: `player <name> attack [once/continuous/interval] [intervalDuration]`, description: `Make a player attack.` },
-        { usage: `player <name> break [once/continuous]`, description: `Make a player break a block.` },
-        { usage: `player <name> drop`, description: `Make a player drop their selected item.` },
+        { usage: `player <name> interact [once/continuous/interval] [intervalDuration]`, description: `Make a player interact with a block or entity.` },
+        { usage: `player <name> build [once/continuous/interval] [intervalDuration]`, description: `Make a player place a block.` },
+        { usage: `player <name> break [once/continuous/interval] [intervalDuration]`, description: `Make a player break a block.` },
+        { usage: `player <name> drop [once/continuous/interval] [intervalDuration]`, description: `Make a player drop their selected item.` },
         { usage: `player <name> jump [once/continuous/interval] [intervalDuration]`, description: `Make a player jump.` },
+        { usage: `player <name> select [slotNumber]`, description: `Make a player select a slot.` },
         { usage: `player <name> sprint`, description: `Make a player sprint.` },
         { usage: `player <name> unsprint`, description: `Make a player stop sprinting.` },
         { usage: `player <name> claimprojectiles [radius]`, description: `Make a player the owner of all projectiles within a radius.` },
@@ -98,8 +101,14 @@ function playerCommand(sender, args) {
         case 'drop':
             dropAction(sender, name, arg1, arg2);
             break;
+        case 'dropStack':
+            dropStackAction(sender, name, arg1, arg2);
+            break;
         case 'jump':
             jumpAction(sender, name, arg1, arg2);
+            break;
+        case 'select':
+            selectSlotAction(sender, name, arg1);
             break;
         case 'sprint':
             sprintAction(sender, name);
@@ -338,7 +347,7 @@ function breakAction(sender, name, arg1, arg2) {
     }
 
     const simPlayer = UnderstudyManager.getPlayer(name);
-    simPlayer.variableTimingAction('break', isContinuous);
+    simPlayer.variableTimingAction('break', isContinuous, intervalDuration);
 }
 
 function buildAction(sender, name, arg1, arg2) {
@@ -364,10 +373,10 @@ function buildAction(sender, name, arg1, arg2) {
     }
 
     const simPlayer = UnderstudyManager.getPlayer(name);
-    simPlayer.variableTimingAction('build', isContinuous);
+    simPlayer.variableTimingAction('build', isContinuous, intervalDuration);
 }
 
-function dropAction(sender, name, aeg1, arg2) {
+function dropAction(sender, name, arg1, arg2) {
     if (!UnderstudyManager.isOnline(name)) {
         sender.sendMessage(`§cPlayer ${name} is not online.`);
         return;
@@ -391,7 +400,34 @@ function dropAction(sender, name, aeg1, arg2) {
     }
 
     const simPlayer = UnderstudyManager.getPlayer(name);
-    simPlayer.variableTimingAction('drop', isContinuous);
+    simPlayer.variableTimingAction('drop', isContinuous, intervalDuration);
+}
+
+function dropStackAction(sender, name, arg1, arg2) {
+    if (!UnderstudyManager.isOnline(name)) {
+        sender.sendMessage(`§cPlayer ${name} is not online.`);
+        return;
+    }
+
+    let isContinuous = false;
+    if (['once', 'continuous', 'interval', null].includes(arg1)) {
+        isContinuous = arg1 === 'continuous';
+    } else {
+        sender.sendMessage(`§cInvalid drop action: ${arg1}. Expected 'once', 'continuous' or 'interval'.`);
+        return;
+    }
+
+    let intervalDuration = 0;
+    if (arg1 === 'interval' && isNumeric(arg2)) {
+        isContinuous = true;
+        intervalDuration = arg2;
+    } else if (arg2 !== null) {
+        sender.sendMessage(`§cInvalid interval duration: ${arg2}. Expected a number.`);
+        return;
+    }
+
+    const simPlayer = UnderstudyManager.getPlayer(name);
+    simPlayer.variableTimingAction('dropStack', isContinuous, intervalDuration);
 }
 
 function jumpAction(sender, name, arg1, arg2) {
@@ -419,6 +455,20 @@ function jumpAction(sender, name, arg1, arg2) {
     
     const simPlayer = UnderstudyManager.getPlayer(name);
     simPlayer.variableTimingAction('jump', isContinuous, intervalDuration);
+}
+
+function selectSlotAction(sender, name, arg1) {
+    if (!UnderstudyManager.isOnline(name)) {
+        sender.sendMessage(`§cPlayer ${name} is not online.`);
+        return;
+    }
+
+    const simPlayer = UnderstudyManager.getPlayer(name);
+    if (!isNumeric(arg1)) {
+        sender.sendMessage(`§cInvalid slot number: ${arg1}. Expected a number.`);
+        return;
+    }
+    simPlayer.selectSlot(arg1);
 }
 
 function sprintAction(sender, name) {

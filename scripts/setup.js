@@ -7,7 +7,6 @@ let firstJoin = false;
 world.afterEvents.playerJoin.subscribe((event) => {
     let runner = system.runInterval(() => {
         const players = world.getPlayers({ name: event.playerName });
-        console.warn(JSON.stringify(world.getAllPlayers()));
         if (world.getAllPlayers().length !== players.length) {
             system.clearRun(runner);
             return;

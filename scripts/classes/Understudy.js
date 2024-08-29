@@ -181,6 +181,11 @@ class Understudy {
             this.nextActions.push(actionData);
     }
 
+    selectSlot(slotNumber) {
+        const actionData = { type: 'select', slot: slotNumber };
+        this.nextActions.push(actionData);
+    }
+
     sprint(shouldSprint) {
         const actionData = { type: 'sprint', shouldSprint: shouldSprint };
         this.nextActions.push(actionData);
