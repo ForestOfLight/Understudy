@@ -17,6 +17,11 @@ world.afterEvents.playerJoin.subscribe((event) => {
     });
 });
 
+world.afterEvents.gameRuleChange.subscribe((event) => {
+    console.warn(`Game rule change detected: ${event.rule} = ${event.value}`);
+    world.setDynamicProperty(`gamerule:${event.rule}`, event.value);
+});
+
 function onValidWorld() {
     GameTestManager.startPlayers(savedGameRules);
 }
@@ -33,7 +38,11 @@ function onScriptReload() {
 function getGameRules() {
     const gameRuleMap = {};
     for (const gamerule in world.gameRules) {
-        gameRuleMap[gamerule] = world.gameRules[gamerule];
+        const value = world.getDynamicProperty(`gamerule:${gamerule}`);
+        if (value === undefined) {
+            world.setDynamicProperty(`gamerule:${gamerule}`, world.gameRules[gamerule]);
+        }
+        gameRuleMap[gamerule] = value || world.gameRules[gamerule];
     }
     return gameRuleMap;
 }

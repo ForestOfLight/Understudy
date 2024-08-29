@@ -46,9 +46,8 @@ class GameTestManager {
                     updatedGameRules[gamerule] = world.gameRules[gamerule];
                 }
             }
-            if (Object.keys(updatedGameRules).length > 0) {
+            if (Object.keys(updatedGameRules).length > 0)
                 console.warn(`[Understudy] Gametest messed with gamerules. Rolling back these: ${Object.keys(updatedGameRules).map(rule => `${rule} = ${updatedGameRules[rule]}`).join(', ')}`);
-            }
         }, 2);
     }
 

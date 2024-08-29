@@ -1,11 +1,11 @@
 {
 	"format_version": 2,
 	"header": {
-		"name": "Understudy v0.0.1",
-		"description": "Fakeplayer addon designed to work alongside §l§aCanopy§r by §aForestOfLight§r.",
+		"name": "Understudy v0.2.0",
+		"description": "Simulated player addon designed to work alongside §l§aCanopy§r by §aForestOfLight§r.",
 		"uuid": "bb50de74-6e59-467b-871f-8ef829ab579f",
 		"min_engine_version": [1, 21, 20],
-		"version": [0, 1, 0]
+		"version": [0, 2, 0]
 	},
 	"modules": [
 		{
