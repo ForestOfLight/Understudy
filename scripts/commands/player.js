@@ -30,6 +30,7 @@ const commandPlayerCommand = new Command({
         { usage: `player <name> build [once/continuous/interval] [intervalDuration]`, description: `Make a player place a block.` },
         { usage: `player <name> break [once/continuous/interval] [intervalDuration]`, description: `Make a player break a block.` },
         { usage: `player <name> drop [once/continuous/interval] [intervalDuration]`, description: `Make a player drop their selected item.` },
+        { usage: `player <name> dropStack [once/continuous/interval] [intervalDuration]`, description: `Make a player drop their selected item stack.` },
         { usage: `player <name> jump [once/continuous/interval] [intervalDuration]`, description: `Make a player jump.` },
         { usage: `player <name> select [slotNumber]`, description: `Make a player select a slot.` },
         { usage: `player <name> sprint`, description: `Make a player sprint.` },
