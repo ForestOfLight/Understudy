@@ -7,6 +7,7 @@ import { subtractVectors, getLookAtLocation } from 'utils';
 const TEST_MAX_TICKS = 630720000; // 1 year
 const TEST_START_POSITION = { x: 1000000, z: 1000000 };
 const LOADER_ENTITY_ID = 'understudy:loader';
+const PLAYER_LOOP_RUNNER = null;
 
 class GameTestManager {
     static testName = 'players';
@@ -14,6 +15,8 @@ class GameTestManager {
     static #startupComplete = false;
 
     static startPlayers(savedGameRules) {
+        if (this.#startupComplete)
+            throw new Error(`[Understudy] GameTestManager has already been started`);
         gametest.register(extension.name, this.testName, (test) => {
             this.test = test;
             this.startPlayerLoop();
