@@ -80,3 +80,10 @@ Stop all actions the player with the given name is doing.
 
 **Usage: `./player prefix <prefix/#none>`**  
 Set a nametag prefix for all simulated players. Use `#none` to remove the prefix.
+
+### Scriptevents
+
+All commands can also be accessed through the vanilla `/scriptevent` command (which can be used in command blocks).
+
+**Usage: `/scriptevent understudy:<command>`**  
+Run the specified understudy command. For example, `/scriptevent understudy:player <name> join`.

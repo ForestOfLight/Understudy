@@ -26,7 +26,11 @@ class Understudy {
             return this.simulatedPlayer.headRotation;
         let targetLocation;
         if (this.#lookTarget instanceof Player)
-            targetLocation = this.#lookTarget.getHeadLocation();
+            try {
+               targetLocation = this.#lookTarget.getHeadLocation();
+            } catch {
+                return this.simulatedPlayer.headRotation;
+            }
         else
             targetLocation = this.#lookTarget.location;
         return getLookAtRotation(this.simulatedPlayer.location, targetLocation);
