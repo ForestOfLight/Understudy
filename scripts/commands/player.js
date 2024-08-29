@@ -99,6 +99,9 @@ function playerCommand(sender, args) {
         case 'interact':
             interactAction(sender, name, arg1, arg2);
             break;
+        case 'use':
+            useAction(sender, name, arg1, arg2);
+            break;
         case 'build':
             buildAction(sender, name, arg1, arg2);
             break;
@@ -331,6 +334,33 @@ function interactAction(sender, name, arg1, arg2) {
 
     const simPlayer = UnderstudyManager.getPlayer(name);
     simPlayer.variableTimingAction('interact', isContinuous, intervalDuration);
+}
+
+function useAction(sender, name, arg1, arg2) {
+    if (!UnderstudyManager.isOnline(name)) {
+        sender.sendMessage(`§cPlayer ${name} is not online.`);
+        return;
+    }
+
+    let isContinuous = false;
+    if (['once', 'continuous', 'interval', null].includes(arg1)) {
+        isContinuous = arg1 === 'continuous';
+    } else {
+        sender.sendMessage(`§cInvalid use action: ${arg1}. Expected 'once', 'continuous' or 'interval'.`);
+        return;
+    }
+
+    let intervalDuration = 0;
+    if (arg1 === 'interval' && isNumeric(arg2)) {
+        isContinuous = true;
+        intervalDuration = arg2;
+    } else if (arg2 !== null) {
+        sender.sendMessage(`§cInvalid interval duration: ${arg2}. Expected a number.`);
+        return;
+    }
+
+    const simPlayer = UnderstudyManager.getPlayer(name);
+    simPlayer.variableTimingAction('use', isContinuous, intervalDuration);
 }
 
 function breakAction(sender, name, arg1, arg2) {

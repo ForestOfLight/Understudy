@@ -99,6 +99,9 @@ class GameTestManager {
             case 'interact':
                 this.interactAction(player);
                 break;
+            case 'use':
+                this.useAction(player);
+                break;
             case 'build':
                 this.buildAction(player);
                 break;
@@ -151,6 +154,9 @@ class GameTestManager {
                     break;
                 case 'interact':
                     this.interactAction(player);
+                    break;
+                case 'use':
+                    this.useAction(player);
                     break;
                 case 'build':
                     this.buildAction(player);
@@ -251,6 +257,10 @@ class GameTestManager {
 
     static interactAction(player) {
         player.simulatedPlayer.interact();
+    }
+
+    static useAction(player) {
+        player.simulatedPlayer.useItemInSlot(player.simulatedPlayer.selectedSlotIndex);
     }
 
     static buildAction(player) {
