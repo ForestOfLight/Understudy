@@ -125,6 +125,9 @@ class GameTestManager {
             case 'sprint':
                 this.sprintAction(player, actionData);
                 break;
+            case 'sneak':
+                this.sneakAction(player, actionData);
+                break;
             case 'claimProjectiles':
                 this.claimprojectilesAction(player, actionData);
                 break;
@@ -329,6 +332,10 @@ class GameTestManager {
         player.simulatedPlayer.isSprinting = actionData.shouldSprint;
     }
 
+    static sneakAction(player, actionData) {
+        player.simulatedPlayer.isSneaking = actionData.shouldSneak;
+    }
+
     static claimprojectilesAction(player, actionData) {
         const projectiles = this.getProjectilesInRange(player.simulatedPlayer, actionData.radius);
         if (projectiles.length === 0)
@@ -366,6 +373,8 @@ class GameTestManager {
         player.simulatedPlayer.stopSwimming();
         player.simulatedPlayer.stopGliding();
         player.simulatedPlayer.stopUsingItem();
+        player.simulatedPlayer.isSprinting = false;
+        player.simulatedPlayer.isSneaking = false;
         player.clearContinuousActions();
 
         this.stopHeadRotation(player);

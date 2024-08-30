@@ -27,8 +27,8 @@ const commandPlayerCommand = new Command({
         { usage: `player <name> move [forward/back/left/right/block/entity/me/x y z]`, description: `Make a player move in specified directions.` },
         { usage: `player <name> <attack/interact/use/build/break/drop/dropStack/dropAll/jump> [once/continuous/interval] [intervalDuration]`, description: `Make a player do an action with variable timing.` },
         { usage: `player <name> select [slotNumber]`, description: `Make a player select a slot.` },
-        { usage: `player <name> sprint`, description: `Make a player sprint.` },
-        { usage: `player <name> unsprint`, description: `Make a player stop sprinting.` },
+        { usage: `player <name> <sprint/unsprint>`, description: `Make a player start or stop sprinting.` },
+        { usage: `player <name> <sneak/unsneak>`, description: `Make a player start or stop sneaking.` },
         { usage: `player <name> claimprojectiles [radius]`, description: `Make a player the owner of all nearby projectiles.` },
         { usage: `player <name> stop`, description: `Stop all actions for a player.` },
         { usage: `player prefix <prefix>`, description: `Set a prefix player nametags.` },
@@ -120,6 +120,12 @@ function playerCommand(sender, args) {
             break;
         case 'unsprint':
             unsprintAction(sender, name);
+            break;
+        case 'sneak':
+            sneakAction(sender, name);
+            break;
+        case 'unsneak':
+            unsneakAction(sender, name);
             break;
         case 'claimprojectiles':
             claimProjectilesAction(sender, name, arg1);
@@ -603,6 +609,28 @@ function unsprintAction(sender, name) {
 
     const simPlayer = UnderstudyManager.getPlayer(name);
     simPlayer.sprint(false);
+}
+
+function sneakAction(sender, name) {
+    if (!UnderstudyManager.isOnline(name)) {
+        if (sender instanceof Player === false) return;
+        sender.sendMessage(`§cPlayer ${name} is not online.`);
+        return;
+    }
+    
+    const simPlayer = UnderstudyManager.getPlayer(name);
+    simPlayer.sneak(true);
+}
+
+function unsneakAction(sender, name) {
+    if (!UnderstudyManager.isOnline(name)) {
+        if (sender instanceof Player === false) return;
+        sender.sendMessage(`§cPlayer ${name} is not online.`);
+        return;
+    }
+    
+    const simPlayer = UnderstudyManager.getPlayer(name);
+    simPlayer.sneak(false);
 }
 
 function claimProjectilesAction(sender, name, arg1) {

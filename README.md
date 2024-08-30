@@ -72,6 +72,12 @@ Make the player with the given name sprint.
 **Usage: `./player <name> unsprint`**  
 Make the player with the given name stop sprinting.
 
+**Usage: `./player <name> sneak`**
+Make the player with the given name sneak.
+
+**Usage: `./player <name> unsneak`**
+Make the player with the given name stop sneaking.
+
 **Usage: `./player <name> claimprojectiles [radius]`**  
 Make the player with the given name become the owner of all projectiles within a 25 block radius.
 

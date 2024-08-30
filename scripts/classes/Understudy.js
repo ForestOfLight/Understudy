@@ -197,6 +197,11 @@ class Understudy {
         this.nextActions.push(actionData);
     }
 
+    sneak(shouldSneak) {
+        const actionData = { type: 'sneak', shouldSneak: shouldSneak };
+        this.nextActions.push(actionData);
+    }
+
     claimProjectiles(radius) {
         const actionData = { type: 'claimProjectiles', radius: radius };
         this.nextActions.push(actionData);
