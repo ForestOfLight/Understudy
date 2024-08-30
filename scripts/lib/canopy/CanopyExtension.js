@@ -2,6 +2,8 @@ import { world, system } from '@minecraft/server';
 import Command from './Command';
 import Rule from './Rule';
 
+const SCRIPTEVENT_MAX_MESSAGE_LENGTH = 2048;
+
 class CanopyExtension {
     name;
     description;
@@ -52,8 +54,11 @@ class CanopyExtension {
             helpHidden: command.isHelpHidden(),
             extensionName: this.name
         };
-		// console.warn(`[${this.name}] Attempting command registration: ${JSON.stringify(commandData)}`);
-        world.getDimension('overworld').runCommandAsync(`scriptevent canopyExtension:registerCommand ${this.name} ${JSON.stringify(commandData)}`);
+        const message = `${this.name} ${JSON.stringify(commandData)}`;
+        if (message.length > SCRIPTEVENT_MAX_MESSAGE_LENGTH)
+            throw new Error(`Could not send command to Canopy: Command data for ${commandData.name} exceeds ${SCRIPTEVENT_MAX_MESSAGE_LENGTH} characters (currently ${message.length} characters).`)
+        // console.warn(`[${this.name}] Attempting command registration: ${JSON.stringify(commandData)}`);
+        world.getDimension('overworld').runCommandAsync(`scriptevent canopyExtension:registerCommand ${message}`);
     }
     
     handleIncomingCallbacks() {
@@ -90,8 +95,11 @@ class CanopyExtension {
             independentRules: rule.getIndependentRules(),
             extensionName: this.name
         };
+        const message = `${this.name} ${JSON.stringify(ruleData)}`;
+        if (message.length > SCRIPTEVENT_MAX_MESSAGE_LENGTH)
+            throw new Error(`Could not send rule to Canopy: Rule data for ${ruleData.name} exceeds ${SCRIPTEVENT_MAX_MESSAGE_LENGTH} characters (currently ${message.length} characters).`)
         // console.warn(`[${this.name}] Attempting rule registration: ${JSON.stringify(ruleData)}`);
-        world.getDimension('overworld').runCommandAsync(`scriptevent canopyExtension:registerRule ${this.name} ${JSON.stringify(ruleData)}`);
+        world.getDimension('overworld').runCommandAsync(`scriptevent canopyExtension:registerRule ${message}`);
     }
 
     handleRuleValueRequests() {
