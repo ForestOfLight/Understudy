@@ -1,6 +1,7 @@
 import { world, system } from '@minecraft/server';
 import Command from './Command';
 import Rule from './Rule';
+import ArgumentParser from './ArgumentParser';
 
 const SCRIPTEVENT_MAX_MESSAGE_LENGTH = 2048;
 
@@ -64,16 +65,19 @@ class CanopyExtension {
     handleIncomingCallbacks() {
         system.afterEvents.scriptEventReceive.subscribe((event) => {
             if (event.id !== 'canopyExtension:commandCallbackRequest' || event.sourceType !== 'Server') return;
-            const splitMessage = event.message.split(' ');
-            const extensionName = splitMessage[0];
+            const messagePattern = /^(\S+)\s+"([^"]+)"\s+(\S+)\s+(.*)$/;
+            const match = event.message.match(messagePattern);
+            if (!match) return;
+            const extensionName = match[1];
             if (extensionName !== this.name) return;
-            const senderName = splitMessage[1];
+            const senderName = match[2];
             const sender = world.getPlayers({ name: senderName })[0];
-            const commandName = splitMessage[2];
+            const commandName = match[3];
+            const argsString = match[4];
             if (!sender) {
                 throw new Error(`Sender ${senderName} of ${commandName} not found.`);
             }
-            const args = JSON.parse(event.message.slice(extensionName.length + senderName.length + commandName.length + 3));
+            const args = JSON.parse(argsString);
             // console.warn(`[${this.name}] Received command callback: ${commandName} ${JSON.stringify(args)}`);
             this.#commands[commandName].runCallback(sender, args);
         }, { namespaces: ['canopyExtension'] });
