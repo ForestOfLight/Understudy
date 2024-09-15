@@ -110,10 +110,10 @@ class GameTestManager {
             case 'drop':
                 this.dropAction(player);
                 break;
-            case 'dropStack':
+            case 'dropstack':
                 this.dropStackAction(player);
                 break;
-            case 'dropAll':
+            case 'dropall':
                 this.dropAllAction(player);
                 break;
             case 'jump':
@@ -169,10 +169,10 @@ class GameTestManager {
                 case 'drop':
                     this.dropAction(player);
                     break;
-                case 'dropStack':
+                case 'dropstack':
                     this.dropStackAction(player);
                     break;
-                case 'dropAll':
+                case 'dropall':
                     this.dropAllAction(player);
                     break;
                 case 'jump':
@@ -188,25 +188,28 @@ class GameTestManager {
     static joinAction(player, actionData) {
         player.simulatedPlayer = this.test.spawnSimulatedPlayer(this.getRelativeCoords(actionData.location), player.name, actionData.gameMode);
         this.tpAction(player, actionData);
+        player.loadItems();
         player.isConnected = true;
     }
 
     static leaveAction(player) {
         this.test.removeSimulatedPlayer(player.simulatedPlayer);
         world.sendMessage(`§e${player.name} left the game`);
+        player.removeLookTarget();
         player.simulatedPlayer = null;
         player.isConnected = false;
-        player.removeLookTarget();
     }
 
     static respawnAction(player, actionData) {
         player.simulatedPlayer.respawn();
         this.tpAction(player, actionData);
+        player.savePlayerInfo();
     }
 
     static tpAction(player, actionData) {
         player.simulatedPlayer.teleport(actionData.location, { dimension: world.getDimension(actionData.dimensionId) });
         player.simulatedPlayer.lookAtLocation(this.getRelativeCoords(getLookAtLocation(actionData.location, actionData.rotation)));
+        player.savePlayerInfo();
     }
 
     static lookAction(player, actionData) {
@@ -248,23 +251,22 @@ class GameTestManager {
         else if (direction === 'left') player.simulatedPlayer.moveRelative(1, 0);
         else if (direction === 'right') player.simulatedPlayer.moveRelative(-1, 0);
     }
-
-    static getRelativeCoords(location) {
-        return subtractVectors(location, this.test.worldLocation({ x: 0, y: 0, z: 0 }));
-    }
-
+    
     static attackAction(player) {
         player.simulatedPlayer.attack();
+        player.savePlayerInfo();
     }
-
+    
     static interactAction(player) {
         player.simulatedPlayer.interact();
+        player.savePlayerInfo();
     }
-
+    
     static useAction(player) {
         player.simulatedPlayer.useItemInSlot(player.simulatedPlayer.selectedSlotIndex);
+        player.savePlayerInfo();
     }
-
+    
     static buildAction(player) {
         const selectedSlot = player.simulatedPlayer.selectedSlotIndex;
         swapSlots(player.simulatedPlayer, 0, selectedSlot);
@@ -274,15 +276,17 @@ class GameTestManager {
             decrementSlot(player.simulatedPlayer, player.simulatedPlayer.selectedSlotIndex);
         swapSlots(player.simulatedPlayer, 0, selectedSlot);
         player.simulatedPlayer.selectedSlotIndex = selectedSlot;
+        player.savePlayerInfo();
     }
-
+    
     static breakAction(player) {
         const lookingAtLocation = player.simulatedPlayer.getBlockFromViewDirection({ maxDistance: 6 })?.block?.location;
         if (lookingAtLocation === undefined)
             return;
         player.simulatedPlayer.breakBlock(this.getRelativeCoords(lookingAtLocation));
+        player.savePlayerInfo();
     }
-
+    
     static dropAction(player) {
         const invContainer = player.simulatedPlayer.getComponent('minecraft:inventory')?.container;
         if (!invContainer)
@@ -300,12 +304,14 @@ class GameTestManager {
         } else {
             player.simulatedPlayer.dropSelectedItem();
         }
+        player.savePlayerInfo();
     }
-
+    
     static dropStackAction(player) {
         player.simulatedPlayer.dropSelectedItem();
+        player.savePlayerInfo();
     }
-
+    
     static dropAllAction(player) {
         const invContainer = player.simulatedPlayer.getComponent('minecraft:inventory')?.container;
         if (!invContainer)
@@ -318,24 +324,27 @@ class GameTestManager {
             player.simulatedPlayer.dropSelectedItem();
         }
         player.simulatedPlayer.selectedSlotIndex = selectedSlot;
+        player.savePlayerInfo();
     }
-
+    
     static jumpAction(player) {
         player.simulatedPlayer.jump();
+        player.savePlayerInfo();
     }
-
+    
     static selectSlotAction(player, actionData) {
         player.simulatedPlayer.selectedSlotIndex = actionData.slot;
+        player.savePlayerInfo();
     }
-
+    
     static sprintAction(player, actionData) {
         player.simulatedPlayer.isSprinting = actionData.shouldSprint;
     }
-
+    
     static sneakAction(player, actionData) {
         player.simulatedPlayer.isSneaking = actionData.shouldSneak;
     }
-
+    
     static claimprojectilesAction(player, actionData) {
         const projectiles = this.getProjectilesInRange(player.simulatedPlayer, actionData.radius);
         if (projectiles.length === 0)
@@ -343,8 +352,9 @@ class GameTestManager {
         
         const numChanged = this.changeProjectileOwner(projectiles, player.simulatedPlayer);
         player.simulatedPlayer.chat(`§7Successfully became the owner of ${numChanged} projectiles.`);
+        player.savePlayerInfo();
     }
-
+    
     static getProjectilesInRange(player, radius) {
         const radiusProjectiles = new Array();
         const radiusEntities = player.dimension.getEntities({ location: player.location, maxDistance: radius });
@@ -354,7 +364,7 @@ class GameTestManager {
         }
         return radiusProjectiles;
     }
-
+    
     static changeProjectileOwner(projectiles, owner) {
         for (const projectile of projectiles) {
             if (!projectile)
@@ -376,10 +386,10 @@ class GameTestManager {
         player.simulatedPlayer.isSprinting = false;
         player.simulatedPlayer.isSneaking = false;
         player.clearContinuousActions();
-
+        
         this.stopHeadRotation(player);
     }
-
+    
     static stopHeadRotation(player) {
         const target = player.getLookTarget();
         if (target === null) return;
@@ -391,7 +401,11 @@ class GameTestManager {
         else if (target instanceof Block)
             this.lookAction(player, { type: 'look', blockPos: target.location });
         else
-            this.lookAction(player, { type: 'look', location: target });
+        this.lookAction(player, { type: 'look', location: target });
+    }
+
+    static getRelativeCoords(location) {
+        return subtractVectors(location, this.test.worldLocation({ x: 0, y: 0, z: 0 }));
     }
 }
 

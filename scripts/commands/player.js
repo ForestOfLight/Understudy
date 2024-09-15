@@ -91,8 +91,8 @@ function playerCommand(sender, args) {
         case 'build':
         case 'break':
         case 'drop':
-        case 'dropStack':
-        case 'dropAll':
+        case 'dropstack':
+        case 'dropall':
         case 'jump':
             variableTimingAction(sender, action, name, arg1, arg2);
             break;

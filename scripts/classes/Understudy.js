@@ -1,5 +1,8 @@
-import { Block, Entity, Player, world } from "@minecraft/server";
+import { Block, Entity, Player, world, EquipmentSlot, system, MinecraftDimensionTypes } from "@minecraft/server";
 import { getLookAtRotation, isNumeric } from "utils";
+import SRCItemDatabase from "classes/SRCItemDatabase";
+
+const SAVE_INTERVAL = 600;
 
 class Understudy {
     #lookTarget;
@@ -11,6 +14,8 @@ class Understudy {
         this.nextActions = [];
         this.continuousActions = [];
         this.#lookTarget = null;
+        const tableName = 'bot_' + this.name.substr(0, 8);
+        this.itemDatabase = new SRCItemDatabase(tableName);
     }
 
     getLookTarget() {
@@ -36,18 +41,111 @@ class Understudy {
         return getLookAtRotation(this.simulatedPlayer.location, targetLocation);
     }
 
-    savePlayerInfo({ location, rotation, dimensionId, gameMode } = {}) {
-        // save inventory?
-        const playerInfo = { 
+    savePlayerInfo({ location, rotation, dimensionId, gameMode, projectileIds } = {}) {
+        if (this.simulatedPlayer === null || !this.isConnected)
+            return;
+        const dynamicInfo = {
             location: location || this.simulatedPlayer.location, 
             rotation: rotation || this.getHeadRotation(), 
             dimensionId: dimensionId || this.simulatedPlayer.dimension.id, 
-            gameMode: gameMode || this.simulatedPlayer.getGameMode() 
+            gameMode: gameMode || this.simulatedPlayer.getGameMode(),
+            projectileIds: projectileIds || this.getOwnedProjectileIds()
         };
-        world.setDynamicProperty(`${this.name}:playerinfo`, JSON.stringify(playerInfo));
+        world.setDynamicProperty(`${this.name}:playerinfo`, JSON.stringify(dynamicInfo));
+        this.saveItems();
+    }
+
+    loadPlayerInfo() {
+        let playerInfo;
+        try {
+            playerInfo = JSON.parse(world.getDynamicProperty(`${this.name}:playerinfo`));
+        } catch (error) {
+            if (error.name === 'SyntaxError') {
+                throw new Error(`[Understudy] Player ${this.name} has no player info saved`);
+            }
+            throw error;
+        }
+        this.tp(playerInfo.location, playerInfo.rotation, playerInfo.dimensionId);
+
+        this.claimProjectileIds(playerInfo.projectileIds);
+        this.loadItems();
+
+        return playerInfo;
+    }
+
+    getOwnedProjectileIds() {
+        let projectileIds = [];
+        for (const dimension in MinecraftDimensionTypes) {
+            const dimensionId = MinecraftDimensionTypes[dimension];
+            const projectiles = world.getDimension(dimensionId).getEntities().filter(entity => {
+                const projectileComponent = entity.getComponent('minecraft:projectile');
+                return projectileComponent?.owner === this.simulatedPlayer;
+            });
+            projectileIds = projectileIds.concat(projectiles.map(projectile => projectile.id));
+        }
+        return projectileIds;
+    }
+
+    claimProjectileIds(projectileIds) {
+        projectileIds.forEach(projectileId => {
+            const projectile = world.getEntity(projectileId);
+            if (projectile?.getComponent('minecraft:projectile')) {
+                projectile.getComponent('minecraft:projectile').owner = this.simulatedPlayer;
+            }
+        });
+    }
+
+    saveItems() {
+        if (this.simulatedPlayer !== null) {
+            const inventoryContainer = this.simulatedPlayer.getComponent('minecraft:inventory')?.container;
+            if (inventoryContainer !== undefined) {
+                for (let i = 0; i < inventoryContainer.size; i++) {
+                    const key = `inventory_${i}`;
+                    const itemStack = inventoryContainer.getItem(i);
+                    if (itemStack !== undefined)
+                        this.itemDatabase.set(key, itemStack);
+                    else
+                        this.itemDatabase.delete(key);
+                }
+            }
+            const equippable = this.simulatedPlayer.getComponent('minecraft:equippable');
+            if (equippable !== undefined) {
+                for (const equipmentSlot in EquipmentSlot) {
+                    const key = `equ_${equipmentSlot}`;
+                    const itemStack = equippable.getEquipment(equipmentSlot);
+                    if (itemStack !== undefined)
+                        this.itemDatabase.set(key, itemStack);
+                    else
+                        this.itemDatabase.delete(key);
+                }
+            }
+        }
+    }
+
+    loadItems() {
+        if (this.simulatedPlayer !== null) {
+            const inventoryContainer = this.simulatedPlayer.getComponent('minecraft:inventory')?.container;
+            if (inventoryContainer !== undefined) {
+                for (let i = 0; i < inventoryContainer.size; i++) {
+                    const key = `inventory_${i}`;
+                    const itemStack = this.itemDatabase.get(key);
+                    inventoryContainer.setItem(i, itemStack);
+                }
+            }
+            const equippable = this.simulatedPlayer.getComponent('minecraft:equippable');
+            if (equippable !== undefined) {
+                for (const equipmentSlot in EquipmentSlot) {
+                    const key = `equ_${equipmentSlot}`;
+                    const itemStack = this.itemDatabase.get(key);
+                    equippable.setEquipment(equipmentSlot, itemStack);
+                }
+            }
+        }
     }
 
     onTick() {
+        if (system.currentTick % SAVE_INTERVAL === 0)
+            this.savePlayerInfo();
         if (this.#lookTarget === undefined)
             this.removeLookTarget();
     }
@@ -78,11 +176,11 @@ class Understudy {
     }
 
     join(location, dimensionId, rotation = { x: 0, y: 0}, gameMode = "survival") {
-        const actionData = { 
+        const actionData = {
             type: 'join', 
             location: location, 
-            dimensionId: dimensionId, 
             rotation: rotation, 
+            dimensionId: dimensionId, 
             gameMode: gameMode 
         };
         this.nextActions.push(actionData);
@@ -90,9 +188,9 @@ class Understudy {
     }
 
     leave() {
+        this.savePlayerInfo();
         if (this.simulatedPlayer === null)
             throw new Error(`[Understudy] Player ${this.name} is not connected`);
-        this.savePlayerInfo();
         const actionData = { type: 'leave' };
         this.nextActions.push(actionData);
     }
@@ -107,14 +205,17 @@ class Understudy {
             }
             throw error;
         }
-        const actionData = { 
+        const actionData = {
             type: 'join', 
-            location: playerInfo.location, 
-            rotation: playerInfo.rotation, 
-            dimensionId: playerInfo.dimensionId, 
-            gameMode: playerInfo.gameMode 
+            location: playerInfo.location,
+            rotation: playerInfo.rotation,
+            dimensionId: playerInfo.dimensionId,
+            gameMode: playerInfo.gameMode
         };
         this.nextActions.push(actionData);
+        system.runTimeout(() => {
+            this.loadPlayerInfo();
+        }, 1);
     }
 
     respawn() {
@@ -136,7 +237,6 @@ class Understudy {
             rotation 
         };
         this.nextActions.push(actionData);
-        this.savePlayerInfo(actionData);
     }
 
     lookLocation(target) {
