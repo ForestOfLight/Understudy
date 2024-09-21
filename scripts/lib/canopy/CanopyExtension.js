@@ -1,7 +1,6 @@
 import { world, system } from '@minecraft/server';
 import Command from './Command';
 import Rule from './Rule';
-import ArgumentParser from './ArgumentParser';
 
 const SCRIPTEVENT_MAX_MESSAGE_LENGTH = 2048;
 
