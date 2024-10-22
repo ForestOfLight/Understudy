@@ -87,7 +87,7 @@ class Understudy {
     }
 
     claimProjectileIds(projectileIds) {
-        projectileIds.forEach(projectileId => {
+        projectileIds?.forEach(projectileId => {
             const projectile = world.getEntity(projectileId);
             if (projectile?.getComponent('minecraft:projectile')) {
                 projectile.getComponent('minecraft:projectile').owner = this.simulatedPlayer;
