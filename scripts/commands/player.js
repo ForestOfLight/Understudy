@@ -25,7 +25,7 @@ const commandPlayerCommand = new Command({
         { usage: `player <name> tp`, description: `Make a player teleport to you.` },
         { usage: `player <name> look [up/down/north/south/east/west/block/entity/me/x y z/pitch yaw]`, description: `Make a player look in specified directions.` },
         { usage: `player <name> move [forward/back/left/right/block/entity/me/x y z]`, description: `Make a player move in specified directions.` },
-        { usage: `player <name> <attack/interact/use/build/break/drop/dropStack/dropAll/jump> [once/continuous/interval] [intervalDuration]`, description: `Make a player do an action with variable timing.` },
+        { usage: `player <name> <attack/interact/use/build/break/drop/dropstack/dropall/jump> [once/continuous/interval] [intervalDuration]`, description: `Make a player do an action with variable timing.` },
         { usage: `player <name> select [slotNumber]`, description: `Make a player select a slot.` },
         { usage: `player <name> <sprint/unsprint>`, description: `Make a player start or stop sprinting.` },
         { usage: `player <name> <sneak/unsneak>`, description: `Make a player start or stop sneaking.` },
