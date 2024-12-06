@@ -35,7 +35,7 @@ class GameTestManager {
             dimension.runCommandAsync(`fill ${testStartPosition.x + 2} ${testStartPosition.y + 1} ${testStartPosition.z + 2} ${testStartPosition.x - 1} ${testStartPosition.y + 2} ${testStartPosition.z} minecraft:air`);
             dimension.runCommandAsync(`execute positioned ${testStartPosition.x} ${testStartPosition.y} ${testStartPosition.z - 1} run gametest run ${extension.name}:${this.testName}`);
             dimension.getEntities({ type: LOADER_ENTITY_ID }).forEach(entity => entity.remove());
-            // If this logic is still making the structures stack, you can try to subtract 1 from the y value of the fill command when testStartPosition.y is 319.
+            // If this logic is still making the structures stack, you can try to subtract 1 from the y value of the fill command when testStartPosition.y === 319.
         }, 1);
     }
 
@@ -54,7 +54,8 @@ class GameTestManager {
     }
 
     static startPlayerLoop() {
-        system.runInterval(() => {if (!this.#startupComplete) return;
+        system.runInterval(() => {
+            if (!this.#startupComplete) return;
             for (const player of UnderstudyManager.players) {
                 if (player.nextActions.length > 0) {
                     this.runNextActions(player);
