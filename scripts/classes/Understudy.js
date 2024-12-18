@@ -148,6 +148,9 @@ class Understudy {
             this.savePlayerInfo();
         if (this.#lookTarget === undefined)
             this.removeLookTarget();
+        if (this.simulatedPlayer !== null) {
+            this.simulatedPlayer.selectedSlotIndex = this.simulatedPlayer.selectedSlotIndex;
+        }
     }
 
     addContinuousAction(actionData) {
@@ -315,6 +318,11 @@ class Understudy {
 
     printInventory(recipientPlayer) {
         const actionData = { type: 'printInventory', recipientPlayer: recipientPlayer };
+        this.nextActions.push(actionData);
+    }
+
+    swapHeldItemWithPlayer(player) {
+        const actionData = { type: 'swapHeldItem', player: player };
         this.nextActions.push(actionData);
     }
 }

@@ -79,10 +79,13 @@ Make the player with the given name sneak.
 Make the player with the given name stop sneaking.
 
 **Usage: `./player <name> claimprojectiles [radius]`**  
-Make the player with the given name become the owner of all projectiles within a 25 block radius.
+Make the player with the given name become the owner of all projectiles within a 25 (or otherwise specified) block radius.
 
 **Usage: `./player <name> stop`**  
 Stop all actions the player with the given name is doing.
+
+**Usage: `./player <name> swap`**  
+Swaps the held item of the player with the given name with the item you are holding.
 
 **Usage: `./player <name> inv`**  
 Shows the inventory of the player with the given name in chat.

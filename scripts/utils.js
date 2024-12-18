@@ -42,22 +42,6 @@ function isNumeric(value) {
     return !isNaN(parseFloat(value)) && isFinite(value);
 }
 
-function decrementSlot(player, slotNumber) {
-    const invContainer = player?.getComponent('minecraft:inventory')?.container;
-    if (!invContainer)
-        throw new Error('[Understudy] Player does not have an inventory container.');
-    const slot = invContainer.getSlot(slotNumber);
-    try {
-        if (slot.amount === 1)
-            slot.setItem(new ItemStack('minecraft:air'));
-        else
-            slot.amount--;
-    } catch (error) {
-        if (error.name !== 'InvalidContainerSlotError')
-            throw error;
-    }
-}
-
 function swapSlots(player, slotNumber1, slotNumber2) {
     const invContainer = player?.getComponent('minecraft:inventory')?.container;
     if (!invContainer)
@@ -76,6 +60,5 @@ function broadcastActionBar(message, sender) {
 }
 
 export { 
-    PLAYER_EYE_HEIGHT, stringifyLocation, subtractVectors, makeVector3, getLookAtLocation, isNumeric, getLookAtRotation, decrementSlot, swapSlots,
-    broadcastActionBar
+    PLAYER_EYE_HEIGHT, stringifyLocation, subtractVectors, makeVector3, getLookAtLocation, isNumeric, getLookAtRotation, swapSlots, broadcastActionBar
 };

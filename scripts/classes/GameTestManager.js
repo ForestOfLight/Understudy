@@ -2,7 +2,7 @@ import extension from 'config';
 import UnderstudyManager from 'classes/UnderstudyManager';
 import * as gametest from '@minecraft/server-gametest';
 import { system, world, Block, Entity, Player } from '@minecraft/server';
-import { subtractVectors, getLookAtLocation, decrementSlot, swapSlots } from 'utils';
+import { subtractVectors, getLookAtLocation, swapSlots } from 'utils';
 
 const TEST_MAX_TICKS = 630720000; // 1 year
 const TEST_START_POSITION = { x: 1000000, z: 1000000 };
@@ -137,6 +137,9 @@ class GameTestManager {
                 break;
             case 'printInventory':
                 this.printInventory(player, actionData);
+                break;
+            case 'swapHeldItem':
+                this.swapHeldItemWithPlayer(player, actionData);
                 break;
             default:
                 console.warn(`[Understudy] Invalid action for ${player.name}: ${type}`);
@@ -276,8 +279,6 @@ class GameTestManager {
         swapSlots(player.simulatedPlayer, 0, selectedSlot);
         player.simulatedPlayer.startBuild();
         player.simulatedPlayer.stopBuild();
-        if (['survival', 'adventure'].includes(player.simulatedPlayer.getGameMode()))
-            decrementSlot(player.simulatedPlayer, player.simulatedPlayer.selectedSlotIndex);
         swapSlots(player.simulatedPlayer, 0, selectedSlot);
         player.simulatedPlayer.selectedSlotIndex = selectedSlot;
         player.savePlayerInfo();
@@ -416,6 +417,9 @@ class GameTestManager {
             return;
         }
         
+        if (invContainer.size === invContainer.emptySlotsCount)
+            return recipientPlayer.sendMessage(`§7${player.name}'s inventory is empty.`);
+            
         let message = `${player.name}'s inventory:`;
         for (let i = 0; i < invContainer.size; i++) {
             const itemStack = invContainer.getItem(i);
@@ -423,6 +427,20 @@ class GameTestManager {
                 invContents[i] = `\n§7- ${i < 10 ? '§a' : ''}${i}§7: ${itemStack.typeId.replace('minecraft:', '')} x${itemStack.amount}`;
         }
         recipientPlayer.sendMessage(message);
+    }
+
+    static swapHeldItemWithPlayer(player, actionData) {
+        const targetPlayer = actionData.player;
+        const playerInvContainer = player.simulatedPlayer.getComponent('minecraft:inventory')?.container;
+        const targetInvContainer = targetPlayer.getComponent('minecraft:inventory')?.container;
+        try {
+            playerInvContainer.swapItems(player.simulatedPlayer.selectedSlotIndex, targetPlayer.selectedSlotIndex, targetInvContainer);
+        } catch(error) {
+            targetPlayer.sendMessage(`§cError while swapping items: ${error.name}`);
+            console.warn(error);
+        }
+        player.simulatedPlayer.selectedSlotIndex = player.simulatedPlayer.selectedSlotIndex;
+        player.savePlayerInfo();
     }
 
     static getRelativeCoords(location) {
