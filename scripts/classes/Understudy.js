@@ -104,7 +104,7 @@ class Understudy {
                     const itemStack = inventoryContainer.getItem(i);
                     if (itemStack !== undefined)
                         this.itemDatabase.set(key, itemStack);
-                    else
+                    else if (this.itemDatabase.has(key))
                         this.itemDatabase.delete(key);
                 }
             }
@@ -115,7 +115,7 @@ class Understudy {
                     const itemStack = equippable.getEquipment(equipmentSlot);
                     if (itemStack !== undefined)
                         this.itemDatabase.set(key, itemStack);
-                    else
+                    else if (this.itemDatabase.has(key))
                         this.itemDatabase.delete(key);
                 }
             }

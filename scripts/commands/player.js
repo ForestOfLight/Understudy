@@ -407,7 +407,12 @@ function stopAction(sender, name) {
 }
 
 function printInventory(sender, name) {
-    if (sender instanceof Player === false) return;
+    if (!UnderstudyManager.isOnline(name)) {
+        if (sender instanceof Player === false) return;
+        sender.sendMessage(`§cPlayer ${name} is not online.`);
+        return;
+    }
+
     const simPlayer = UnderstudyManager.getPlayer(name);
     simPlayer.printInventory(sender);
 }

@@ -416,13 +416,13 @@ class GameTestManager {
             return;
         }
         
-        const invContents = new Array();
+        let message = `${player.name}'s inventory:`;
         for (let i = 0; i < invContainer.size; i++) {
             const itemStack = invContainer.getItem(i);
             if (itemStack !== undefined)
-                invContents[i] = `- ${i < 10 ? '§a' : ''}${i}§7: ${itemStack.typeId.replace('minecraft:', '')} x${itemStack.amount}`;
+                invContents[i] = `\n§7- ${i < 10 ? '§a' : ''}${i}§7: ${itemStack.typeId.replace('minecraft:', '')} x${itemStack.amount}`;
         }
-        recipientPlayer.sendMessage(`${player.name}'s inventory:\n§7${invContents.join('\n')}`);
+        recipientPlayer.sendMessage(message);
     }
 
     static getRelativeCoords(location) {
