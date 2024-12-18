@@ -135,6 +135,9 @@ class GameTestManager {
             case 'stopAll':
                 this.stopAllAction(player);
                 break;
+            case 'printInventory':
+                this.printInventory(player, actionData);
+                break;
             default:
                 console.warn(`[Understudy] Invalid action for ${player.name}: ${type}`);
                 break;
@@ -403,6 +406,23 @@ class GameTestManager {
             this.lookAction(player, { type: 'look', blockPos: target.location });
         else
         this.lookAction(player, { type: 'look', location: target });
+    }
+
+    static printInventory(player, actionData) {
+        const invContainer = player.simulatedPlayer.getComponent('minecraft:inventory')?.container;
+        const recipientPlayer = actionData.recipientPlayer;
+        if (!invContainer) {
+            recipientPlayer.sendMessage(`§cNo inventory found`);
+            return;
+        }
+        
+        const invContents = new Array();
+        for (let i = 0; i < invContainer.size; i++) {
+            const itemStack = invContainer.getItem(i);
+            if (itemStack !== undefined)
+                invContents[i] = `- ${i < 10 ? '§a' : ''}${i}§7: ${itemStack.typeId.replace('minecraft:', '')} x${itemStack.amount}`;
+        }
+        recipientPlayer.sendMessage(`${player.name}'s inventory:\n§7${invContents.join('\n')}`);
     }
 
     static getRelativeCoords(location) {

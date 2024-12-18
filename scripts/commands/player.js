@@ -117,6 +117,9 @@ function playerCommand(sender, args) {
         case 'stop':
             stopAction(sender, name);
             break;
+        case 'inv':
+            printInventory(sender, name);
+            break;
         default:
             if (sender instanceof Player === false) return;
             sender.sendMessage(`§cInvalid action: ${action}`);
@@ -401,6 +404,12 @@ function stopAction(sender, name) {
 
     const simPlayer = UnderstudyManager.getPlayer(name);
     simPlayer.stopAll();
+}
+
+function printInventory(sender, name) {
+    if (sender instanceof Player === false) return;
+    const simPlayer = UnderstudyManager.getPlayer(name);
+    simPlayer.printInventory(sender);
 }
 
 export { playerCommand };

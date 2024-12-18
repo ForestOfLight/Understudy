@@ -84,6 +84,9 @@ Make the player with the given name become the owner of all projectiles within a
 **Usage: `./player <name> stop`**  
 Stop all actions the player with the given name is doing.
 
+**Usage: `./player <name> inv`**  
+Shows the inventory of the player with the given name in chat.
+
 **Usage: `./player prefix <prefix/#none>`**  
 Set a nametag prefix for all simulated players. Use `#none` to remove the prefix.
 

@@ -312,6 +312,11 @@ class Understudy {
         this.nextActions.push(actionData);
         this.savePlayerInfo();
     }
+
+    printInventory(recipientPlayer) {
+        const actionData = { type: 'printInventory', recipientPlayer: recipientPlayer };
+        this.nextActions.push(actionData);
+    }
 }
 
 export default Understudy;
