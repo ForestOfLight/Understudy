@@ -1,4 +1,4 @@
-import { world, ItemStack } from "@minecraft/server";
+import { world } from "@minecraft/server";
 
 const PLAYER_EYE_HEIGHT = 1.62001002;
 

@@ -84,7 +84,7 @@ Make the player with the given name become the owner of all projectiles within a
 **Usage: `./player <name> stop`**  
 Stop all actions the player with the given name is doing.
 
-**Usage: `./player <name> swap`**  
+**Usage: `./player <name> swapheld`**  
 Swaps the held item of the player with the given name with the item you are holding.
 
 **Usage: `./player <name> inv`**  
