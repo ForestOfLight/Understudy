@@ -81,8 +81,8 @@ class CanopyExtension {
     }
     
     handleCommandCallbacks() {
-        IPC.on('canopyExtension:commandCallbackRequest', (cmdData) => {
-            if (cmdData.senderName === undefined || cmdData.extensionName !== this.name)
+        IPC.on(`canopyExtension:${this.name}:commandCallbackRequest`, (cmdData) => {
+            if (cmdData.senderName === undefined)
                 return;
             // console.warn(`[${this.name}] Received command callback from ${cmdData.senderName}: ${cmdData.commandName} ${JSON.stringify(cmdData.args)}`);
             const sender = world.getPlayers({ name: cmdData.senderName })[0];
@@ -113,22 +113,19 @@ class CanopyExtension {
     }
 
     handleRuleValueRequests() {
-        IPC.handle('canopyExtension:ruleValueRequest', (data) => {
-            if (data.extensionName !== this.name)
-                return;
+        IPC.handle(`canopyExtension:${this.name}:ruleValueRequest`, (data) => {
             const rule = this.#rules[data.ruleID];
             if (!rule) {
                 throw new Error(`Rule ${data.ruleID} not found.`);
             }
-            // console.warn(`[${this.name}] Returning rule value: ${data.ruleID} ${rule.getValue()}`);
-            return rule.getValue();
+            const value = rule.getValue();
+            // console.warn(`[${this.name}] Returning rule value for ${data.ruleID}: ${value} (${typeof value})`);
+            return value;
         });
     }
 
     handleRuleValueSetters() {
-        IPC.on('canopyExtension:ruleValueSet', (data) => {
-            if (data.extensionName !== this.name)
-                return;
+        IPC.on(`canopyExtension:${this.name}:ruleValueSet`, (data) => {
             const rule = this.#rules[data.ruleID];
             if (!rule) {
                 throw new Error(`Rule ${data.ruleID} not found.`);
