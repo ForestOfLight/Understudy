@@ -1,8 +1,31 @@
-import { world, system } from '@minecraft/server';
+/**
+ * @license
+ * MIT License
+ *
+ * Copyright (c) 2024 ForestOfLight
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ */
+import { world } from '@minecraft/server';
+import IPC from 'lib/ipc/ipc';
 import Command from './Command';
 import Rule from './Rule';
-
-const SCRIPTEVENT_MAX_MESSAGE_LENGTH = 2048;
 
 class CanopyExtension {
     name;
@@ -22,7 +45,7 @@ class CanopyExtension {
         }
         this.version = version;
 
-        this.handleIncomingCallbacks();
+        this.handleCommandCallbacks();
         this.handleRuleValueRequests();
         this.handleRuleValueSetters();
     }
@@ -40,9 +63,10 @@ class CanopyExtension {
         this.#commands[command.getName()] = command;
         this.registerCommand(command);
     }
-    
+
     registerCommand(command) {
-        const commandData = {
+        // console.warn(`[${this.name}] Registering command: ${command.getName()}`);
+        IPC.send('canopyExtension:registerCommand', {
             name: command.getName(),
             description: command.getDescription(),
             usage: command.getUsage(),
@@ -53,33 +77,20 @@ class CanopyExtension {
             helpEntries: command.getHelpEntries(),
             helpHidden: command.isHelpHidden(),
             extensionName: this.name
-        };
-        const message = `${this.name} ${JSON.stringify(commandData)}`;
-        if (message.length > SCRIPTEVENT_MAX_MESSAGE_LENGTH)
-            throw new Error(`Could not send command to Canopy: Command data for ${commandData.name} exceeds ${SCRIPTEVENT_MAX_MESSAGE_LENGTH} characters (currently ${message.length} characters).`)
-        // console.warn(`[${this.name}] Attempting command registration: ${JSON.stringify(commandData)}`);
-        world.getDimension('overworld').runCommandAsync(`scriptevent canopyExtension:registerCommand ${message}`);
+        });
     }
     
-    handleIncomingCallbacks() {
-        system.afterEvents.scriptEventReceive.subscribe((event) => {
-            if (event.id !== 'canopyExtension:commandCallbackRequest' || event.sourceType !== 'Server') return;
-            const messagePattern = /^(\S+)\s+"([^"]+)"\s+(\S+)\s+(.*)$/;
-            const match = event.message.match(messagePattern);
-            if (!match) return;
-            const extensionName = match[1];
-            if (extensionName !== this.name) return;
-            const senderName = match[2];
-            const sender = world.getPlayers({ name: senderName })[0];
-            const commandName = match[3];
-            const argsString = match[4];
+    handleCommandCallbacks() {
+        IPC.on('canopyExtension:commandCallbackRequest', (cmdData) => {
+            if (cmdData.senderName === undefined || cmdData.extensionName !== this.name)
+                return;
+            // console.warn(`[${this.name}] Received command callback from ${cmdData.senderName}: ${cmdData.commandName} ${JSON.stringify(cmdData.args)}`);
+            const sender = world.getPlayers({ name: cmdData.senderName })[0];
             if (!sender) {
                 throw new Error(`Sender ${senderName} of ${commandName} not found.`);
             }
-            const args = JSON.parse(argsString);
-            // console.warn(`[${this.name}] Received command callback: ${commandName} ${JSON.stringify(args)}`);
-            this.#commands[commandName].runCallback(sender, args);
-        }, { namespaces: ['canopyExtension'] });
+            this.#commands[cmdData.commandName].runCallback(sender, cmdData.args);
+        });
     }
 
     addRule(rule) {
@@ -91,52 +102,40 @@ class CanopyExtension {
     }
 
     registerRule(rule) {
-        const ruleData = {
+        // console.warn(`[${this.name}] Registering rule: ${rule.getID()}`);
+        IPC.send('canopyExtension:registerRule', {
             identifier: rule.getID(),
             description: rule.getDescription(),
             contingentRules: rule.getContigentRules(),
             independentRules: rule.getIndependentRules(),
             extensionName: this.name
-        };
-        const message = `${this.name} ${JSON.stringify(ruleData)}`;
-        if (message.length > SCRIPTEVENT_MAX_MESSAGE_LENGTH)
-            throw new Error(`Could not send rule to Canopy: Rule data for ${ruleData.name} exceeds ${SCRIPTEVENT_MAX_MESSAGE_LENGTH} characters (currently ${message.length} characters).`)
-        // console.warn(`[${this.name}] Attempting rule registration: ${JSON.stringify(ruleData)}`);
-        world.getDimension('overworld').runCommandAsync(`scriptevent canopyExtension:registerRule ${message}`);
+        });
     }
 
     handleRuleValueRequests() {
-        system.afterEvents.scriptEventReceive.subscribe((event) => {
-            if (event.id !== 'canopyExtension:ruleValueRequest' || event.sourceType !== 'Server') return;
-            const splitMessage = event.message.split(' ');
-            const extensionName = splitMessage[0];
-            if (extensionName !== this.name) return;
-            const ruleID = splitMessage[1];
-            const rule = this.#rules[ruleID];
+        IPC.handle('canopyExtension:ruleValueRequest', (data) => {
+            if (data.extensionName !== this.name)
+                return;
+            const rule = this.#rules[data.ruleID];
             if (!rule) {
-                throw new Error(`Rule ${ruleID} not found.`);
+                throw new Error(`Rule ${data.ruleID} not found.`);
             }
-            let value = rule.getValue();
-            // console.warn(`[${this.name}] Sending rule value: ${ruleID} ${value}`);
-            world.getDimension('overworld').runCommandAsync(`scriptevent canopyExtension:ruleValueResponse ${this.name} ${ruleID} ${value}`);
-        }, { namespaces: ['canopyExtension'] });
+            // console.warn(`[${this.name}] Returning rule value: ${data.ruleID} ${rule.getValue()}`);
+            return rule.getValue();
+        });
     }
 
     handleRuleValueSetters() {
-        system.afterEvents.scriptEventReceive.subscribe((event) => {
-            if (event.id !== 'canopyExtension:ruleValueSet' || event.sourceType !== 'Server') return;
-            const splitMessage = event.message.split(' ');
-            const extensionName = splitMessage[0];
-            if (extensionName !== this.name) return;
-            const ruleID = splitMessage[1];
-            const rule = this.#rules[ruleID];
+        IPC.on('canopyExtension:ruleValueSet', (data) => {
+            if (data.extensionName !== this.name)
+                return;
+            const rule = this.#rules[data.ruleID];
             if (!rule) {
-                throw new Error(`Rule ${ruleID} not found.`);
+                throw new Error(`Rule ${data.ruleID} not found.`);
             }
-            const value = splitMessage[2];
-            // console.warn(`[${this.name}] Setting rule value: ${ruleID} ${value}`);
-            rule.setValue(value);
-        }, { namespaces: ['canopyExtension'] });
+            // console.warn(`[${this.name}] Setting rule value: ${data.ruleID} ${data.value}`);
+            rule.setValue(data.value);
+        });
     }
 
     getRuleValue(ruleID) {
