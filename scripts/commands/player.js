@@ -30,8 +30,8 @@ const commandPlayerCommand = new Command({
         { usage: `player <name> <sprint/unsprint>`, description: `Make a player start or stop sprinting.` },
         { usage: `player <name> <sneak/unsneak>`, description: `Make a player start or stop sneaking.` },
         { usage: `player <name> claimprojectiles [radius]`, description: `Make a player the owner of all nearby projectiles.` },
-        // { usage: `player <name> inv`, description: `Print the inventory of a player.` },
-        // { usage: `player <name> swapheld`, description: `Swap the held item of a player with your held item.` },
+        { usage: `player <name> inv`, description: `Print the inventory of a player.` },
+        { usage: `player <name> swapheld`, description: `Swap the held item of a player with your held item.` },
         { usage: `player <name> stop`, description: `Stop all actions for a player.` },
         { usage: `player prefix <prefix>`, description: `Set a prefix player nametags.` },
     ]
