@@ -21,7 +21,7 @@ const commandPlayerCommand = new Command({
         { usage: `player <name> join`, description: `Make a new player join at your location.` },
         { usage: `player <name> leave`, description: `Make a player leave the game.` },
         { usage: `player <name> rejoin`, description: `Make a player rejoin at its last location.` },
-        { usage: `player <name> respawn`, description: `Make a player respawn after dying.` },
+        // { usage: `player <name> respawn`, description: `Make a player respawn after dying.` },
         { usage: `player <name> tp`, description: `Make a player teleport to you.` },
         { usage: `player <name> look [up/down/north/south/east/west/block/entity/me/x y z/pitch yaw]`, description: `Make a player look in specified directions.` },
         { usage: `player <name> move [forward/back/left/right/block/entity/me/x y z]`, description: `Make a player move in specified directions.` },
@@ -75,9 +75,9 @@ function playerCommand(sender, args) {
         case 'rejoin':
             rejoinAction(sender, name);
             break;
-        case 'respawn':
-            respawnAction(sender, name);
-            break;
+        // case 'respawn':
+        //     respawnAction(sender, name);
+        //     break;
         case 'tp':
             tpAction(sender, name);
             break;

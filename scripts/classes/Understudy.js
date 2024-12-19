@@ -53,6 +53,7 @@ class Understudy {
         };
         world.setDynamicProperty(`${this.name}:playerinfo`, JSON.stringify(dynamicInfo));
         this.saveItems();
+        console.warn(`[Understudy] Player ${this.name} info saved`);
     }
 
     loadPlayerInfo() {
@@ -187,7 +188,6 @@ class Understudy {
             gameMode: gameMode 
         };
         this.nextActions.push(actionData);
-        this.savePlayerInfo(actionData);
     }
 
     leave() {

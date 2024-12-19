@@ -18,6 +18,7 @@ class GameTestManager {
             throw new Error(`[Understudy] GameTestManager has already been started`);
         gametest.register(extension.name, this.testName, (test) => {
             this.test = test;
+            this.subscribeToEvents();
             this.startPlayerLoop();
         }).maxTicks(TEST_MAX_TICKS).structureName(`${extension.name}:${this.testName}`);
         this.placeGametestStructure();
@@ -51,6 +52,25 @@ class GameTestManager {
             if (Object.keys(updatedGameRules).length > 0)
                 console.warn(`[Understudy] Gametest messed with gamerules. Rolling back these: ${Object.keys(updatedGameRules).map(rule => `${rule} = ${updatedGameRules[rule]}`).join(', ')}`);
         }, 2);
+    }
+
+    static subscribeToEvents() {
+        world.afterEvents.entityDie.subscribe((event) => {
+            if (event.deadEntity.typeId === 'minecraft:player') {
+                const player = UnderstudyManager.getPlayer(event.deadEntity?.name);
+                if (player !== undefined) {
+                    this.leaveAction(player);
+                    UnderstudyManager.removePlayer(player);
+                }
+            }
+        });
+
+        world.afterEvents.playerGameModeChange.subscribe((event) => {
+            const player = UnderstudyManager.getPlayer(event.player?.name);
+            if (player !== undefined) {
+                player.savePlayerInfo();
+            }
+        });
     }
 
     static startPlayerLoop() {
