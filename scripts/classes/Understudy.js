@@ -53,7 +53,6 @@ class Understudy {
         };
         world.setDynamicProperty(`${this.name}:playerinfo`, JSON.stringify(dynamicInfo));
         this.saveItems();
-        console.warn(`[Understudy] Player ${this.name} info saved`);
     }
 
     loadPlayerInfo() {
