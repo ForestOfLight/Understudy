@@ -29,7 +29,7 @@ class GameTestManager {
     static placeGametestStructure() {
         const dimension = world.getDimension('overworld');
         const onlinePlayer = world.getAllPlayers()[0];
-        const loaderEntity = onlinePlayer.dimension.spawnEntity(LOADER_ENTITY_ID, onlinePlayer.location);
+        const loaderEntity = onlinePlayer.dimension.spawnEntity(LOADER_ENTITY_ID, { x: onlinePlayer.location.x, y: 100, z: onlinePlayer.location.z });
         loaderEntity.teleport({ x: TEST_START_POSITION.x, y: 0, z: TEST_START_POSITION.z }, { dimension: dimension });
         system.runTimeout(() => {
             const testStartPosition = dimension.getTopmostBlock(TEST_START_POSITION)?.location
