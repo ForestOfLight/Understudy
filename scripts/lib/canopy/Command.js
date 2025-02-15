@@ -56,7 +56,7 @@ class Command {
 	}
 
 	getUsage() {
-		return Command.#prefix + this.#usage;
+		return this.#usage;
 	}
 
 	getCallback() {
