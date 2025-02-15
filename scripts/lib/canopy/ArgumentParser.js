@@ -1,4 +1,4 @@
-import { Commands } from "./Commands";
+import Command from "./Command";
 
 class ArgumentParser {
     static regex = /(@[aepsr]\[|@"[^"]*"|"[^"]*"|\[[^\]]*\]|\S+)/g;
@@ -26,7 +26,7 @@ class ArgumentParser {
 
     static #extractName(args) {
         let name = String(args.shift());
-        name = name.replace(Commands.getPrefix(), '');
+        name = name.replace(Command.getPrefix(), '');
         return name;
     }
 
