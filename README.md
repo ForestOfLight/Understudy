@@ -8,7 +8,7 @@
 [![Discord](https://badgen.net/discord/members/9KGche8fxm?icon=discord&label=Discord&list=what)](https://discord.gg/9KGche8fxm)
 
 # Understudy
-Understudy is an addon for Minecraft Bedrock Edition that allows you to spawn and control simulated players. Simulated players are entities that can be controlled by commands, but otherwise act almost exactly like normal players.
+Understudy gives you complete control over simulated players in your Minecraft Bedrock world. Afk your farms, load areas, and more -- all through a set of powerful, intuitive commands!
 
 > [!IMPORTANT]
 > This addon is a **Canopy Extension**, which means **Canopy** must be installed in your world for it to work.
