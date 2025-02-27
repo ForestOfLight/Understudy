@@ -8,15 +8,16 @@
 [![Discord](https://badgen.net/discord/members/9KGche8fxm?icon=discord&label=Discord&list=what)](https://discord.gg/9KGche8fxm)
 
 # Understudy
+
 Understudy gives you complete control over simulated players in your Minecraft Bedrock world. Afk your farms, load areas, and more -- all through a set of powerful, intuitive commands!
 
 > [!IMPORTANT]
 > This addon is a **Canopy Extension**, which means **Canopy** must be installed in your world for it to work.
-
-**Canopy** can be downloaded here: https://github.com/ForestOfLight/Canopy
+> [Download **Canopy** here!](https://github.com/ForestOfLight/Canopy)
 
 ## Usage
-All commands are prefixed with `./`. The `./player` command can be abbreviated to `./p`. Do `./help` for more information.
+
+All commands are prefixed with `./`. The `./player` command can be abbreviated to `./p`. The player command is disabled until enabled with the `commandPlayer` rule. Do `./help` for more information.
 
 **Usage: `./player <name> join`**  
 Spawn a player with the given name at your current location in your current game mode.

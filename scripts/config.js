@@ -1,4 +1,4 @@
-import { CanopyExtension } from 'lib/canopy/CanopyExtension';
+import { CanopyExtension } from "./lib/canopy/CanopyExtension";
 
 const extension = new CanopyExtension({
     author: 'ForestOfLight',

@@ -1,6 +1,6 @@
 import { Block, Entity, Player, world, EquipmentSlot, system, MinecraftDimensionTypes } from "@minecraft/server";
-import { getLookAtRotation, isNumeric } from "utils";
-import SRCItemDatabase from "classes/SRCItemDatabase";
+import { getLookAtRotation, isNumeric } from "../utils";
+import SRCItemDatabase from "./SRCItemDatabase";
 
 const SAVE_INTERVAL = 600;
 

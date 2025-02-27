@@ -1,8 +1,8 @@
-import { Command } from 'lib/canopy/CanopyExtension';
-import extension from 'config';
-import UnderstudyManager from 'classes/UnderstudyManager';
-import { makeVector3, isNumeric, PLAYER_EYE_HEIGHT, getLookAtLocation } from 'utils';
-import { Block, Player, world } from '@minecraft/server';
+import extension from "../config";
+import { Command } from "../lib/canopy/CanopyExtension";
+import { Block, Player, world } from "@minecraft/server";
+import UnderstudyManager from "../classes/UnderstudyManager";
+import { makeVector3, isNumeric, PLAYER_EYE_HEIGHT, getLookAtLocation } from "../utils";
 
 const commandPlayerCommand = new Command({
     name: 'player',
@@ -12,9 +12,9 @@ const commandPlayerCommand = new Command({
     args: [
         { type: 'string|number', name: 'name' },
         { type: 'string|number', name: 'action' },
-        { type: 'string|number', name: 'arg1', },
-        { type: 'string|number', name: 'arg2', },
-        { type: 'string|number', name: 'arg3', },
+        { type: 'string|number', name: 'arg1' },
+        { type: 'string|number', name: 'arg2' },
+        { type: 'string|number', name: 'arg3' }
     ],
     helpEntries: [ 
         { usage: `player <name> join`, description: `Make a new player join at your location.` },
@@ -32,7 +32,7 @@ const commandPlayerCommand = new Command({
         { usage: `player <name> inv`, description: `Print the inventory of a player.` },
         { usage: `player <name> swapheld`, description: `Swap the held item of a player with your held item.` },
         { usage: `player <name> stop`, description: `Stop all actions for a player.` },
-        { usage: `player prefix <prefix>`, description: `Set a prefix player nametags.` },
+        { usage: `player prefix <prefix>`, description: `Set a prefix player nametags.` }
     ]
 });
 extension.addCommand(commandPlayerCommand);
@@ -55,13 +55,17 @@ extension.addCommand(commandPlayerAliasCommand);
 
 function playerCommand(sender, args) {
     let { name, action, arg1, arg2, arg3 } = args;
-    if (name === null || action === null)
-        return commandPlayerCommand.sendUsage(sender);
+    if (name === null || action === null) {
+        commandPlayerCommand.sendUsage(sender);
+        return;
+    }
     name = isNumeric(name) ? name.toString() : name;
     action = isNumeric(action) ? action.toString() : action;
 
-    if (name === 'prefix')
-        return UnderstudyManager.setNametagPrefix(action);
+    if (name === 'prefix') {
+        UnderstudyManager.setNametagPrefix(action);
+        return;
+    }
 
     switch (action) {
         case 'join':
@@ -393,7 +397,7 @@ function claimProjectilesAction(sender, name, arg1) {
 
     let radius = 25;
     if (isNumeric(arg1))
-        radius = arg1; 
+        radius = arg1;
     const simPlayer = UnderstudyManager.getPlayer(name);
     simPlayer.claimProjectiles(radius);
 }
