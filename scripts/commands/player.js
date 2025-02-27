@@ -45,9 +45,9 @@ const commandPlayerAliasCommand = new Command({
     args: [
         { type: 'string|number', name: 'name' },
         { type: 'string|number', name: 'action' },
-        { type: 'string|number', name: 'arg1', },
-        { type: 'string|number', name: 'arg2', },
-        { type: 'string|number', name: 'arg3', },
+        { type: 'string|number', name: 'arg1' },
+        { type: 'string|number', name: 'arg2' },
+        { type: 'string|number', name: 'arg3' }
     ],
     helpHidden: true
 });
