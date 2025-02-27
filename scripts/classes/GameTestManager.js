@@ -444,7 +444,7 @@ class GameTestManager {
         for (let i = 0; i < invContainer.size; i++) {
             const itemStack = invContainer.getItem(i);
             if (itemStack !== undefined)
-                invContents[i] = `\n§7- ${i < 10 ? '§a' : ''}${i}§7: ${itemStack.typeId.replace('minecraft:', '')} x${itemStack.amount}`;
+                message += `\n§7- ${i < 10 ? '§a' : ''}${i}§7: ${itemStack.typeId.replace('minecraft:', '')} x${itemStack.amount}`;
         }
         recipientPlayer.sendMessage(message);
     }
