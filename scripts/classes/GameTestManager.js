@@ -1,8 +1,8 @@
-import extension from 'config';
-import UnderstudyManager from 'classes/UnderstudyManager';
-import * as gametest from '@minecraft/server-gametest';
-import { system, world, Block, Entity, Player } from '@minecraft/server';
-import { subtractVectors, getLookAtLocation, swapSlots } from 'utils';
+import extension from "../config";
+import { system, world, Block, Entity, Player } from "@minecraft/server";
+import * as gametest from "@minecraft/server-gametest";
+import UnderstudyManager from "./UnderstudyManager";
+import { subtractVectors, getLookAtLocation, swapSlots } from "../utils";
 
 const TEST_MAX_TICKS = 630720000; // 1 year
 const TEST_START_POSITION = { x: 1000000, z: 1000000 };

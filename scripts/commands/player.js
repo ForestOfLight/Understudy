@@ -1,8 +1,8 @@
-import { Command } from 'lib/canopy/CanopyExtension';
-import extension from 'config';
-import UnderstudyManager from 'classes/UnderstudyManager';
-import { makeVector3, isNumeric, PLAYER_EYE_HEIGHT, getLookAtLocation } from 'utils';
-import { Block, Player, world } from '@minecraft/server';
+import extension from "../config";
+import { Command } from "../lib/canopy/CanopyExtension";
+import { Block, Player, world } from "@minecraft/server";
+import UnderstudyManager from "../classes/UnderstudyManager";
+import { makeVector3, isNumeric, PLAYER_EYE_HEIGHT, getLookAtLocation } from "../utils";
 
 const commandPlayerCommand = new Command({
     name: 'player',
@@ -395,7 +395,7 @@ function claimProjectilesAction(sender, name, arg1) {
 
     let radius = 25;
     if (isNumeric(arg1))
-        radius = arg1; 
+        radius = arg1;
     const simPlayer = UnderstudyManager.getPlayer(name);
     simPlayer.claimProjectiles(radius);
 }

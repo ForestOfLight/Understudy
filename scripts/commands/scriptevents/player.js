@@ -1,7 +1,7 @@
-import extension from '../../config';
-import { system } from '@minecraft/server';
-import { ArgumentParser } from '../../lib/canopy/ArgumentParser';
-import { playerCommand } from '../player';
+import extension from "../../config";
+import { system } from "@minecraft/server";
+import { ArgumentParser } from "../../lib/canopy/ArgumentParser";
+import { playerCommand } from "../player";
 
 system.afterEvents.scriptEventReceive.subscribe((event) => {
     if (event.id !== 'understudy:player') return;

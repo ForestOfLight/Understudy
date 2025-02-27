@@ -1,5 +1,5 @@
-import { world, system } from '@minecraft/server';
-import GameTestManager from 'classes/GameTestManager';
+import { world, system } from "@minecraft/server";
+import GameTestManager from "./classes/GameTestManager";
 
 const savedGameRules = getGameRules();
 let firstJoin = false;
