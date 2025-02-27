@@ -16,7 +16,6 @@ const commandPlayerCommand = new Command({
         { type: 'string|number', name: 'arg2', },
         { type: 'string|number', name: 'arg3', },
     ],
-    contingentRules: [ 'commandPlayer' ],
     helpEntries: [ 
         { usage: `player <name> join`, description: `Make a new player join at your location.` },
         { usage: `player <name> leave`, description: `Make a player leave the game.` },
@@ -50,7 +49,6 @@ const commandPlayerAliasCommand = new Command({
         { type: 'string|number', name: 'arg2', },
         { type: 'string|number', name: 'arg3', },
     ],
-    contingentRules: [ 'commandPlayer' ],
     helpHidden: true
 });
 extension.addCommand(commandPlayerAliasCommand);

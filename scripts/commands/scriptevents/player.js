@@ -9,8 +9,6 @@ system.afterEvents.scriptEventReceive.subscribe((event) => {
     const sender = getSource(event);
     if (sender === null)
         return;
-    if (!extension.getRuleValue('commandPlayer'))
-        return sender.sendMessage('§cThe commandPlayer rule is disabled.');
     const { args } = ArgumentParser.parseCommandString(completeCommandString);
     for (const key in args) {
         if (args[key] === undefined)
