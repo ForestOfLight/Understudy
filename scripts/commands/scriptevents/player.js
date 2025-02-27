@@ -1,23 +1,23 @@
-import { system } from '@minecraft/server';
 import extension from '../../config';
+import { system } from '@minecraft/server';
 import { ArgumentParser } from '../../lib/canopy/ArgumentParser';
 import { playerCommand } from '../player';
 
 system.afterEvents.scriptEventReceive.subscribe((event) => {
     if (event.id !== 'understudy:player') return;
+    const completeCommandString = "player " + event.message;
     const sender = getSource(event);
     if (sender === null)
         return;
     if (!extension.getRuleValue('commandPlayer'))
         return sender.sendMessage('§cThe commandPlayer rule is disabled.');
-    const [ name, action, arg1, arg2, arg3 ]= ArgumentParser.parseCommandString(event.message);
-    const args = { name, action, arg1, arg2, arg3 };
+    const { args } = ArgumentParser.parseCommandString(completeCommandString);
     for (const key in args) {
         if (args[key] === undefined)
             args[key] = null;
     }
     playerCommand(sender, args);
-});
+}, { namespaces: [ 'understudy' ] });
 
 function getSource(event) {
     switch (event.sourceType) {
