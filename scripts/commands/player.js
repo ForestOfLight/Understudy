@@ -147,11 +147,15 @@ function playerCommand(sender, args) {
     }
 }
 
+function getLocationInfoFromSource(source) {
+    if (source instanceof Block)
+        return { location: { x: source.x + .5, y: source.y + 1, z: source.z + .5 }, dimensionId: source.dimension.id };
+    else if (source instanceof Player)
+        return { location: source.location, dimensionId: source.dimension.id, rotation: source.getRotation(), gameMode: source.getGameMode() };
+}
+
 function joinAction(sender, simPlayer) {
-    if (sender instanceof Block)
-        simPlayer.join({ x: sender.x + .5, y: sender.y + 1, z: sender.z + .5 }, sender.dimension.id);
-    else
-        simPlayer.join(sender.location, sender.dimension.id, sender.getRotation(), sender.getGameMode());
+    simPlayer.join(getLocationInfoFromSource(sender));
     UnderstudyManager.spawnPlayer(simPlayer);
 }
 
@@ -165,18 +169,12 @@ function rejoinAction(sender, simPlayer) {
     try {
         simPlayer.rejoin();
     } catch (error) {
-        if (sender instanceof Block)
-            simPlayer.join({ x: sender.x + .5, y: sender.y + 1, z: sender.z + .5 }, sender.dimension.id);
-        else
-            simPlayer.join(sender.location, sender.dimension.id, sender.getRotation(), sender.getGameMode());
+        simPlayer.join(getLocationInfoFromSource(sender));
     }
 }
 
 function tpAction(sender, simPlayer) {
-    if (sender instanceof Player === false) 
-        simPlayer.tp({ x: sender.x + .5, y: sender.y + 1, z: sender.z + .5 }, simPlayer.getHeadRotation(), sender.dimension.id);
-    else
-        simPlayer.tp(sender.location, sender.getRotation(), sender.dimension.id);
+    simPlayer.tp(getLocationInfoFromSource(sender));
 }
 
 function lookAction(sender, simPlayer, arg1, arg2, arg3) {
