@@ -16,8 +16,15 @@ system.afterEvents.scriptEventReceive.subscribe((event) => {
         if (args[key] === undefined)
             args[key] = null;
     }
-    playerCommand(sender, args);
-}, { namespaces: [ 'understudy' ] });
+    const appliedArgs = {
+        name: args[0],
+        action: args[1],
+        arg1: args[2],
+        arg2: args[3],
+        arg3: args[4],
+    };
+    playerCommand(sender, appliedArgs);
+});
 
 function getSource(event) {
     switch (event.sourceType) {
