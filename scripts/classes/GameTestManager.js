@@ -265,9 +265,8 @@ class GameTestManager {
         }
         system.runTimeout(() => {
             const simPlayerVelocity = player.simulatedPlayer.getVelocity();
-            if (simPlayerVelocity.x === 0 && simPlayerVelocity.y === 0 && simPlayerVelocity.z === 0) {
-                player.simulatedPlayer.chat(`§7Location is too far away.`);
-            }
+            if (simPlayerVelocity.x === 0 && simPlayerVelocity.y === 0 && simPlayerVelocity.z === 0)
+                world.sendMessage(`<${player.simulatedPlayer.name}> §7Could not path to location.`);
         }, 1);
     }
 
@@ -373,10 +372,9 @@ class GameTestManager {
     static claimprojectilesAction(player, actionData) {
         const projectiles = this.getProjectilesInRange(player.simulatedPlayer, actionData.radius);
         if (projectiles.length === 0)
-            return player.simulatedPlayer.chat(`§7No projectiles found within ${actionData.radius} blocks.`);
-        
+            return world.sendMessage(`<${player.simulatedPlayer.name}> §7No projectiles found within ${actionData.radius} blocks.`);
         const numChanged = this.changeProjectileOwner(projectiles, player.simulatedPlayer);
-        player.simulatedPlayer.chat(`§7Successfully became the owner of ${numChanged} projectiles.`);
+        world.sendMessage(`<${player.simulatedPlayer.name}> §7Successfully became the owner of ${numChanged} projectiles.`);
         player.savePlayerInfo();
     }
     
