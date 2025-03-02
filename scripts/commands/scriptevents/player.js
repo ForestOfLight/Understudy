@@ -19,7 +19,7 @@ system.afterEvents.scriptEventReceive.subscribe((event) => {
         action: args[1],
         arg1: args[2],
         arg2: args[3],
-        arg3: args[4],
+        arg3: args[4]
     };
     playerCommand(sender, appliedArgs);
 });
