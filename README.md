@@ -31,9 +31,6 @@ Spawn a player with the given name at its last location, if it has one.
 **Usage: `./player <name> tp`**  
 Teleport the player with the given name to your current location.
 
-**Usage: `./player <name> respawn`**  
-Respawn the player with the given name.
-
 **Usage: `./player <name> look [up/down/noth/south/east/west/block/entity/me/x y z/pitch yaw]`**  
 Make the player with the given name look at the specified target. "up", "down", "north", "south", "east", "west" will make the player look in different cardinal directions. "block" and "entity" will make the player look at the block or entity you are looking at. "me" will make the player look at you. "x y z" will make the player look at the specified coordinates. "pitch yaw" will make the player look at the specified pitch and yaw (in degrees).
 
