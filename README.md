@@ -17,7 +17,7 @@ Understudy gives you complete control over simulated players in your Minecraft B
 
 ## Usage
 
-All commands are prefixed with `./`. The `./player` command can be abbreviated to `./p`. The player command is disabled until enabled with the `commandPlayer` rule. Do `./help` for more information.
+All commands are prefixed with `./`. The `./player` command can be abbreviated to `./p`. Do `./help` for more information.
 
 **Usage: `./player <name> join`**  
 Spawn a player with the given name at your current location in your current game mode.
