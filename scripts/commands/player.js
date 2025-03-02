@@ -1,8 +1,8 @@
-import { Command } from 'lib/canopy/CanopyExtension';
-import extension from 'config';
-import UnderstudyManager from 'classes/UnderstudyManager';
-import { makeVector3, isNumeric, PLAYER_EYE_HEIGHT, getLookAtLocation } from 'utils';
-import { Block, Player, world } from '@minecraft/server';
+import extension from "../config";
+import { Command } from "../lib/canopy/CanopyExtension";
+import { Block, Player } from "@minecraft/server";
+import UnderstudyManager from "../classes/UnderstudyManager";
+import { makeVector3, isNumeric, PLAYER_EYE_HEIGHT, getLookAtLocation } from "../utils";
 
 const commandPlayerCommand = new Command({
     name: 'player',
@@ -12,11 +12,10 @@ const commandPlayerCommand = new Command({
     args: [
         { type: 'string|number', name: 'name' },
         { type: 'string|number', name: 'action' },
-        { type: 'string|number', name: 'arg1', },
-        { type: 'string|number', name: 'arg2', },
-        { type: 'string|number', name: 'arg3', },
+        { type: 'string|number', name: 'arg1' },
+        { type: 'string|number', name: 'arg2' },
+        { type: 'string|number', name: 'arg3' }
     ],
-    contingentRules: [ 'commandPlayer' ],
     helpEntries: [ 
         { usage: `player <name> join`, description: `Make a new player join at your location.` },
         { usage: `player <name> leave`, description: `Make a player leave the game.` },
@@ -33,7 +32,7 @@ const commandPlayerCommand = new Command({
         { usage: `player <name> inv`, description: `Print the inventory of a player.` },
         { usage: `player <name> swapheld`, description: `Swap the held item of a player with your held item.` },
         { usage: `player <name> stop`, description: `Stop all actions for a player.` },
-        { usage: `player prefix <prefix>`, description: `Set a prefix player nametags.` },
+        { usage: `player prefix <prefix>`, description: `Set a prefix player nametags.` }
     ]
 });
 extension.addCommand(commandPlayerCommand);
@@ -46,46 +45,62 @@ const commandPlayerAliasCommand = new Command({
     args: [
         { type: 'string|number', name: 'name' },
         { type: 'string|number', name: 'action' },
-        { type: 'string|number', name: 'arg1', },
-        { type: 'string|number', name: 'arg2', },
-        { type: 'string|number', name: 'arg3', },
+        { type: 'string|number', name: 'arg1' },
+        { type: 'string|number', name: 'arg2' },
+        { type: 'string|number', name: 'arg3' }
     ],
-    contingentRules: [ 'commandPlayer' ],
     helpHidden: true
 });
 extension.addCommand(commandPlayerAliasCommand);
 
 function playerCommand(sender, args) {
     let { name, action, arg1, arg2, arg3 } = args;
-    if (name === null || action === null)
-        return commandPlayerCommand.sendUsage(sender);
+    if (name === null || action === null) {
+        commandPlayerCommand.sendUsage(sender);
+        return;
+    }
     name = isNumeric(name) ? name.toString() : name;
     action = isNumeric(action) ? action.toString() : action;
 
-    if (name === 'prefix')
-        return UnderstudyManager.setNametagPrefix(action);
+    if (name === 'prefix') {
+        UnderstudyManager.setNametagPrefix(action);
+        return;
+    }
 
+    if (['join', 'rejoin'].includes(action)) {
+        if (UnderstudyManager.isOnline(name)) {
+            if (sender instanceof Player === false) return;
+            sender.sendMessage(`§cPlayer ${name} is already online.`);
+            return;
+        }
+    } else if (!UnderstudyManager.isOnline(name)) {
+        if (sender instanceof Player === false) return;
+        sender.sendMessage(`§cPlayer ${name} is not online.`);
+        return;
+    }
+
+    const simPlayer = UnderstudyManager.getPlayer(name);
     switch (action) {
         case 'join':
-            joinAction(sender, name);
+            joinAction(sender, simPlayer);
             break;
         case 'leave':
-            leaveAction(sender, name);
+            leaveAction(simPlayer);
             break;
         case 'rejoin':
-            rejoinAction(sender, name);
+            rejoinAction(sender, simPlayer);
             break;
         // case 'respawn':
-        //     respawnAction(sender, name);
+        //     simPlayer.respawn();
         //     break;
         case 'tp':
-            tpAction(sender, name);
+            tpAction(sender, simPlayer);
             break;
         case 'look':
-            lookAction(sender, name, arg1, arg2, arg3);
+            lookAction(sender, simPlayer, arg1, arg2, arg3);
             break;
         case 'move':
-            moveAction(sender, name, arg1, arg2, arg3);
+            moveAction(sender, simPlayer, arg1, arg2, arg3);
             break;
         case 'attack':
         case 'interact':
@@ -96,34 +111,34 @@ function playerCommand(sender, args) {
         case 'dropstack':
         case 'dropall':
         case 'jump':
-            variableTimingAction(sender, action, name, arg1, arg2);
+            variableTimingAction(sender, simPlayer, action, arg1, arg2);
             break;
         case 'select':
-            selectSlotAction(sender, name, arg1);
+            selectSlotAction(sender, simPlayer, arg1);
             break;
         case 'sprint':
-            sprintAction(sender, name);
+            simPlayer.sprint(true);
             break;
         case 'unsprint':
-            unsprintAction(sender, name);
+            simPlayer.sprint(false);
             break;
         case 'sneak':
-            sneakAction(sender, name);
+            simPlayer.sneak(true);
             break;
         case 'unsneak':
-            unsneakAction(sender, name);
+            simPlayer.sneak(false);
             break;
         case 'claimprojectiles':
-            claimProjectilesAction(sender, name, arg1);
+            claimProjectilesAction(simPlayer, arg1);
             break;
         case 'stop':
-            stopAction(sender, name);
+            simPlayer.stopAll();
             break;
         case 'inv':
-            printInventory(sender, name);
+            simPlayer.printInventory(sender);
             break;
         case 'swapheld':
-            swapHeld(sender, name);
+            simPlayer.swapHeldItemWithPlayer(sender);
             break;
         default:
             if (sender instanceof Player === false) return;
@@ -132,80 +147,37 @@ function playerCommand(sender, args) {
     }
 }
 
-function joinAction(sender, name) {
-    if (UnderstudyManager.isOnline(name) || world.getPlayers({ name }).length > 0) {
-        if (sender instanceof Player === false) return;
-        sender.sendMessage(`§cPlayer ${name} is already online.`);
-        return;
-    }
-    const simPlayer = UnderstudyManager.newPlayer(name);
-    if (sender instanceof Block)
-        simPlayer.join({ x: sender.x + .5, y: sender.y + 1, z: sender.z + .5 }, sender.dimension.id);
-    else
-        simPlayer.join(sender.location, sender.dimension.id, sender.getRotation(), sender.getGameMode());
+function getLocationInfoFromSource(source) {
+    if (source instanceof Block)
+        return { location: { x: source.x + .5, y: source.y + 1, z: source.z + .5 }, dimensionId: source.dimension.id };
+    else if (source instanceof Player)
+        return { location: source.location, dimensionId: source.dimension.id, rotation: source.getRotation(), gameMode: source.getGameMode() };
+}
+
+function joinAction(sender, simPlayer) {
+    simPlayer.join(getLocationInfoFromSource(sender));
     UnderstudyManager.spawnPlayer(simPlayer);
 }
 
-function leaveAction(sender, name) {
-    const simPlayer = UnderstudyManager.getPlayer(name);
-    if (!UnderstudyManager.isOnline(name)) {
-        if (sender instanceof Player === false) return;
-        sender.sendMessage(`§cPlayer ${name} is not online.`);
-        return;
-    }
+function leaveAction(simPlayer) {
     simPlayer.leave();
     UnderstudyManager.removePlayer(simPlayer);
 }
 
-function rejoinAction(sender, name) {
-    if (UnderstudyManager.isOnline(name)) {
-        if (sender instanceof Player === false) return;
-        sender.sendMessage(`§cPlayer ${name} is already online.`);
-        return;
-    }
-    const simPlayer = UnderstudyManager.newPlayer(name);
+function rejoinAction(sender, simPlayer) {
     UnderstudyManager.spawnPlayer(simPlayer);
     try {
         simPlayer.rejoin();
     } catch (error) {
-        if (sender instanceof Block)
-            simPlayer.join({ x: sender.x + .5, y: sender.y + 1, z: sender.z + .5 }, sender.dimension.id);
-        else
-            simPlayer.join(sender.location, sender.dimension.id, sender.getRotation(), sender.getGameMode());
+        simPlayer.join(getLocationInfoFromSource(sender));
     }
 }
 
-function respawnAction(sender, name) {
-    const simPlayer = UnderstudyManager.getPlayer(name);
-    if (!UnderstudyManager.isOnline(name)) {
-        if (sender instanceof Player === false) return;
-        sender.sendMessage(`§cPlayer ${name} is not online.`);
-        return;
-    }
-    simPlayer.respawn();
+function tpAction(sender, simPlayer) {
+    simPlayer.tp(getLocationInfoFromSource(sender));
 }
 
-function tpAction(sender, name) {
-    const simPlayer = UnderstudyManager.getPlayer(name);
-    if (!UnderstudyManager.isOnline(name)) {
-        if (sender instanceof Player === false) return;
-        sender.sendMessage(`§cPlayer ${name} is not online.`);
-        return;
-    }
-    if (sender instanceof Player === false) 
-        simPlayer.tp({ x: sender.x + .5, y: sender.y + 1, z: sender.z + .5 }, simPlayer.getHeadRotation(), sender.dimension.id);
-    else
-        simPlayer.tp(sender.location, sender.getRotation(), sender.dimension.id);
-}
-
-function lookAction(sender, name, arg1, arg2, arg3) {
-    if (!UnderstudyManager.isOnline(name)) {
-        if (sender instanceof Player === false) return;
-        sender.sendMessage(`§cPlayer ${name} is not online.`);
-        return;
-    }
-
-    const simPlayer = UnderstudyManager.getPlayer(name);
+function lookAction(sender, simPlayer, arg1, arg2, arg3) {
     if (arg1 === 'me') {
         simPlayer.lookLocation(sender);
     } else if (arg1 === 'block') {
@@ -255,20 +227,12 @@ function processLookCardinals(simulatedPlayer, direction) {
         'east': { x: 1, y: 0, z: 0 },
         'west': { x: -1, y: 0, z: 0 }
     };
-    if (!directions[direction]) {
+    if (!directions[direction])
         throw new Error(`[Understudy] Invalid look direction: ${direction}`);
-    }
     return {x: simulatedPlayer.location.x + directions[direction].x, y: simulatedPlayer.location.y + directions[direction].y + PLAYER_EYE_HEIGHT, z: simulatedPlayer.location.z + directions[direction].z};
 }
 
-function moveAction(sender, name, arg1, arg2, arg3) {
-    if (!UnderstudyManager.isOnline(name)) {
-        if (sender instanceof Player === false) return;
-        sender.sendMessage(`§cPlayer ${name} is not online.`);
-        return;
-    }
-
-    const simPlayer = UnderstudyManager.getPlayer(name);
+function moveAction(sender, simPlayer, arg1, arg2, arg3) {
     if (arg1 === 'me') {
         simPlayer.moveLocation(sender);
     } else if (['forward', 'backward', 'left', 'right'].includes(arg1)) {
@@ -296,13 +260,7 @@ function moveAction(sender, name, arg1, arg2, arg3) {
     }
 }
 
-function variableTimingAction(sender, action, name, arg1, arg2) {
-    if (!UnderstudyManager.isOnline(name)) {
-        if (sender instanceof Player === false) return;
-        sender.sendMessage(`§cPlayer ${name} is not online.`);
-        return;
-    }
-
+function variableTimingAction(sender, simPlayer, action, arg1, arg2) {
     let isContinuous = false;
     if (['once', 'continuous', 'interval', null].includes(arg1)) {
         isContinuous = arg1 === 'continuous';
@@ -322,18 +280,10 @@ function variableTimingAction(sender, action, name, arg1, arg2) {
         return;
     }
 
-    const simPlayer = UnderstudyManager.getPlayer(name);
     simPlayer.variableTimingAction(action, isContinuous, intervalDuration);
 }
 
-function selectSlotAction(sender, name, arg1) {
-    if (!UnderstudyManager.isOnline(name)) {
-        if (sender instanceof Player === false) return;
-        sender.sendMessage(`§cPlayer ${name} is not online.`);
-        return;
-    }
-
-    const simPlayer = UnderstudyManager.getPlayer(name);
+function selectSlotAction(sender, simPlayer, arg1) {
     if (!isNumeric(arg1) || arg1 < 0 || arg1 > 8) {
         if (sender instanceof Player === false) return;
         sender.sendMessage(`§cInvalid slot number: ${arg1}. Expected a number fom 0 to 8.`);
@@ -342,95 +292,11 @@ function selectSlotAction(sender, name, arg1) {
     simPlayer.selectSlot(arg1);
 }
 
-function sprintAction(sender, name) {
-    if (!UnderstudyManager.isOnline(name)) {
-        if (sender instanceof Player === false) return;
-        sender.sendMessage(`§cPlayer ${name} is not online.`);
-        return;
-    }
-
-    const simPlayer = UnderstudyManager.getPlayer(name);
-    simPlayer.sprint(true);
-}
-
-function unsprintAction(sender, name) {
-    if (!UnderstudyManager.isOnline(name)) {
-        if (sender instanceof Player === false) return;
-        sender.sendMessage(`§cPlayer ${name} is not online.`);
-        return;
-    }
-
-    const simPlayer = UnderstudyManager.getPlayer(name);
-    simPlayer.sprint(false);
-}
-
-function sneakAction(sender, name) {
-    if (!UnderstudyManager.isOnline(name)) {
-        if (sender instanceof Player === false) return;
-        sender.sendMessage(`§cPlayer ${name} is not online.`);
-        return;
-    }
-    
-    const simPlayer = UnderstudyManager.getPlayer(name);
-    simPlayer.sneak(true);
-}
-
-function unsneakAction(sender, name) {
-    if (!UnderstudyManager.isOnline(name)) {
-        if (sender instanceof Player === false) return;
-        sender.sendMessage(`§cPlayer ${name} is not online.`);
-        return;
-    }
-    
-    const simPlayer = UnderstudyManager.getPlayer(name);
-    simPlayer.sneak(false);
-}
-
-function claimProjectilesAction(sender, name, arg1) {
-    if (!UnderstudyManager.isOnline(name)) {
-        if (sender instanceof Player === false) return;
-        sender.sendMessage(`§cPlayer ${name} is not online.`);
-        return;
-    }
-
+function claimProjectilesAction(simPlayer, arg1) {
     let radius = 25;
     if (isNumeric(arg1))
-        radius = arg1; 
-    const simPlayer = UnderstudyManager.getPlayer(name);
+        radius = arg1;
     simPlayer.claimProjectiles(radius);
-}
-
-function stopAction(sender, name) {
-    if (!UnderstudyManager.isOnline(name)) {
-        if (sender instanceof Player === false) return;
-        sender.sendMessage(`§cPlayer ${name} is not online.`);
-        return;
-    }
-
-    const simPlayer = UnderstudyManager.getPlayer(name);
-    simPlayer.stopAll();
-}
-
-function printInventory(sender, name) {
-    if (!UnderstudyManager.isOnline(name)) {
-        if (sender instanceof Player === false) return;
-        sender.sendMessage(`§cPlayer ${name} is not online.`);
-        return;
-    }
-
-    const simPlayer = UnderstudyManager.getPlayer(name);
-    simPlayer.printInventory(sender);
-}
-
-function swapHeld(sender, name) {
-    if (!UnderstudyManager.isOnline(name)) {
-        if (sender instanceof Player === false) return;
-        sender.sendMessage(`§cPlayer ${name} is not online.`);
-        return;
-    }
-
-    const simPlayer = UnderstudyManager.getPlayer(name);
-    simPlayer.swapHeldItemWithPlayer(sender);
 }
 
 export { playerCommand };

@@ -1,6 +1,6 @@
 import { Block, Entity, Player, world, EquipmentSlot, system, MinecraftDimensionTypes } from "@minecraft/server";
-import { getLookAtRotation, isNumeric } from "utils";
-import SRCItemDatabase from "classes/SRCItemDatabase";
+import { getLookAtRotation, isNumeric } from "../utils";
+import SRCItemDatabase from "./SRCItemDatabase";
 
 const SAVE_INTERVAL = 600;
 
@@ -178,7 +178,7 @@ class Understudy {
         this.continuousActions = [];
     }
 
-    join(location, dimensionId, rotation = { x: 0, y: 0}, gameMode = "survival") {
+    join({ location, dimensionId, rotation = { x: 0, y: 0 }, gameMode = "survival" }) {
         const actionData = {
             type: 'join', 
             location: location, 
@@ -231,11 +231,11 @@ class Understudy {
         this.nextActions.push(actionData);
     }
 
-    tp(location, rotation, dimensionId) {
+    tp({ location, dimensionId, rotation }) {
         const actionData = { 
-            type: 'tp', 
-            location, 
-            dimensionId, 
+            type: 'tp',
+            location,
+            dimensionId,
             rotation 
         };
         this.nextActions.push(actionData);

@@ -1,8 +1,8 @@
-import extension from 'config';
-import UnderstudyManager from 'classes/UnderstudyManager';
-import * as gametest from '@minecraft/server-gametest';
-import { system, world, Block, Entity, Player } from '@minecraft/server';
-import { subtractVectors, getLookAtLocation, swapSlots } from 'utils';
+import extension from "../config";
+import { system, world, Block, Entity, Player } from "@minecraft/server";
+import * as gametest from "@minecraft/server-gametest";
+import UnderstudyManager from "./UnderstudyManager";
+import { subtractVectors, getLookAtLocation, swapSlots } from "../utils";
 
 const TEST_MAX_TICKS = 630720000; // 1 year
 const TEST_START_POSITION = { x: 1000000, z: 1000000 };
@@ -265,9 +265,8 @@ class GameTestManager {
         }
         system.runTimeout(() => {
             const simPlayerVelocity = player.simulatedPlayer.getVelocity();
-            if (simPlayerVelocity.x === 0 && simPlayerVelocity.y === 0 && simPlayerVelocity.z === 0) {
-                player.simulatedPlayer.chat(`§7Location is too far away.`);
-            }
+            if (simPlayerVelocity.x === 0 && simPlayerVelocity.y === 0 && simPlayerVelocity.z === 0)
+                world.sendMessage(`<${player.simulatedPlayer.name}> §7Could not path to location.`);
         }, 1);
     }
 
@@ -373,10 +372,9 @@ class GameTestManager {
     static claimprojectilesAction(player, actionData) {
         const projectiles = this.getProjectilesInRange(player.simulatedPlayer, actionData.radius);
         if (projectiles.length === 0)
-            return player.simulatedPlayer.chat(`§7No projectiles found within ${actionData.radius} blocks.`);
-        
+            return world.sendMessage(`<${player.simulatedPlayer.name}> §7No projectiles found within ${actionData.radius} blocks.`);
         const numChanged = this.changeProjectileOwner(projectiles, player.simulatedPlayer);
-        player.simulatedPlayer.chat(`§7Successfully became the owner of ${numChanged} projectiles.`);
+        world.sendMessage(`<${player.simulatedPlayer.name}> §7Successfully became the owner of ${numChanged} projectiles.`);
         player.savePlayerInfo();
     }
     
@@ -444,7 +442,7 @@ class GameTestManager {
         for (let i = 0; i < invContainer.size; i++) {
             const itemStack = invContainer.getItem(i);
             if (itemStack !== undefined)
-                invContents[i] = `\n§7- ${i < 10 ? '§a' : ''}${i}§7: ${itemStack.typeId.replace('minecraft:', '')} x${itemStack.amount}`;
+                message += `\n§7- ${i < 10 ? '§a' : ''}${i}§7: ${itemStack.typeId.replace('minecraft:', '')} x${itemStack.amount}`;
         }
         recipientPlayer.sendMessage(message);
     }

@@ -8,14 +8,15 @@
 [![Discord](https://badgen.net/discord/members/9KGche8fxm?icon=discord&label=Discord&list=what)](https://discord.gg/9KGche8fxm)
 
 # Understudy
+
 Understudy gives you complete control over simulated players in your Minecraft Bedrock world. Afk your farms, load areas, and more -- all through a set of powerful, intuitive commands!
 
 > [!IMPORTANT]
 > This addon is a **Canopy Extension**, which means **Canopy** must be installed in your world for it to work.
-
-**Canopy** can be downloaded here: https://github.com/ForestOfLight/Canopy
+> [Download **Canopy** here!](https://github.com/ForestOfLight/Canopy)
 
 ## Usage
+
 All commands are prefixed with `./`. The `./player` command can be abbreviated to `./p`. The player command is disabled until enabled with the `commandPlayer` rule. Do `./help` for more information.
 
 **Usage: `./player <name> join`**  
@@ -29,9 +30,6 @@ Spawn a player with the given name at its last location, if it has one.
 
 **Usage: `./player <name> tp`**  
 Teleport the player with the given name to your current location.
-
-**Usage: `./player <name> respawn`**  
-Respawn the player with the given name.
 
 **Usage: `./player <name> look [up/down/noth/south/east/west/block/entity/me/x y z/pitch yaw]`**  
 Make the player with the given name look at the specified target. "up", "down", "north", "south", "east", "west" will make the player look in different cardinal directions. "block" and "entity" will make the player look at the block or entity you are looking at. "me" will make the player look at you. "x y z" will make the player look at the specified coordinates. "pitch yaw" will make the player look at the specified pitch and yaw (in degrees).
