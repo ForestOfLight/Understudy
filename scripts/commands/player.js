@@ -82,13 +82,13 @@ function playerCommand(sender, args) {
     const simPlayer = UnderstudyManager.getPlayer(name);
     switch (action) {
         case 'join':
-            joinAction(sender, simPlayer);
+            joinAction(sender, name);
             break;
         case 'leave':
             leaveAction(simPlayer);
             break;
         case 'rejoin':
-            rejoinAction(sender, simPlayer);
+            rejoinAction(sender, name);
             break;
         // case 'respawn':
         //     simPlayer.respawn();
@@ -154,7 +154,8 @@ function getLocationInfoFromSource(source) {
         return { location: source.location, dimensionId: source.dimension.id, rotation: source.getRotation(), gameMode: source.getGameMode() };
 }
 
-function joinAction(sender, simPlayer) {
+function joinAction(sender, name) {
+    const simPlayer = UnderstudyManager.newPlayer(name);
     simPlayer.join(getLocationInfoFromSource(sender));
     UnderstudyManager.spawnPlayer(simPlayer);
 }
@@ -164,7 +165,8 @@ function leaveAction(simPlayer) {
     UnderstudyManager.removePlayer(simPlayer);
 }
 
-function rejoinAction(sender, simPlayer) {
+function rejoinAction(sender, name) {
+    const simPlayer = UnderstudyManager.newPlayer(name);
     UnderstudyManager.spawnPlayer(simPlayer);
     try {
         simPlayer.rejoin();
