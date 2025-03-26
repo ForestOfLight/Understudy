@@ -457,7 +457,7 @@ class GameTestManager {
             targetPlayer.sendMessage(`§cError while swapping items: ${error.name}`);
             console.warn(error);
         }
-        player.simulatedPlayer.selectedSlotIndex = player.simulatedPlayer.selectedSlotIndex;
+        player.refreshHeldItem();
         player.savePlayerInfo();
     }
 
