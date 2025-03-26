@@ -1,5 +1,6 @@
 /**
- * Part of ItemStack Database by @gameza_src
+ * Dependency of ItemStack Database by @gameza_src
+ * Modified by @ForestOfLight
  */
 const isVec3Symbol = Symbol("isVec3");
 export function Vector(x = 0, y = 0, z = 0) {
@@ -39,6 +40,15 @@ Vector.sort = function sort(vec1, vec2) {
     const [z1, z2] = vec1.z < vec2.z ? [vec1.z, vec2.z] : [vec2.z, vec1.z];
     return [{ x: x1, y: y1, z: z1, __proto__: Vector.prototype }, { x: x2, y: y2, z: z2, __proto__: Vector.prototype }];
 }
+Vector.truncate = function truncate(vec, decimals) {
+    const factor = 10 ** decimals;
+    return {
+        x: Math.trunc(vec.x * factor) / factor,
+        y: Math.trunc(vec.y * factor) / factor,
+        z: Math.trunc(vec.z * factor) / factor,
+        __proto__: Vector.prototype
+    };
+};
 Vector.up = { x: 0, y: 1, z: 0, __proto__: Vector.prototype };
 Vector.down = { x: 0, y: -1, z: 0, __proto__: Vector.prototype };
 Vector.right = { x: 1, y: 0, z: 0, __proto__: Vector.prototype };
@@ -58,11 +68,12 @@ Vector.prototype = {
     add(vec) { return Vector.add(this, vec); },
     subtract(vec) { return Vector.subtract(this, vec); },
     multiply(num) { return Vector.multiply(this, num); },
+    truncate(decimals) { return Vector.truncate(this, decimals); },
     get length() { return Vector.magnitude(this); },
     get normalized() { return Vector.normalize(this); },
     x: 0,
     y: 0,
     z: 0,
     [isVec3Symbol]: true,
-    toString() { return `<${this.x}, ${this.y}, ${this.z}>`; }
+    toString() { return `[${this.x}, ${this.y}, ${this.z}]`; }
 }

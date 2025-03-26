@@ -1,6 +1,6 @@
-import { Block, Entity, Player, world, EquipmentSlot, system, MinecraftDimensionTypes } from "@minecraft/server";
+import { Block, Entity, Player, world, EquipmentSlot, system, DimensionTypes } from "@minecraft/server";
 import { getLookAtRotation, isNumeric } from "../utils";
-import SRCItemDatabase from "./SRCItemDatabase";
+import SRCItemDatabase from "../lib/SRCItemDatabase/ItemDatabase.js";
 
 const SAVE_INTERVAL = 600;
 
@@ -41,21 +41,7 @@ class Understudy {
         return getLookAtRotation(this.simulatedPlayer.location, targetLocation);
     }
 
-    savePlayerInfo({ location, rotation, dimensionId, gameMode, projectileIds } = {}) {
-        if (this.simulatedPlayer === null || !this.isConnected)
-            return;
-        const dynamicInfo = {
-            location: location || this.simulatedPlayer.location, 
-            rotation: rotation || this.getHeadRotation(), 
-            dimensionId: dimensionId || this.simulatedPlayer.dimension.id, 
-            gameMode: gameMode || this.simulatedPlayer.getGameMode(),
-            projectileIds: projectileIds || this.getOwnedProjectileIds()
-        };
-        world.setDynamicProperty(`${this.name}:playerinfo`, JSON.stringify(dynamicInfo));
-        this.saveItems();
-    }
-
-    loadPlayerInfo() {
+    getPlayerInfo() {
         let playerInfo;
         try {
             playerInfo = JSON.parse(world.getDynamicProperty(`${this.name}:playerinfo`));
@@ -65,19 +51,34 @@ class Understudy {
             }
             throw error;
         }
-        this.tp(playerInfo.location, playerInfo.rotation, playerInfo.dimensionId);
+        return playerInfo;
+    }
 
+    savePlayerInfo({ location, rotation, dimensionId, gameMode, projectileIds } = {}) {
+        if (this.simulatedPlayer === null || !this.isConnected)
+            return;
+        const dynamicInfo = {
+            location: location || this.simulatedPlayer.location,
+            rotation: rotation || this.getHeadRotation(),
+            dimensionId: dimensionId || this.simulatedPlayer.dimension.id,
+            gameMode: gameMode || this.simulatedPlayer.getGameMode(),
+            projectileIds: projectileIds || this.getOwnedProjectileIds()
+        };
+        world.setDynamicProperty(`${this.name}:playerinfo`, JSON.stringify(dynamicInfo));
+        this.saveItems();
+    }
+
+    loadPlayerInfo() {
+        const playerInfo = this.getPlayerInfo();
         this.claimProjectileIds(playerInfo.projectileIds);
         this.loadItems();
-
         return playerInfo;
     }
 
     getOwnedProjectileIds() {
         let projectileIds = [];
-        for (const dimension in MinecraftDimensionTypes) {
-            const dimensionId = MinecraftDimensionTypes[dimension];
-            const projectiles = world.getDimension(dimensionId).getEntities().filter(entity => {
+        for (const dimension of DimensionTypes.getAll()) {
+            const projectiles = world.getDimension(dimension.typeId).getEntities().filter(entity => {
                 const projectileComponent = entity.getComponent('minecraft:projectile');
                 return projectileComponent?.owner === this.simulatedPlayer;
             });
@@ -187,6 +188,7 @@ class Understudy {
             gameMode: gameMode 
         };
         this.nextActions.push(actionData);
+        this.loadPlayerInfo();
     }
 
     leave() {
@@ -198,23 +200,13 @@ class Understudy {
     }
 
     rejoin() {
-        let playerInfo;
-        try {
-            playerInfo = JSON.parse(world.getDynamicProperty(`${this.name}:playerinfo`));
-        } catch (error) {
-            if (error.name === 'SyntaxError') {
-                throw new Error(`[Understudy] Player ${this.name} has no player info saved`);
-            }
-            throw error;
-        }
-        const actionData = {
-            type: 'join', 
+        const playerInfo = this.getPlayerInfo();
+        this.join({
             location: playerInfo.location,
             rotation: playerInfo.rotation,
             dimensionId: playerInfo.dimensionId,
             gameMode: playerInfo.gameMode
-        };
-        this.nextActions.push(actionData);
+        });
         system.runTimeout(() => {
             this.loadPlayerInfo();
         }, 1);

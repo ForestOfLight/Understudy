@@ -2,21 +2,6 @@ import { world } from "@minecraft/server";
 
 const PLAYER_EYE_HEIGHT = 1.62001002;
 
-function stringifyLocation(location, precision = 2) {
-    return '[' + location.x.toFixed(precision) + ' ' + location.y.toFixed(precision) + ' ' + location.z.toFixed(precision) + ']';
-}
-
-function subtractVectors(a, b) {
-    return { x: a.x - b.x, y: a.y - b.y, z: a.z - b.z };
-}
-
-function makeVector3(x, y, z) {
-    if (Number(x) === x && Number(y) === y && Number(z) === z)
-        return { x: x, y: y, z: z };
-    else
-        throw new Error(`Invalid vector coordinates: ${x}, ${y}, ${z}`);
-}
-
 function getLookAtLocation(baseLocation, targetRotation) {
     const extraDistance = 1000;
     const pitch = targetRotation.x;
@@ -60,5 +45,5 @@ function broadcastActionBar(message, sender) {
 }
 
 export { 
-    PLAYER_EYE_HEIGHT, stringifyLocation, subtractVectors, makeVector3, getLookAtLocation, isNumeric, getLookAtRotation, swapSlots, broadcastActionBar
+    PLAYER_EYE_HEIGHT, getLookAtLocation, isNumeric, getLookAtRotation, swapSlots, broadcastActionBar
 };
