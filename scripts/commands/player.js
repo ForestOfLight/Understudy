@@ -2,11 +2,12 @@ import extension from "../config";
 import { Command } from "../lib/canopy/CanopyExtension";
 import { Block, Player } from "@minecraft/server";
 import UnderstudyManager from "../classes/UnderstudyManager";
-import { makeVector3, isNumeric, PLAYER_EYE_HEIGHT, getLookAtLocation } from "../utils";
+import { isNumeric, PLAYER_EYE_HEIGHT, getLookAtLocation } from "../utils";
+import { Vector } from "../lib/Vector";
 
 const commandPlayerCommand = new Command({
     name: 'player',
-    description: `Main ${extension.name} command. (Alias: p)`,
+    description: { text: `Main ${extension.name} command. (Alias: p)` },
     usage: 'player <name> <action> [args...]',
     callback: playerCommand,
     args: [
@@ -17,29 +18,29 @@ const commandPlayerCommand = new Command({
         { type: 'string|number', name: 'arg3' }
     ],
     helpEntries: [ 
-        { usage: `player <name> join`, description: `Make a new player join at your location.` },
-        { usage: `player <name> leave`, description: `Make a player leave the game.` },
-        { usage: `player <name> rejoin`, description: `Make a player rejoin at its last location.` },
-        // { usage: `player <name> respawn`, description: `Make a player respawn after dying.` },
-        { usage: `player <name> tp`, description: `Make a player teleport to you.` },
-        { usage: `player <name> look [up/down/north/south/east/west/block/entity/me/x y z/pitch yaw]`, description: `Make a player look in specified directions.` },
-        { usage: `player <name> move [forward/back/left/right/block/entity/me/x y z]`, description: `Make a player move in specified directions.` },
-        { usage: `player <name> <attack/interact/use/build/break/drop/dropstack/dropall/jump> [once/continuous/interval] [intervalDuration]`, description: `Make a player do an action with variable timing.` },
-        { usage: `player <name> select [slotNumber]`, description: `Make a player select a slot.` },
-        { usage: `player <name> <sprint/unsprint>`, description: `Make a player start or stop sprinting.` },
-        { usage: `player <name> <sneak/unsneak>`, description: `Make a player start or stop sneaking.` },
-        { usage: `player <name> claimprojectiles [radius]`, description: `Make a player the owner of all nearby projectiles.` },
-        { usage: `player <name> inv`, description: `Print the inventory of a player.` },
-        { usage: `player <name> swapheld`, description: `Swap the held item of a player with your held item.` },
-        { usage: `player <name> stop`, description: `Stop all actions for a player.` },
-        { usage: `player prefix <prefix>`, description: `Set a prefix player nametags.` }
+        { usage: `player <name> join`, description: { text: `Make a new player join at your location.` } },
+        { usage: `player <name> leave`, description: { text: `Make a player leave the game.` } },
+        { usage: `player <name> rejoin`, description: { text: `Make a player rejoin at its last location.` } },
+        // { usage: `player <name> respawn`, description: { text: `Make a player respawn after dying.` } },
+        { usage: `player <name> tp`, description: { text: `Make a player teleport to you.` } },
+        { usage: `player <name> look [up/down/north/south/east/west/block/entity/me/x y z/pitch yaw]`, description: { text: `Make a player look in specified directions.` } },
+        { usage: `player <name> move [forward/backward/left/right/block/entity/me/x y z]`, description: { text: `Make a player move in specified directions.` } },
+        { usage: `player <name> <attack/interact/use/build/break/drop/dropstack/dropall/jump> [once/continuous/interval] [intervalDuration]`, description: { text: `Make a player do an action with variable timing.` } },
+        { usage: `player <name> select [slotNumber]`, description: { text: `Make a player select a slot.` } },
+        { usage: `player <name> <sprint/unsprint>`, description: { text: `Make a player start or stop sprinting.` } },
+        { usage: `player <name> <sneak/unsneak>`, description: { text: `Make a player start or stop sneaking.` } },
+        { usage: `player <name> claimprojectiles [radius]`, description: { text: `Make a player the owner of all nearby projectiles.` } },
+        { usage: `player <name> inv`, description: { text: `Print the inventory of a player.` } },
+        { usage: `player <name> swapheld`, description: { text: `Swap the held item of a player with your held item.` } },
+        { usage: `player <name> stop`, description: { text: `Stop all actions for a player.` } },
+        { usage: `player prefix <prefix>`, description: { text: `Set a prefix player nametags.` } }
     ]
 });
 extension.addCommand(commandPlayerCommand);
 
 const commandPlayerAliasCommand = new Command({
     name: 'p',
-    description: `Main ${extension.name} command.`,
+    description: { text: `Main ${extension.name} command.` },
     usage: 'p <name> <action>',
     callback: playerCommand,
     args: [
@@ -206,7 +207,7 @@ function lookAction(sender, simPlayer, arg1, arg2, arg3) {
             sender.sendMessage(`§cInvalid coordinates: ${arg1}, ${arg2}, ${arg3}`);
             return;
         }
-        simPlayer.lookLocation(makeVector3(arg1, arg2, arg3));
+        simPlayer.lookLocation(new Vector(arg1, arg2, arg3));
     } else if (arg1 !== null && arg2 !== null && arg3 === null) {
         if (!isNumeric(arg1) || !isNumeric(arg2)) {
             if (sender instanceof Player === false) return;
@@ -231,7 +232,11 @@ function processLookCardinals(simulatedPlayer, direction) {
     };
     if (!directions[direction])
         throw new Error(`[Understudy] Invalid look direction: ${direction}`);
-    return {x: simulatedPlayer.location.x + directions[direction].x, y: simulatedPlayer.location.y + directions[direction].y + PLAYER_EYE_HEIGHT, z: simulatedPlayer.location.z + directions[direction].z};
+    return {
+        x: simulatedPlayer.location.x + directions[direction].x, 
+        y: simulatedPlayer.location.y + directions[direction].y + PLAYER_EYE_HEIGHT, 
+        z: simulatedPlayer.location.z + directions[direction].z 
+    };
 }
 
 function moveAction(sender, simPlayer, arg1, arg2, arg3) {
@@ -256,9 +261,9 @@ function moveAction(sender, simPlayer, arg1, arg2, arg3) {
         }
         simPlayer.moveLocation(entity);
     } else if (arg1 !== null && arg2 !== null && arg3 !== null && isNumeric(arg1) && isNumeric(arg2) && isNumeric(arg3)) {
-        simPlayer.moveLocation(makeVector3(arg1, arg2, arg3));
+        simPlayer.moveLocation(new Vector(arg1, arg2, arg3));
     } else {
-        sender.sendMessage(`§cInvalid move action: ${[arg1, arg2, arg3].join(', ')}. Expected 'forward', 'back', 'left', 'right', 'block', 'entity', 'me', or coordinates.`);
+        sender.sendMessage(`§cInvalid move action: ${[arg1, arg2, arg3].join(', ')}. Expected 'forward', 'backward', 'left', 'right', 'block', 'entity', 'me', or coordinates.`);
     }
 }
 

@@ -26,6 +26,7 @@ import { world } from '@minecraft/server';
 import IPC from '../../lib/ipc/ipc';
 import Command from './Command';
 import Rule from './Rule';
+import { CommandCallbackRequest, CommandPrefixRequest, Ready, RegisterCommand, RegisterExtension, RegisterRule, RuleValueRequest, RuleValueSet, CommandPrefixResponse, RuleValueResponse } from './extension.ipc';
 
 class CanopyExtension {
     name;
@@ -80,13 +81,15 @@ class CanopyExtension {
     }
 
     #registerExtension() {
-        IPC.send('canopyExtension:registerExtension', {
-            name: this.name,
-            version: this.version,
-            author: this.author,
-            description: this.description
+        IPC.once('canopyExtension:ready', Ready, () => {
+            IPC.send('canopyExtension:registerExtension', RegisterExtension, {
+                name: this.name,
+                version: this.version,
+                author: this.author,
+                description: this.description
+            });
         });
-        IPC.once(`canopyExtension:${this.id}:registrationReady`, () => {
+        IPC.once(`canopyExtension:${this.id}:ready`, Ready, () => {
             this.#isRegistrationReady = true;
             for (const rule of Object.values(this.#rules))
                 this.#registerRule(rule);
@@ -96,7 +99,7 @@ class CanopyExtension {
     }
 
     #registerCommand(command) {
-        IPC.send(`canopyExtension:${this.id}:registerCommand`, {
+        IPC.send(`canopyExtension:${this.id}:registerCommand`, RegisterCommand, {
             name: command.getName(),
             description: command.getDescription(),
             usage: command.getUsage(),
@@ -111,18 +114,19 @@ class CanopyExtension {
     }
     
     #handleCommandCallbacks() {
-        IPC.on(`canopyExtension:${this.id}:commandCallbackRequest`, (cmdData) => {
+        IPC.on(`canopyExtension:${this.id}:commandCallbackRequest`, CommandCallbackRequest, (cmdData) => {
             if (cmdData.senderName === undefined)
                 return;
             const sender = world.getPlayers({ name: cmdData.senderName })[0];
             if (!sender)
                 throw new Error(`Sender ${cmdData.senderName} of ${cmdData.commandName} not found.`);
-            this.#commands[cmdData.commandName].runCallback(sender, cmdData.args);
+            const parsedArgs = JSON.parse(cmdData.args);
+            this.#commands[cmdData.commandName].runCallback(sender, parsedArgs);
         });
     }
 
     #registerRule(rule) {
-        IPC.send(`canopyExtension:${this.id}:registerRule`, {
+        IPC.send(`canopyExtension:${this.id}:registerRule`, RegisterRule, {
             identifier: rule.getID(),
             description: rule.getDescription(),
             contingentRules: rule.getContigentRules(),
@@ -132,17 +136,17 @@ class CanopyExtension {
     }
 
     #handleRuleValueRequests() {
-        IPC.handle(`canopyExtension:${this.id}:ruleValueRequest`, (data) => {
+        IPC.handle(`canopyExtension:${this.id}:ruleValueRequest`, RuleValueRequest, RuleValueResponse, (data) => {
             const rule = this.#rules[data.ruleID];
             if (!rule)
                 throw new Error(`Rule ${data.ruleID} not found.`);
             const value = rule.getValue();
-            return value;
+            return { value };
         });
     }
 
     #handleRuleValueSetters() {
-        IPC.on(`canopyExtension:${this.id}:ruleValueSet`, (data) => {
+        IPC.on(`canopyExtension:${this.id}:ruleValueSet`, RuleValueSet, (data) => {
             const rule = this.#rules[data.ruleID];
             if (!rule)
                 throw new Error(`Rule ${data.ruleID} not found.`);
@@ -151,8 +155,8 @@ class CanopyExtension {
     }
 
     #setupCommandPrefix() {
-        const prefix = IPC.invoke(`canopyExtension:getCommandPrefix`).then(result => {
-            Command.setPrefix(result);
+        IPC.invoke(`canopyExtension:commandPrefixRequest`, CommandPrefixRequest, void 0, CommandPrefixResponse).then(result => {
+            Command.setPrefix(result.prefix);
         });
     }
 }

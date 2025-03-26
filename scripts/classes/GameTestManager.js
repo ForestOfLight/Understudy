@@ -2,7 +2,8 @@ import extension from "../config";
 import { system, world, Block, Entity, Player } from "@minecraft/server";
 import * as gametest from "@minecraft/server-gametest";
 import UnderstudyManager from "./UnderstudyManager";
-import { subtractVectors, getLookAtLocation, swapSlots } from "../utils";
+import { getLookAtLocation, swapSlots } from "../utils";
+import { Vector } from "../lib/Vector";
 
 const TEST_MAX_TICKS = 630720000; // 1 year
 const TEST_START_POSITION = { x: 1000000, z: 1000000 };
@@ -33,8 +34,8 @@ class GameTestManager {
         loaderEntity.teleport({ x: TEST_START_POSITION.x, y: 0, z: TEST_START_POSITION.z }, { dimension: dimension });
         system.runTimeout(() => {
             const testStartPosition = dimension.getTopmostBlock(TEST_START_POSITION)?.location
-            dimension.runCommandAsync(`fill ${testStartPosition.x + 2} ${testStartPosition.y + 1} ${testStartPosition.z + 2} ${testStartPosition.x - 1} ${testStartPosition.y + 2} ${testStartPosition.z} minecraft:air`);
-            dimension.runCommandAsync(`execute positioned ${testStartPosition.x} ${testStartPosition.y} ${testStartPosition.z - 1} run gametest run ${extension.name}:${this.testName}`);
+            dimension.runCommand(`fill ${testStartPosition.x + 2} ${testStartPosition.y + 1} ${testStartPosition.z + 2} ${testStartPosition.x - 1} ${testStartPosition.y + 2} ${testStartPosition.z} minecraft:air`);
+            dimension.runCommand(`execute positioned ${testStartPosition.x} ${testStartPosition.y} ${testStartPosition.z - 1} run gametest run ${extension.name}:${this.testName}`);
             dimension.getEntities({ type: LOADER_ENTITY_ID }).forEach(entity => entity.remove());
             // If this logic is still making the structures stack, you can try to subtract 1 from the y value of the fill command when testStartPosition.y === 319.
         }, 1);
@@ -169,7 +170,6 @@ class GameTestManager {
 
     static runContinuousActions(player) {
         player.onTick();
-
         for (const actionData of player.continuousActions) {
             if (player.simulatedPlayer === null)
                 return;
@@ -457,12 +457,14 @@ class GameTestManager {
             targetPlayer.sendMessage(`§cError while swapping items: ${error.name}`);
             console.warn(error);
         }
-        player.simulatedPlayer.selectedSlotIndex = player.simulatedPlayer.selectedSlotIndex;
+        player.refreshHeldItem();
         player.savePlayerInfo();
     }
 
     static getRelativeCoords(location) {
-        return subtractVectors(location, this.test.worldLocation({ x: 0, y: 0, z: 0 }));
+        location = new Vector(location.x, location.y, location.z);
+        const testLocation = this.test.worldLocation(new Vector());
+        return location.subtract(testLocation);
     }
 }
 

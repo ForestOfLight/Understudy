@@ -1,4 +1,3 @@
-import extension from "../../config";
 import { system } from "@minecraft/server";
 import { ArgumentParser } from "../../lib/canopy/ArgumentParser";
 import { playerCommand } from "../player";
