@@ -10,8 +10,6 @@
 [![Discord](https://badgen.net/discord/members/9KGche8fxm?icon=discord&label=Discord&list=what)](https://discord.gg/9KGche8fxm)
 </div>
 
-# Understudy
-
 Understudy gives you complete control over simulated players in your Minecraft Bedrock world. Afk your farms, load areas, and more -- all through a set of powerful, intuitive commands!
 
 > [!IMPORTANT]
