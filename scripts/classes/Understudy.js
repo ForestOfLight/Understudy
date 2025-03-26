@@ -18,6 +18,15 @@ class Understudy {
         this.itemDatabase = new SRCItemDatabase(tableName);
     }
 
+    onTick() {
+        if (system.currentTick % SAVE_INTERVAL === 0)
+            this.savePlayerInfo();
+        if (this.#lookTarget === undefined)
+            this.removeLookTarget();
+        if (this.simulatedPlayer !== null)
+            this.refreshHeldItem();
+    }
+
     getLookTarget() {
         return this.#lookTarget;
     }
@@ -141,16 +150,6 @@ class Understudy {
                     equippable.setEquipment(equipmentSlot, itemStack);
                 }
             }
-        }
-    }
-
-    onTick() {
-        if (system.currentTick % SAVE_INTERVAL === 0)
-            this.savePlayerInfo();
-        if (this.#lookTarget === undefined)
-            this.removeLookTarget();
-        if (this.simulatedPlayer !== null) {
-            this.simulatedPlayer.selectedSlotIndex = this.simulatedPlayer.selectedSlotIndex;
         }
     }
 
@@ -315,6 +314,10 @@ class Understudy {
     swapHeldItemWithPlayer(player) {
         const actionData = { type: 'swapHeldItem', player: player };
         this.nextActions.push(actionData);
+    }
+
+    refreshHeldItem() {
+        this.simulatedPlayer.selectedSlotIndex = this.simulatedPlayer.selectedSlotIndex;
     }
 }
 

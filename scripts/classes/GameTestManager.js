@@ -170,7 +170,6 @@ class GameTestManager {
 
     static runContinuousActions(player) {
         player.onTick();
-
         for (const actionData of player.continuousActions) {
             if (player.simulatedPlayer === null)
                 return;

@@ -155,7 +155,7 @@ class CanopyExtension {
     }
 
     #setupCommandPrefix() {
-        const prefix = IPC.invoke(`canopyExtension:commandPrefixRequest`, CommandPrefixRequest, void 0, CommandPrefixResponse).then(result => {
+        IPC.invoke(`canopyExtension:commandPrefixRequest`, CommandPrefixRequest, void 0, CommandPrefixResponse).then(result => {
             Command.setPrefix(result.prefix);
         });
     }
