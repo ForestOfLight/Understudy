@@ -220,6 +220,7 @@ class GameTestManager {
     }
 
     static leaveAction(player) {
+        player.savePlayerInfo();
         this.test.removeSimulatedPlayer(player.simulatedPlayer);
         world.sendMessage(`§e${player.name} left the game`);
         player.removeLookTarget();
