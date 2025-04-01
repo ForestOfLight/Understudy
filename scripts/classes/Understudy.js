@@ -78,10 +78,15 @@ class Understudy {
     }
 
     loadPlayerInfo() {
-        const playerInfo = this.getPlayerInfo();
-        this.claimProjectileIds(playerInfo.projectileIds);
-        this.loadItems();
-        return playerInfo;
+        let playerInfo;
+        try {
+            playerInfo = this.getPlayerInfo();
+            this.claimProjectileIds(playerInfo.projectileIds);
+            this.loadItems();
+            return playerInfo;
+        } catch {
+            return void 0;
+        }
     }
 
     getOwnedProjectileIds() {
