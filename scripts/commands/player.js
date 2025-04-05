@@ -150,7 +150,7 @@ function playerCommand(sender, args) {
 
 function getLocationInfoFromSource(source) {
     if (source instanceof Block)
-        return { location: { x: source.x + .5, y: source.y + 1, z: source.z + .5 }, dimensionId: source.dimension.id };
+        return { location: { x: source.x + .5, y: source.y + 1, z: source.z + .5 }, rotation: { x: 0, y: 0 }, dimensionId: source.dimension.id };
     else if (source instanceof Player)
         return { location: source.location, dimensionId: source.dimension.id, rotation: source.getRotation(), gameMode: source.getGameMode() };
 }

@@ -84,6 +84,7 @@ class GameTestManager {
                 if (player.continuousActions.length > 0) {
                     this.runContinuousActions(player);
                 }
+                player.refreshHeldItem();
             }
         });
     }
@@ -98,9 +99,6 @@ class GameTestManager {
                 break;
             case 'leave':
                 this.leaveAction(player, actionData);
-                break;
-            case 'respawn':
-                this.respawnAction(player, actionData);
                 break;
             case 'tp':
                 this.tpAction(player, actionData);
@@ -226,12 +224,6 @@ class GameTestManager {
         player.removeLookTarget();
         player.simulatedPlayer = null;
         player.isConnected = false;
-    }
-
-    static respawnAction(player, actionData) {
-        player.simulatedPlayer.respawn();
-        this.tpAction(player, actionData);
-        player.savePlayerInfo();
     }
 
     static tpAction(player, actionData) {

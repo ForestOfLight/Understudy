@@ -23,8 +23,6 @@ class Understudy {
             this.savePlayerInfo();
         if (this.#lookTarget === undefined)
             this.removeLookTarget();
-        if (this.simulatedPlayer !== null)
-            this.refreshHeldItem();
     }
 
     getLookTarget() {
@@ -214,17 +212,6 @@ class Understudy {
         system.runTimeout(() => {
             this.loadPlayerInfo();
         }, 1);
-    }
-
-    respawn() {
-        const playerInfo = JSON.parse(world.getDynamicProperty(`${this.name}:playerinfo`));
-        const actionData = { 
-            type: 'respawn',
-            location: playerInfo.location,
-            rotation: playerInfo.rotation,
-            dimensionId: playerInfo.dimensionId
-        };
-        this.nextActions.push(actionData);
     }
 
     tp({ location, dimensionId, rotation }) {
