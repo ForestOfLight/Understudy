@@ -18,11 +18,13 @@ class Understudy {
         this.itemDatabase = new SRCItemDatabase(tableName);
     }
 
-    onTick() {
+    onConnectedTick() {
         if (system.currentTick % SAVE_INTERVAL === 0)
             this.savePlayerInfo();
         if (this.#lookTarget === undefined)
             this.removeLookTarget();
+        if (this.simulatedPlayer !== null)
+            this.refreshHeldItem();
     }
 
     getLookTarget() {
@@ -187,10 +189,9 @@ class Understudy {
             location: location, 
             rotation: rotation, 
             dimensionId: dimensionId, 
-            gameMode: gameMode 
+            gameMode: gameMode
         };
         this.nextActions.push(actionData);
-        this.loadPlayerInfo();
     }
 
     leave() {
@@ -209,9 +210,6 @@ class Understudy {
             dimensionId: playerInfo.dimensionId,
             gameMode: playerInfo.gameMode
         });
-        system.runTimeout(() => {
-            this.loadPlayerInfo();
-        }, 1);
     }
 
     tp({ location, dimensionId, rotation }) {

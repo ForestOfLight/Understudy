@@ -68,9 +68,8 @@ class GameTestManager {
 
         world.afterEvents.playerGameModeChange.subscribe((event) => {
             const player = UnderstudyManager.getPlayer(event.player?.name);
-            if (player !== undefined) {
+            if (player !== undefined)
                 player.savePlayerInfo();
-            }
         });
     }
 
@@ -78,13 +77,14 @@ class GameTestManager {
         system.runInterval(() => {
             if (!this.#startupComplete) return;
             for (const player of UnderstudyManager.players) {
+                if (player.isConnected)
+                    player.onConnectedTick();
                 if (player.nextActions.length > 0) {
                     this.runNextActions(player);
                 }
                 if (player.continuousActions.length > 0) {
                     this.runContinuousActions(player);
                 }
-                player.refreshHeldItem();
             }
         });
     }
@@ -167,7 +167,6 @@ class GameTestManager {
     }
 
     static runContinuousActions(player) {
-        player.onTick();
         for (const actionData of player.continuousActions) {
             if (player.simulatedPlayer === null)
                 return;
@@ -213,7 +212,9 @@ class GameTestManager {
     static joinAction(player, actionData) {
         player.simulatedPlayer = this.test.spawnSimulatedPlayer(this.getRelativeCoords(actionData.location), player.name, actionData.gameMode);
         this.tpAction(player, actionData);
-        player.loadItems();
+        system.runTimeout(() => {
+            player.loadPlayerInfo();
+        });
         player.isConnected = true;
     }
 
