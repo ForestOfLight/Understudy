@@ -1,4 +1,4 @@
-import { Block, Entity, Player, world, EquipmentSlot, system, DimensionTypes } from "@minecraft/server";
+import { Block, Entity, Player, world, system, DimensionTypes, TicksPerSecond } from "@minecraft/server";
 import { getLookAtRotation, isNumeric } from "../utils";
 import { UnderstudyInventory } from "./UnderstudyInventory";
 
@@ -15,15 +15,28 @@ class Understudy {
         this.continuousActions = [];
         this.#lookTarget = null;
         this.inventory = new UnderstudyInventory(this);
+        this.createdTick = system.currentTick;
     }
 
     onConnectedTick() {
-        if (system.currentTick % SAVE_INTERVAL === 0)
-            this.savePlayerInfo();
+        this.savePlayerInfoOnInterval();
         if (this.#lookTarget === undefined)
             this.removeLookTarget();
         if (this.simulatedPlayer !== null)
             this.refreshHeldItem();
+    }
+
+    savePlayerInfoOnInterval() {
+        if ((system.currentTick - this.createdTick) % SAVE_INTERVAL === 0) {
+            this.savePlayerInfo();
+            return;
+        }
+        if (this.hasContinuousAction()) {
+            if ((system.currentTick - this.createdTick) % (TicksPerSecond*5) === 0)
+                this.savePlayerInfo();
+            else
+                this.inventory.saveWithoutNBT();
+        }
     }
 
     getLookTarget() {
@@ -73,7 +86,7 @@ class Understudy {
             projectileIds: projectileIds || this.getOwnedProjectileIds()
         };
         world.setDynamicProperty(`${this.name}:playerinfo`, JSON.stringify(dynamicInfo));
-        this.saveItems();
+        this.inventory.save();
     }
 
     loadPlayerInfo() {
@@ -81,7 +94,7 @@ class Understudy {
         try {
             playerInfo = this.getPlayerInfo();
             this.claimProjectileIds(playerInfo.projectileIds);
-            this.loadItems();
+            this.inventory.load();
             return playerInfo;
         } catch {
             return void 0;
@@ -109,18 +122,6 @@ class Understudy {
         });
     }
 
-    saveItems() {
-        if (this.simulatedPlayer !== null) {
-            this.inventory.save();
-        }
-    }
-
-    loadItems() {
-        if (this.simulatedPlayer !== null) {
-            this.inventory.load();
-        }
-    }
-
     addContinuousAction(actionData) {
         if (!this.hasContinuousAction(actionData.type)) {
             this.continuousActions.push(actionData);
@@ -135,6 +136,8 @@ class Understudy {
     }
 
     hasContinuousAction(actionType) {
+        if (!actionType) 
+            return this.continuousActions.length > 0;
         return this.continuousActions.some(action => action.type === actionType);
     }
 

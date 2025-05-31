@@ -13,11 +13,16 @@ export class UnderstudyInventory {
     }
 
     save() {
-        this.saveInventoryItems();
-        this.saveEquippableItems();
+        this.saveInventoryItems({ saveNBT: true });
+        this.saveEquippableItems({ saveNBT: true });
     }
 
-    saveInventoryItems() {
+    saveWithoutNBT() {
+        this.saveInventoryItems({ saveNBT: false });
+        this.saveEquippableItems({ saveNBT: false });
+    }
+
+    saveInventoryItems({ saveNBT = true } = {}) {
         const inventoryItems = {};
         const inventoryContainer = this.understudy.simulatedPlayer.getComponent(EntityComponentTypes.Inventory)?.container;
         if (inventoryContainer !== void 0) {
@@ -29,11 +34,12 @@ export class UnderstudyInventory {
                     inventoryItems[i] = itemStack;
             }
             this.saveItemsWithoutNBT(this.inventoryDP, inventoryItems);
-            this.saveItemsWithNBT(this.inventoryDBKey, inventoryItems);
+            if (saveNBT)
+                this.saveItemsWithNBT(this.inventoryDBKey, inventoryItems);
         }
     }
 
-    saveEquippableItems() {
+    saveEquippableItems({ saveNBT = true } = {}) {
         const equippableItems = {};
         const equippable = this.understudy.simulatedPlayer.getComponent(EntityComponentTypes.Equippable);
         if (equippable !== undefined) {
@@ -43,13 +49,9 @@ export class UnderstudyInventory {
                     equippableItems[equipmentSlot] = itemStack;
             }
             this.saveItemsWithoutNBT(this.equippableDP, equippableItems);
-            this.saveItemsWithNBT(this.equippableDBKey, equippableItems);
+            if (saveNBT)
+                this.saveItemsWithNBT(this.equippableDBKey, equippableItems);
         }
-    }
-
-    load() {
-        this.loadInventoryItems();
-        this.loadEquippableItems();
     }
 
     saveItemsWithoutNBT(dynamicProperty, itemStacks) {
@@ -68,6 +70,11 @@ export class UnderstudyInventory {
         this.itemDatabase.setItems(DBKey, itemsWithNBT);
     }
 
+    load() {
+        this.loadInventoryItems();
+        this.loadEquippableItems();
+    }
+
     loadInventoryItems() {
         const inventoryContainer = this.understudy.simulatedPlayer.getComponent(EntityComponentTypes.Inventory)?.container;
         if (inventoryContainer === void 0)
@@ -80,8 +87,11 @@ export class UnderstudyInventory {
         for (let i = 0; i < inventoryContainer.size; i++) {
             const itemWithoutNBT = itemsWithoutNBT[i];
             let itemStack = void 0;
-            if (itemWithoutNBT !== null && itemWithoutNBT !== void 0)
+            if (itemWithoutNBT !== void 0) {
                 itemStack = itemsWithNBT.find(item => item.typeId === itemWithoutNBT.typeId && item.amount === itemWithoutNBT.amount);
+                itemsWithNBT.splice(itemsWithNBT.indexOf(itemStack), 1);
+                // Items not found in both databases will be removed from the inventory. This is intentional to discourage item duplication.
+            }
             inventoryContainer.setItem(i, itemStack);
         }
     }
