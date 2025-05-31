@@ -432,11 +432,15 @@ class GameTestManager {
         if (invContainer.size === invContainer.emptySlotsCount)
             return recipientPlayer.sendMessage(`§7${player.name}'s inventory is empty.`);
             
-        let message = `${player.name}'s inventory:`;
+        let message = { rawtext: [ { text: `${player.name}'s inventory:` } ] };
         for (let i = 0; i < invContainer.size; i++) {
             const itemStack = invContainer.getItem(i);
             if (itemStack !== undefined)
-                message += `\n§7- ${i < 10 ? '§a' : ''}${i}§7: ${itemStack.typeId.replace('minecraft:', '')} x${itemStack.amount}`;
+                message.rawtext.push({ rawtext: [
+                    { text: `\n§7- ${i < 10 ? '§a' : ''}${i}§7: ` },
+                    { translate: itemStack.localizationKey },
+                    { text: ` x${itemStack.amount}` }
+                ]});
         }
         recipientPlayer.sendMessage(message);
     }

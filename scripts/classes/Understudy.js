@@ -1,6 +1,6 @@
 import { Block, Entity, Player, world, EquipmentSlot, system, DimensionTypes } from "@minecraft/server";
 import { getLookAtRotation, isNumeric } from "../utils";
-import SRCItemDatabase from "../lib/SRCItemDatabase/ItemDatabase.js";
+import { UnderstudyInventory } from "./UnderstudyInventory";
 
 const SAVE_INTERVAL = 600;
 
@@ -14,8 +14,7 @@ class Understudy {
         this.nextActions = [];
         this.continuousActions = [];
         this.#lookTarget = null;
-        const tableName = 'bot_' + this.name.substr(0, 8);
-        this.itemDatabase = new SRCItemDatabase(tableName);
+        this.inventory = new UnderstudyInventory(this);
     }
 
     onConnectedTick() {
@@ -112,49 +111,13 @@ class Understudy {
 
     saveItems() {
         if (this.simulatedPlayer !== null) {
-            const inventoryContainer = this.simulatedPlayer.getComponent('minecraft:inventory')?.container;
-            if (inventoryContainer !== undefined) {
-                for (let i = 0; i < inventoryContainer.size; i++) {
-                    const key = `inventory_${i}`;
-                    const itemStack = inventoryContainer.getItem(i);
-                    if (itemStack !== undefined)
-                        this.itemDatabase.set(key, itemStack);
-                    else if (this.itemDatabase.has(key))
-                        this.itemDatabase.delete(key);
-                }
-            }
-            const equippable = this.simulatedPlayer.getComponent('minecraft:equippable');
-            if (equippable !== undefined) {
-                for (const equipmentSlot in EquipmentSlot) {
-                    const key = `equ_${equipmentSlot}`;
-                    const itemStack = equippable.getEquipment(equipmentSlot);
-                    if (itemStack !== undefined)
-                        this.itemDatabase.set(key, itemStack);
-                    else if (this.itemDatabase.has(key))
-                        this.itemDatabase.delete(key);
-                }
-            }
+            this.inventory.save();
         }
     }
 
     loadItems() {
         if (this.simulatedPlayer !== null) {
-            const inventoryContainer = this.simulatedPlayer.getComponent('minecraft:inventory')?.container;
-            if (inventoryContainer !== undefined) {
-                for (let i = 0; i < inventoryContainer.size; i++) {
-                    const key = `inventory_${i}`;
-                    const itemStack = this.itemDatabase.get(key);
-                    inventoryContainer.setItem(i, itemStack);
-                }
-            }
-            const equippable = this.simulatedPlayer.getComponent('minecraft:equippable');
-            if (equippable !== undefined) {
-                for (const equipmentSlot in EquipmentSlot) {
-                    const key = `equ_${equipmentSlot}`;
-                    const itemStack = this.itemDatabase.get(key);
-                    equippable.setEquipment(equipmentSlot, itemStack);
-                }
-            }
+            this.inventory.load();
         }
     }
 

@@ -149,7 +149,7 @@ class SRCItemDatabase {
             }
             const location = SRCItemDatabase.location;
             SRCItemDatabase.dimension.getEntities({ type: 'minecraft:item', location, maxDistance: 3 }).forEach(item => item.remove())
-            for (const item of items) 
+            for (const item of items)
                 SRCItemDatabase.dimension.spawnItem(item, { x: location.x + 0.5, y: location.y, z: location.z + 0.5 });
             world.structureManager.createFromWorld(newId, SRCItemDatabase.dimension, location, location, {
                 includeEntities: true,
