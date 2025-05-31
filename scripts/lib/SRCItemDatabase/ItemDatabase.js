@@ -166,7 +166,8 @@ class SRCItemDatabase {
         if (key.length > 12)
             throw new Error(`The provided key "${key}" exceeds the maximum allowed length of 12 characters (actual length: ${key.length}).`);
         const newId = this.table + key, location = SRCItemDatabase.location;
-        if (!itemMemory.get(newId)) return [];
+        if (itemMemory.has(newId))
+            return itemMemory.get(newId);
         if (!world.structureManager.get(newId)) return [];
         SRCItemDatabase.dimension.getEntities({ type: 'minecraft:item', location, maxDistance: 3 }).forEach(item => item.remove())
         world.structureManager.place(newId, SRCItemDatabase.dimension, location, { includeBlocks: false, includeEntities: true });
