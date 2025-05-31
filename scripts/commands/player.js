@@ -21,7 +21,6 @@ const commandPlayerCommand = new Command({
         { usage: `player <name> join`, description: { text: `Make a new player join at your location.` } },
         { usage: `player <name> leave`, description: { text: `Make a player leave the game.` } },
         { usage: `player <name> rejoin`, description: { text: `Make a player rejoin at its last location.` } },
-        // { usage: `player <name> respawn`, description: { text: `Make a player respawn after dying.` } },
         { usage: `player <name> tp`, description: { text: `Make a player teleport to you.` } },
         { usage: `player <name> look [up/down/north/south/east/west/block/entity/me/x y z/pitch yaw]`, description: { text: `Make a player look in specified directions.` } },
         { usage: `player <name> move [forward/backward/left/right/block/entity/me/x y z]`, description: { text: `Make a player move in specified directions.` } },
@@ -91,9 +90,6 @@ function playerCommand(sender, args) {
         case 'rejoin':
             rejoinAction(sender, name);
             break;
-        // case 'respawn':
-        //     simPlayer.respawn();
-        //     break;
         case 'tp':
             tpAction(sender, simPlayer);
             break;
@@ -150,7 +146,7 @@ function playerCommand(sender, args) {
 
 function getLocationInfoFromSource(source) {
     if (source instanceof Block)
-        return { location: { x: source.x + .5, y: source.y + 1, z: source.z + .5 }, dimensionId: source.dimension.id };
+        return { location: { x: source.x + .5, y: source.y + 1, z: source.z + .5 }, rotation: { x: 0, y: 0 }, dimensionId: source.dimension.id };
     else if (source instanceof Player)
         return { location: source.location, dimensionId: source.dimension.id, rotation: source.getRotation(), gameMode: source.getGameMode() };
 }

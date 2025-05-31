@@ -1,6 +1,6 @@
-import { Block, Entity, Player, world, EquipmentSlot, system, DimensionTypes } from "@minecraft/server";
+import { Block, Entity, Player, world, system, DimensionTypes, TicksPerSecond } from "@minecraft/server";
 import { getLookAtRotation, isNumeric } from "../utils";
-import SRCItemDatabase from "../lib/SRCItemDatabase/ItemDatabase.js";
+import { UnderstudyInventory } from "./UnderstudyInventory";
 
 const SAVE_INTERVAL = 600;
 
@@ -14,17 +14,29 @@ class Understudy {
         this.nextActions = [];
         this.continuousActions = [];
         this.#lookTarget = null;
-        const tableName = 'bot_' + this.name.substr(0, 8);
-        this.itemDatabase = new SRCItemDatabase(tableName);
+        this.inventory = new UnderstudyInventory(this);
+        this.createdTick = system.currentTick;
     }
 
-    onTick() {
-        if (system.currentTick % SAVE_INTERVAL === 0)
-            this.savePlayerInfo();
+    onConnectedTick() {
+        this.savePlayerInfoOnInterval();
         if (this.#lookTarget === undefined)
             this.removeLookTarget();
         if (this.simulatedPlayer !== null)
             this.refreshHeldItem();
+    }
+
+    savePlayerInfoOnInterval() {
+        if ((system.currentTick - this.createdTick) % SAVE_INTERVAL === 0) {
+            this.savePlayerInfo();
+            return;
+        }
+        if (this.hasContinuousAction()) {
+            if ((system.currentTick - this.createdTick) % (TicksPerSecond*5) === 0)
+                this.savePlayerInfo();
+            else
+                this.inventory.saveWithoutNBT();
+        }
     }
 
     getLookTarget() {
@@ -74,14 +86,19 @@ class Understudy {
             projectileIds: projectileIds || this.getOwnedProjectileIds()
         };
         world.setDynamicProperty(`${this.name}:playerinfo`, JSON.stringify(dynamicInfo));
-        this.saveItems();
+        this.inventory.save();
     }
 
     loadPlayerInfo() {
-        const playerInfo = this.getPlayerInfo();
-        this.claimProjectileIds(playerInfo.projectileIds);
-        this.loadItems();
-        return playerInfo;
+        let playerInfo;
+        try {
+            playerInfo = this.getPlayerInfo();
+            this.claimProjectileIds(playerInfo.projectileIds);
+            this.inventory.load();
+            return playerInfo;
+        } catch {
+            return void 0;
+        }
     }
 
     getOwnedProjectileIds() {
@@ -105,54 +122,6 @@ class Understudy {
         });
     }
 
-    saveItems() {
-        if (this.simulatedPlayer !== null) {
-            const inventoryContainer = this.simulatedPlayer.getComponent('minecraft:inventory')?.container;
-            if (inventoryContainer !== undefined) {
-                for (let i = 0; i < inventoryContainer.size; i++) {
-                    const key = `inventory_${i}`;
-                    const itemStack = inventoryContainer.getItem(i);
-                    if (itemStack !== undefined)
-                        this.itemDatabase.set(key, itemStack);
-                    else if (this.itemDatabase.has(key))
-                        this.itemDatabase.delete(key);
-                }
-            }
-            const equippable = this.simulatedPlayer.getComponent('minecraft:equippable');
-            if (equippable !== undefined) {
-                for (const equipmentSlot in EquipmentSlot) {
-                    const key = `equ_${equipmentSlot}`;
-                    const itemStack = equippable.getEquipment(equipmentSlot);
-                    if (itemStack !== undefined)
-                        this.itemDatabase.set(key, itemStack);
-                    else if (this.itemDatabase.has(key))
-                        this.itemDatabase.delete(key);
-                }
-            }
-        }
-    }
-
-    loadItems() {
-        if (this.simulatedPlayer !== null) {
-            const inventoryContainer = this.simulatedPlayer.getComponent('minecraft:inventory')?.container;
-            if (inventoryContainer !== undefined) {
-                for (let i = 0; i < inventoryContainer.size; i++) {
-                    const key = `inventory_${i}`;
-                    const itemStack = this.itemDatabase.get(key);
-                    inventoryContainer.setItem(i, itemStack);
-                }
-            }
-            const equippable = this.simulatedPlayer.getComponent('minecraft:equippable');
-            if (equippable !== undefined) {
-                for (const equipmentSlot in EquipmentSlot) {
-                    const key = `equ_${equipmentSlot}`;
-                    const itemStack = this.itemDatabase.get(key);
-                    equippable.setEquipment(equipmentSlot, itemStack);
-                }
-            }
-        }
-    }
-
     addContinuousAction(actionData) {
         if (!this.hasContinuousAction(actionData.type)) {
             this.continuousActions.push(actionData);
@@ -167,6 +136,8 @@ class Understudy {
     }
 
     hasContinuousAction(actionType) {
+        if (!actionType) 
+            return this.continuousActions.length > 0;
         return this.continuousActions.some(action => action.type === actionType);
     }
 
@@ -184,10 +155,9 @@ class Understudy {
             location: location, 
             rotation: rotation, 
             dimensionId: dimensionId, 
-            gameMode: gameMode 
+            gameMode: gameMode
         };
         this.nextActions.push(actionData);
-        this.loadPlayerInfo();
     }
 
     leave() {
@@ -206,20 +176,6 @@ class Understudy {
             dimensionId: playerInfo.dimensionId,
             gameMode: playerInfo.gameMode
         });
-        system.runTimeout(() => {
-            this.loadPlayerInfo();
-        }, 1);
-    }
-
-    respawn() {
-        const playerInfo = JSON.parse(world.getDynamicProperty(`${this.name}:playerinfo`));
-        const actionData = { 
-            type: 'respawn',
-            location: playerInfo.location,
-            rotation: playerInfo.rotation,
-            dimensionId: playerInfo.dimensionId
-        };
-        this.nextActions.push(actionData);
     }
 
     tp({ location, dimensionId, rotation }) {

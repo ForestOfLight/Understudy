@@ -1,11 +1,11 @@
 {
 	"format_version": 2,
 	"header": {
-		"name": "Understudy v1.0.8",
+		"name": "Understudy v1.0.9",
 		"description": "Simulated player extension for §l§aCanopy§r by §aForestOfLight§r.",
 		"uuid": "bb50de74-6e59-467b-871f-8ef829ab579f",
-		"min_engine_version": [1, 21, 70],
-		"version": [1, 0, 8]
+		"min_engine_version": [1, 21, 80],
+		"version": [1, 0, 9]
 	},
 	"modules": [
 		{
@@ -31,10 +31,6 @@
 		{
 			"module_name": "@minecraft/server-gametest",
 			"version": "1.0.0-beta"
-		},
-		{
-			"uuid": "bcf34368-ed0c-4cf7-938e-582cccf9950d", // Canopy RP
-			"version": [1, 0, 2]
 		},
 		{
 			"uuid": "7f6b23df-a583-476b-b0e4-87457e65f7c0", // Canopy BP

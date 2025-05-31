@@ -1,5 +1,5 @@
 import extension from "../config";
-import { system, world, Block, Entity, Player } from "@minecraft/server";
+import { system, world, Block, Entity, Player, EntityComponentTypes } from "@minecraft/server";
 import * as gametest from "@minecraft/server-gametest";
 import UnderstudyManager from "./UnderstudyManager";
 import { getLookAtLocation, swapSlots } from "../utils";
@@ -68,9 +68,8 @@ class GameTestManager {
 
         world.afterEvents.playerGameModeChange.subscribe((event) => {
             const player = UnderstudyManager.getPlayer(event.player?.name);
-            if (player !== undefined) {
+            if (player !== undefined)
                 player.savePlayerInfo();
-            }
         });
     }
 
@@ -78,6 +77,8 @@ class GameTestManager {
         system.runInterval(() => {
             if (!this.#startupComplete) return;
             for (const player of UnderstudyManager.players) {
+                if (player.isConnected)
+                    player.onConnectedTick();
                 if (player.nextActions.length > 0) {
                     this.runNextActions(player);
                 }
@@ -99,9 +100,6 @@ class GameTestManager {
             case 'leave':
                 this.leaveAction(player, actionData);
                 break;
-            case 'respawn':
-                this.respawnAction(player, actionData);
-                break;
             case 'tp':
                 this.tpAction(player, actionData);
                 break;
@@ -115,13 +113,13 @@ class GameTestManager {
                 this.moveRelativeAction(player, actionData);
                 break;
             case 'attack':
-                this.attackAction(player);
+                player.simulatedPlayer.attack();
                 break;
             case 'interact':
-                this.interactAction(player);
+                player.simulatedPlayer.interact();
                 break;
             case 'use':
-                this.useAction(player);
+                player.simulatedPlayer.useItemInSlot(player.simulatedPlayer.selectedSlotIndex);
                 break;
             case 'build':
                 this.buildAction(player);
@@ -133,22 +131,22 @@ class GameTestManager {
                 this.dropAction(player);
                 break;
             case 'dropstack':
-                this.dropStackAction(player);
+                player.simulatedPlayer.dropSelectedItem();
                 break;
             case 'dropall':
                 this.dropAllAction(player);
                 break;
             case 'jump':
-                this.jumpAction(player);
+                player.simulatedPlayer.jump();
                 break;
             case 'select':
                 this.selectSlotAction(player, actionData);
                 break;
             case 'sprint':
-                this.sprintAction(player, actionData);
+                player.simulatedPlayer.isSprinting = actionData.shouldSprint;
                 break;
             case 'sneak':
-                this.sneakAction(player, actionData);
+                player.simulatedPlayer.isSneaking = actionData.shouldSneak;
                 break;
             case 'claimProjectiles':
                 this.claimprojectilesAction(player, actionData);
@@ -169,23 +167,22 @@ class GameTestManager {
     }
 
     static runContinuousActions(player) {
-        player.onTick();
         for (const actionData of player.continuousActions) {
             if (player.simulatedPlayer === null)
                 return;
             const type = actionData.type
-            if (actionData.interval !== undefined && system.currentTick % actionData.interval !== 0)
+            if (actionData.interval !== void 0 && system.currentTick % actionData.interval !== 0)
                 continue;
 
             switch (type) {
                 case 'attack':
-                    this.attackAction(player);
+                    player.simulatedPlayer.attack();
                     break;
                 case 'interact':
-                    this.interactAction(player);
+                    player.simulatedPlayer.interact();
                     break;
                 case 'use':
-                    this.useAction(player);
+                    player.simulatedPlayer.useItemInSlot(player.simulatedPlayer.selectedSlotIndex);
                     break;
                 case 'build':
                     this.buildAction(player);
@@ -197,13 +194,13 @@ class GameTestManager {
                     this.dropAction(player);
                     break;
                 case 'dropstack':
-                    this.dropStackAction(player);
+                    player.simulatedPlayer.dropSelectedItem();
                     break;
                 case 'dropall':
                     this.dropAllAction(player);
                     break;
                 case 'jump':
-                    this.jumpAction(player);
+                    player.simulatedPlayer.jump();
                     break;
                 default:
                     console.warn(`[Understudy] Invalid continuous action for ${player.name}: ${type}`);
@@ -215,22 +212,19 @@ class GameTestManager {
     static joinAction(player, actionData) {
         player.simulatedPlayer = this.test.spawnSimulatedPlayer(this.getRelativeCoords(actionData.location), player.name, actionData.gameMode);
         this.tpAction(player, actionData);
-        player.loadItems();
+        system.runTimeout(() => {
+            player.loadPlayerInfo();
+        });
         player.isConnected = true;
     }
 
     static leaveAction(player) {
+        player.savePlayerInfo();
         this.test.removeSimulatedPlayer(player.simulatedPlayer);
         world.sendMessage(`§e${player.name} left the game`);
         player.removeLookTarget();
         player.simulatedPlayer = null;
         player.isConnected = false;
-    }
-
-    static respawnAction(player, actionData) {
-        player.simulatedPlayer.respawn();
-        this.tpAction(player, actionData);
-        player.savePlayerInfo();
     }
 
     static tpAction(player, actionData) {
@@ -278,21 +272,6 @@ class GameTestManager {
         else if (direction === 'right') player.simulatedPlayer.moveRelative(-1, 0);
     }
     
-    static attackAction(player) {
-        player.simulatedPlayer.attack();
-        player.savePlayerInfo();
-    }
-    
-    static interactAction(player) {
-        player.simulatedPlayer.interact();
-        player.savePlayerInfo();
-    }
-    
-    static useAction(player) {
-        player.simulatedPlayer.useItemInSlot(player.simulatedPlayer.selectedSlotIndex);
-        player.savePlayerInfo();
-    }
-    
     static buildAction(player) {
         const selectedSlot = player.simulatedPlayer.selectedSlotIndex;
         swapSlots(player.simulatedPlayer, 0, selectedSlot);
@@ -300,7 +279,6 @@ class GameTestManager {
         player.simulatedPlayer.stopBuild();
         swapSlots(player.simulatedPlayer, 0, selectedSlot);
         player.simulatedPlayer.selectedSlotIndex = selectedSlot;
-        player.savePlayerInfo();
     }
     
     static breakAction(player) {
@@ -308,7 +286,6 @@ class GameTestManager {
         if (lookingAtLocation === undefined)
             return;
         player.simulatedPlayer.breakBlock(this.getRelativeCoords(lookingAtLocation));
-        player.savePlayerInfo();
     }
     
     static dropAction(player) {
@@ -328,16 +305,10 @@ class GameTestManager {
         } else {
             player.simulatedPlayer.dropSelectedItem();
         }
-        player.savePlayerInfo();
-    }
-    
-    static dropStackAction(player) {
-        player.simulatedPlayer.dropSelectedItem();
-        player.savePlayerInfo();
     }
     
     static dropAllAction(player) {
-        const invContainer = player.simulatedPlayer.getComponent('minecraft:inventory')?.container;
+        const invContainer = player.simulatedPlayer.getComponent(EntityComponentTypes.Inventory)?.container;
         if (!invContainer)
             return;
         const selectedSlot = player.simulatedPlayer.selectedSlotIndex;
@@ -348,25 +319,11 @@ class GameTestManager {
             player.simulatedPlayer.dropSelectedItem();
         }
         player.simulatedPlayer.selectedSlotIndex = selectedSlot;
-        player.savePlayerInfo();
-    }
-    
-    static jumpAction(player) {
-        player.simulatedPlayer.jump();
-        player.savePlayerInfo();
     }
     
     static selectSlotAction(player, actionData) {
         player.simulatedPlayer.selectedSlotIndex = actionData.slot;
         player.savePlayerInfo();
-    }
-    
-    static sprintAction(player, actionData) {
-        player.simulatedPlayer.isSprinting = actionData.shouldSprint;
-    }
-    
-    static sneakAction(player, actionData) {
-        player.simulatedPlayer.isSneaking = actionData.shouldSneak;
     }
     
     static claimprojectilesAction(player, actionData) {
@@ -409,7 +366,6 @@ class GameTestManager {
         player.simulatedPlayer.isSprinting = false;
         player.simulatedPlayer.isSneaking = false;
         player.clearContinuousActions();
-        
         this.stopHeadRotation(player);
     }
     
@@ -419,12 +375,10 @@ class GameTestManager {
         player.removeLookTarget();
         if (target instanceof Player)
             this.lookAction(player, { type: 'look', location: target.getHeadLocation() });
-        else if (target instanceof Entity)
+        else if (target instanceof Entity || target instanceof Block)
             this.lookAction(player, { type: 'look', location: target.location });
-        else if (target instanceof Block)
-            this.lookAction(player, { type: 'look', blockPos: target.location });
         else
-        this.lookAction(player, { type: 'look', location: target });
+            this.lookAction(player, { type: 'look', location: target });
     }
 
     static printInventory(player, actionData) {
@@ -438,11 +392,16 @@ class GameTestManager {
         if (invContainer.size === invContainer.emptySlotsCount)
             return recipientPlayer.sendMessage(`§7${player.name}'s inventory is empty.`);
             
-        let message = `${player.name}'s inventory:`;
+        let message = { rawtext: [ { text: `${player.name}'s inventory:` } ] };
         for (let i = 0; i < invContainer.size; i++) {
             const itemStack = invContainer.getItem(i);
-            if (itemStack !== undefined)
-                message += `\n§7- ${i < 10 ? '§a' : ''}${i}§7: ${itemStack.typeId.replace('minecraft:', '')} x${itemStack.amount}`;
+            if (itemStack !== undefined) {
+                message.rawtext.push({ rawtext: [
+                    { text: `\n§7- ${i < 10 ? '§a' : ''}${i}§7: ` },
+                    { translate: itemStack.localizationKey },
+                    { text: ` x${itemStack.amount}` }
+                ]});
+            }
         }
         recipientPlayer.sendMessage(message);
     }
