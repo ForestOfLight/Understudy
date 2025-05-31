@@ -1,7 +1,7 @@
 {
 	"format_version": 2,
 	"header": {
-		"name": "Understudy v1.0.8",
+		"name": "Understudy v1.0.9",
 		"description": "Simulated player extension for §l§aCanopy§r by §aForestOfLight§r.",
 		"uuid": "bb50de74-6e59-467b-871f-8ef829ab579f",
 		"min_engine_version": [1, 21, 80],
