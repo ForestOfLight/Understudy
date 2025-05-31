@@ -149,7 +149,7 @@ class SRCItemDatabase {
             }
             const location = SRCItemDatabase.location;
             SRCItemDatabase.dimension.getEntities({ type: 'minecraft:item', location, maxDistance: 3 }).forEach(item => item.remove())
-            for (const item of items) 
+            for (const item of items)
                 SRCItemDatabase.dimension.spawnItem(item, { x: location.x + 0.5, y: location.y, z: location.z + 0.5 });
             world.structureManager.createFromWorld(newId, SRCItemDatabase.dimension, location, location, {
                 includeEntities: true,
@@ -166,7 +166,8 @@ class SRCItemDatabase {
         if (key.length > 12)
             throw new Error(`The provided key "${key}" exceeds the maximum allowed length of 12 characters (actual length: ${key.length}).`);
         const newId = this.table + key, location = SRCItemDatabase.location;
-        if (!itemMemory.get(newId)) return [];
+        if (itemMemory.has(newId))
+            return itemMemory.get(newId);
         if (!world.structureManager.get(newId)) return [];
         SRCItemDatabase.dimension.getEntities({ type: 'minecraft:item', location, maxDistance: 3 }).forEach(item => item.remove())
         world.structureManager.place(newId, SRCItemDatabase.dimension, location, { includeBlocks: false, includeEntities: true });
