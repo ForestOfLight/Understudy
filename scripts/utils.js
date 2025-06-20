@@ -1,4 +1,4 @@
-import { world } from "@minecraft/server";
+import { EntityComponentTypes, GameMode, world } from "@minecraft/server";
 
 const PLAYER_EYE_HEIGHT = 1.62001002;
 
@@ -28,7 +28,7 @@ function isNumeric(value) {
 }
 
 function swapSlots(player, slotNumber1, slotNumber2) {
-    const invContainer = player?.getComponent('minecraft:inventory')?.container;
+    const invContainer = player?.getComponent(EntityComponentTypes.Inventory)?.container;
     if (!invContainer)
         throw new Error('[Understudy] Player does not have an inventory container.');
     const slot1 = invContainer.getItem(slotNumber1);
@@ -44,6 +44,24 @@ function broadcastActionBar(message, sender) {
     players.forEach(player => player?.onScreenDisplay.setActionBar(message));
 }
 
+function portOldGameModeToNewUpdate(gameMode) {
+    if (typeof gameMode === 'string') {
+        switch (gameMode.toLowerCase()) {
+            case 'survival':
+                return GameMode.Survival;
+            case 'creative':
+                return GameMode.Creative;
+            case 'adventure':
+                return GameMode.Adventure;
+            case 'spectator':
+                return GameMode.Spectator;
+            default:
+                throw new Error(`[Understudy] Unknown game mode: ${gameMode}`);
+        }
+    }
+    throw new Error(`[Understudy] Game mode must be a string, received: ${typeof gameMode}`);
+}
+
 export { 
-    PLAYER_EYE_HEIGHT, getLookAtLocation, isNumeric, getLookAtRotation, swapSlots, broadcastActionBar
+    PLAYER_EYE_HEIGHT, getLookAtLocation, isNumeric, getLookAtRotation, swapSlots, broadcastActionBar, portOldGameModeToNewUpdate
 };
