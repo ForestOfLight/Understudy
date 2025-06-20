@@ -51,7 +51,7 @@ class GameTestManager {
                 }
             }
             if (Object.keys(updatedGameRules).length > 0)
-                console.warn(`[Understudy] Gametest messed with gamerules. Rolling back these: ${Object.keys(updatedGameRules).map(rule => `${rule} = ${updatedGameRules[rule]}`).join(', ')}`);
+                console.info(`[Understudy] Gametest messed with gamerules. Rolling back these: ${Object.keys(updatedGameRules).map(rule => `${rule} = ${updatedGameRules[rule]}`).join(', ')}`);
         }, 2);
     }
 
