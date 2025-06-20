@@ -1,5 +1,5 @@
-import { Block, Entity, Player, world, system, DimensionTypes, TicksPerSecond } from "@minecraft/server";
-import { getLookAtRotation, isNumeric } from "../utils";
+import { Block, Entity, Player, world, system, DimensionTypes, TicksPerSecond, GameMode } from "@minecraft/server";
+import { getLookAtRotation, isNumeric, portOldGameModeToNewUpdate } from "../utils";
 import { UnderstudyInventory } from "./UnderstudyInventory";
 
 const SAVE_INTERVAL = 600;
@@ -149,13 +149,14 @@ class Understudy {
         this.continuousActions = [];
     }
 
-    join({ location, dimensionId, rotation = { x: 0, y: 0 }, gameMode = "survival" }) {
+    join({ location, dimensionId, rotation = { x: 0, y: 0 }, gameMode = GameMode.Survival }) {
+        const updatedGameMode = portOldGameModeToNewUpdate(gameMode);
         const actionData = {
             type: 'join', 
             location: location, 
             rotation: rotation, 
             dimensionId: dimensionId, 
-            gameMode: gameMode
+            gameMode: updatedGameMode
         };
         this.nextActions.push(actionData);
     }
