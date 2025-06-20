@@ -9,10 +9,6 @@ system.afterEvents.scriptEventReceive.subscribe((event) => {
     if (sender === null)
         return;
     const { args } = ArgumentParser.parseCommandString(completeCommandString);
-    for (const key in args) {
-        if (args[key] === undefined)
-            args[key] = null;
-    }
     const appliedArgs = {
         name: args[0],
         action: args[1],
@@ -20,6 +16,10 @@ system.afterEvents.scriptEventReceive.subscribe((event) => {
         arg2: args[3],
         arg3: args[4]
     };
+    for (const key in appliedArgs) {
+        if (appliedArgs[key] === void 0)
+            appliedArgs[key] = null;
+    }
     playerCommand(sender, appliedArgs);
 });
 
