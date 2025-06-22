@@ -1,5 +1,5 @@
 import extension from "../config";
-import { Rule } from '../Rule.js';
+import { Rule } from '../lib/canopy/CanopyExtension';
 
 class NoUnderstudySaving extends Rule {
     constructor() {

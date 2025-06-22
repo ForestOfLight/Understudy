@@ -66,6 +66,8 @@ class Understudy {
     }
 
     getPlayerInfo() {
+        if (extension.getRuleValue('noUnderstudySaving'))
+            throw new Error(`[Understudy] Player ${this.name} has no player info saved due to 'noUnderstudySaving' rule being enabled`);
         let playerInfo;
         try {
             playerInfo = JSON.parse(world.getDynamicProperty(`${this.name}:playerinfo`));
