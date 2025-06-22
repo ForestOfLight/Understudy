@@ -1,3 +1,4 @@
+import extension from "../config";
 import { Block, Entity, Player, world, system, DimensionTypes, TicksPerSecond, GameMode } from "@minecraft/server";
 import { getLookAtRotation, isNumeric, portOldGameModeToNewUpdate } from "../utils";
 import { UnderstudyInventory } from "./UnderstudyInventory";
@@ -27,6 +28,8 @@ class Understudy {
     }
 
     savePlayerInfoOnInterval() {
+        if (extension.getRuleValue('noUnderstudySaving'))
+            return;
         if ((system.currentTick - this.createdTick) % SAVE_INTERVAL === 0) {
             this.savePlayerInfo();
             return;
@@ -76,7 +79,7 @@ class Understudy {
     }
 
     savePlayerInfo({ location, rotation, dimensionId, gameMode, projectileIds } = {}) {
-        if (this.simulatedPlayer === null || !this.isConnected)
+        if (this.simulatedPlayer === null || !this.isConnected || extension.getRuleValue('noUnderstudySaving'))
             return;
         const dynamicInfo = {
             location: location || this.simulatedPlayer.location,
@@ -90,6 +93,8 @@ class Understudy {
     }
 
     loadPlayerInfo() {
+        if (extension.getRuleValue('noUnderstudySaving'))
+            return void 0;
         let playerInfo;
         try {
             playerInfo = this.getPlayerInfo();
