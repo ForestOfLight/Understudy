@@ -1,6 +1,8 @@
+import extension from "../config";
 import { Block, Entity, Player, world, system, DimensionTypes, TicksPerSecond, GameMode } from "@minecraft/server";
 import { getLookAtRotation, isNumeric, portOldGameModeToNewUpdate } from "../utils";
 import { UnderstudyInventory } from "./UnderstudyInventory";
+import { Vector } from "../lib/Vector";
 
 const SAVE_INTERVAL = 600;
 
@@ -27,6 +29,8 @@ class Understudy {
     }
 
     savePlayerInfoOnInterval() {
+        if (extension.getRuleValue('noSimplayerSaving'))
+            return;
         if ((system.currentTick - this.createdTick) % SAVE_INTERVAL === 0) {
             this.savePlayerInfo();
             return;
@@ -63,6 +67,8 @@ class Understudy {
     }
 
     getPlayerInfo() {
+        if (extension.getRuleValue('noSimplayerSaving'))
+            throw new Error(`[Understudy] Player ${this.name} has no player info saved due to 'noSimplayerSaving' rule being enabled`);
         let playerInfo;
         try {
             playerInfo = JSON.parse(world.getDynamicProperty(`${this.name}:playerinfo`));
@@ -76,7 +82,7 @@ class Understudy {
     }
 
     savePlayerInfo({ location, rotation, dimensionId, gameMode, projectileIds } = {}) {
-        if (this.simulatedPlayer === null || !this.isConnected)
+        if (this.simulatedPlayer === null || !this.isConnected || extension.getRuleValue('noSimplayerSaving'))
             return;
         const dynamicInfo = {
             location: location || this.simulatedPlayer.location,
@@ -90,6 +96,8 @@ class Understudy {
     }
 
     loadPlayerInfo() {
+        if (extension.getRuleValue('noSimplayerSaving'))
+            return void 0;
         let playerInfo;
         try {
             playerInfo = this.getPlayerInfo();
@@ -197,10 +205,12 @@ class Understudy {
         } else if (target instanceof Entity) {
             actionData.entityId = target?.id;
             this.#lookTarget = target;
-        } else {
+        } else if (target instanceof Vector) {
             actionData.location = target;
+        } else {
+            actionData.rotation = target;
         }
-        if (actionData.location === undefined && actionData.entityId === undefined && actionData.blockPos === undefined)
+        if (actionData.location === void 0 && actionData.entityId === void 0 && actionData.blockPos === void 0 && actionData.rotation === void 0)
             throw new Error(`[Understudy] Invalid target provided for ${this.name}`);
         this.nextActions.push(actionData);
     }

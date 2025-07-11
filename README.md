@@ -101,3 +101,10 @@ All commands can also be accessed through the vanilla `/scriptevent` command (wh
 
 **Usage: `/scriptevent understudy:<command>`**  
 Run the specified understudy command. For example, `/scriptevent understudy:player <name> join`.
+
+### Global Rules
+
+**Usage: `./canopy <ruleName> <true/false>`**
+
+**simplayerRejoining**: Makes online SimPlayers rejoin when you leave and rejoin.  
+**noSimplayerSaving**: Disables saving playerdata for SimPlayers. Improves performance but can destroy items.
