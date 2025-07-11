@@ -28,7 +28,7 @@ class Understudy {
     }
 
     savePlayerInfoOnInterval() {
-        if (extension.getRuleValue('noUnderstudySaving'))
+        if (extension.getRuleValue('noSimplayerSaving'))
             return;
         if ((system.currentTick - this.createdTick) % SAVE_INTERVAL === 0) {
             this.savePlayerInfo();
@@ -66,8 +66,8 @@ class Understudy {
     }
 
     getPlayerInfo() {
-        if (extension.getRuleValue('noUnderstudySaving'))
-            throw new Error(`[Understudy] Player ${this.name} has no player info saved due to 'noUnderstudySaving' rule being enabled`);
+        if (extension.getRuleValue('noSimplayerSaving'))
+            throw new Error(`[Understudy] Player ${this.name} has no player info saved due to 'noSimplayerSaving' rule being enabled`);
         let playerInfo;
         try {
             playerInfo = JSON.parse(world.getDynamicProperty(`${this.name}:playerinfo`));
@@ -81,7 +81,7 @@ class Understudy {
     }
 
     savePlayerInfo({ location, rotation, dimensionId, gameMode, projectileIds } = {}) {
-        if (this.simulatedPlayer === null || !this.isConnected || extension.getRuleValue('noUnderstudySaving'))
+        if (this.simulatedPlayer === null || !this.isConnected || extension.getRuleValue('noSimplayerSaving'))
             return;
         const dynamicInfo = {
             location: location || this.simulatedPlayer.location,
@@ -95,7 +95,7 @@ class Understudy {
     }
 
     loadPlayerInfo() {
-        if (extension.getRuleValue('noUnderstudySaving'))
+        if (extension.getRuleValue('noSimplayerSaving'))
             return void 0;
         let playerInfo;
         try {

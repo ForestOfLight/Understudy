@@ -4,6 +4,7 @@ import * as gametest from "@minecraft/server-gametest";
 import UnderstudyManager from "./UnderstudyManager";
 import { getLookAtLocation, swapSlots } from "../utils";
 import { Vector } from "../lib/Vector";
+import { simplayerRejoining } from "../rules/simplayerRejoining";
 
 const TEST_MAX_TICKS = 630720000; // 1 year
 const TEST_START_POSITION = { x: 1000000, z: 1000000 };
@@ -24,6 +25,7 @@ class GameTestManager {
         }).maxTicks(TEST_MAX_TICKS).structureName(`${extension.name}:${this.testName}`);
         this.placeGametestStructure();
         this.setGameRules(savedGameRules);
+        simplayerRejoining.onGametestStartup();
         this.#startupComplete = true;
     }
 

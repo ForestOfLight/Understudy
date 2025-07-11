@@ -1,13 +1,13 @@
 import extension from "../config";
 import { Rule } from '../lib/canopy/CanopyExtension';
 
-class NoUnderstudySaving extends Rule {
+class NoSimplayerSaving extends Rule {
     constructor() {
         super({
-            identifier: 'noUnderstudySaving',
+            identifier: 'noSimplayerSaving',
             description: { text: 'Disables saving playerdata for SimPlayers. Improves performance but can destroy items.' }
         });
     }
 }
 
-extension.addRule(new NoUnderstudySaving());
+extension.addRule(new NoSimplayerSaving());
