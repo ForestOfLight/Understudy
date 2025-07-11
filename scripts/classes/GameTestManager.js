@@ -232,17 +232,21 @@ class GameTestManager {
     static tpAction(player, actionData) {
         player.simulatedPlayer.teleport(actionData.location, { dimension: world.getDimension(actionData.dimensionId) });
         player.simulatedPlayer.lookAtLocation(this.getRelativeCoords(getLookAtLocation(actionData.location, actionData.rotation)));
+        player.simulatedPlayer.setRotation(actionData.rotation);
         player.savePlayerInfo();
     }
 
     static lookAction(player, actionData) {
-        if (actionData.entityId !== undefined) {
+        if (actionData.entityId !== void 0) {
             const target = world.getEntity(actionData.entityId);
-            if (target === undefined)
+            if (target === void 0)
                 throw new Error(`[Understudy] Entity with ID ${actionData.entityId} not found`);
             player.simulatedPlayer.lookAtEntity(target);
-        } else if (actionData.blockPos !== undefined) {
+        } else if (actionData.blockPos !== void 0) {
             player.simulatedPlayer.lookAtBlock(this.getRelativeCoords(actionData.blockPos));
+        } else if (actionData.rotation !== void 0) {
+            player.simulatedPlayer.lookAtLocation(this.getRelativeCoords(getLookAtLocation(player.simulatedPlayer.location, actionData.rotation)));
+            player.simulatedPlayer.setRotation(actionData.rotation);
         } else {
             player.simulatedPlayer.lookAtLocation(this.getRelativeCoords(actionData.location));
         }

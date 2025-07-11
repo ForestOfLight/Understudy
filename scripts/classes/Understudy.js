@@ -2,6 +2,7 @@ import extension from "../config";
 import { Block, Entity, Player, world, system, DimensionTypes, TicksPerSecond, GameMode } from "@minecraft/server";
 import { getLookAtRotation, isNumeric, portOldGameModeToNewUpdate } from "../utils";
 import { UnderstudyInventory } from "./UnderstudyInventory";
+import { Vector } from "../lib/Vector";
 
 const SAVE_INTERVAL = 600;
 
@@ -204,10 +205,12 @@ class Understudy {
         } else if (target instanceof Entity) {
             actionData.entityId = target?.id;
             this.#lookTarget = target;
-        } else {
+        } else if (target instanceof Vector) {
             actionData.location = target;
+        } else {
+            actionData.rotation = target;
         }
-        if (actionData.location === undefined && actionData.entityId === undefined && actionData.blockPos === undefined)
+        if (actionData.location === void 0 && actionData.entityId === void 0 && actionData.blockPos === void 0 && actionData.rotation === void 0)
             throw new Error(`[Understudy] Invalid target provided for ${this.name}`);
         this.nextActions.push(actionData);
     }

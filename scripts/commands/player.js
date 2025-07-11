@@ -2,7 +2,7 @@ import extension from "../config";
 import { Command } from "../lib/canopy/CanopyExtension";
 import { Block, Player } from "@minecraft/server";
 import UnderstudyManager from "../classes/UnderstudyManager";
-import { isNumeric, PLAYER_EYE_HEIGHT, getLookAtLocation } from "../utils";
+import { isNumeric } from "../utils";
 import { Vector } from "../lib/Vector";
 
 const commandPlayerCommand = new Command({
@@ -210,7 +210,7 @@ function lookAction(sender, simPlayer, arg1, arg2, arg3) {
             sender.sendMessage(`§cInvalid pitch or yaw: ${arg1}, ${arg2}`);
             return;
         }
-        simPlayer.lookLocation(getLookAtLocation(simPlayer.simulatedPlayer.location, { x: arg1, y: arg2 }));
+        simPlayer.lookLocation({ x: arg1, y: arg2 });
     } else {
         if (sender instanceof Player === false) return;
         sender.sendMessage(`§cInvalid target action: ${arg1}. Expected 'up', 'down', 'north', 'south', 'east', 'west', 'block', 'entity', 'me', coordinates, or pitch and yaw.`);
@@ -219,20 +219,14 @@ function lookAction(sender, simPlayer, arg1, arg2, arg3) {
 
 function processLookCardinals(simulatedPlayer, direction) {
     const directions = {
-        'up': { x: 0, y: 1, z: 0 },
-        'down': { x: 0, y: -1, z: 0 },
-        'north': { x: 0, y: 0, z: -1 },
-        'south': { x: 0, y: 0, z: 1 },
-        'east': { x: 1, y: 0, z: 0 },
-        'west': { x: -1, y: 0, z: 0 }
+        'up': { x: -90, y: 0 },
+        'down': { x: 90, y: 0 },
+        'north': { x: 0, y: 180 },
+        'south': { x: 0, y: 0 },
+        'east': { x: 0, y: -90 },
+        'west': { x: 0, y: 90 }
     };
-    if (!directions[direction])
-        throw new Error(`[Understudy] Invalid look direction: ${direction}`);
-    return {
-        x: simulatedPlayer.location.x + directions[direction].x, 
-        y: simulatedPlayer.location.y + directions[direction].y + PLAYER_EYE_HEIGHT, 
-        z: simulatedPlayer.location.z + directions[direction].z 
-    };
+    return directions[direction];
 }
 
 function moveAction(sender, simPlayer, arg1, arg2, arg3) {
