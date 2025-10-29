@@ -1,46 +1,20 @@
-import extension from "../config";
 import { system, world, Block, Entity, Player, EntityComponentTypes } from "@minecraft/server";
-import * as gametest from "@minecraft/server-gametest";
+import { spawnSimulatedPlayer } from "@minecraft/server-gametest";
 import UnderstudyManager from "./UnderstudyManager";
 import { getLookAtLocation, swapSlots } from "../utils";
-import { Vector } from "../lib/Vector";
 import { simplayerRejoining } from "../rules/simplayerRejoining";
 
-const TEST_MAX_TICKS = 630720000; // 1 year
-const TEST_START_POSITION = { x: 1000000, z: 1000000 };
-const LOADER_ENTITY_ID = 'understudy:loader';
-
 class GameTestManager {
-    static testName = 'players';
-    static test = null;
     static #startupComplete = false;
 
     static startPlayers(savedGameRules) {
         if (this.#startupComplete)
             throw new Error(`[Understudy] GameTestManager has already been started`);
-        gametest.register(extension.name, this.testName, (test) => {
-            this.test = test;
-            this.subscribeToEvents();
-            this.startPlayerLoop();
-        }).maxTicks(TEST_MAX_TICKS).structureName(`${extension.name}:${this.testName}`);
-        this.placeGametestStructure();
+        this.subscribeToEvents();
+        this.startPlayerLoop();
         this.setGameRules(savedGameRules);
         simplayerRejoining.onGametestStartup();
         this.#startupComplete = true;
-    }
-
-    static placeGametestStructure() {
-        const dimension = world.getDimension('overworld');
-        const onlinePlayer = world.getAllPlayers()[0];
-        const loaderEntity = onlinePlayer.dimension.spawnEntity(LOADER_ENTITY_ID, { x: onlinePlayer.location.x, y: 100, z: onlinePlayer.location.z });
-        loaderEntity.teleport({ x: TEST_START_POSITION.x, y: 0, z: TEST_START_POSITION.z }, { dimension: dimension });
-        system.runTimeout(() => {
-            const testStartPosition = dimension.getTopmostBlock(TEST_START_POSITION)?.location
-            dimension.runCommand(`fill ${testStartPosition.x + 2} ${testStartPosition.y + 1} ${testStartPosition.z + 2} ${testStartPosition.x - 1} ${testStartPosition.y + 2} ${testStartPosition.z} minecraft:air`);
-            dimension.runCommand(`execute positioned ${testStartPosition.x} ${testStartPosition.y} ${testStartPosition.z - 1} run gametest run ${extension.name}:${this.testName}`);
-            dimension.getEntities({ type: LOADER_ENTITY_ID }).forEach(entity => entity.remove());
-            // If this logic is still making the structures stack, you can try to subtract 1 from the y value of the fill command when testStartPosition.y === 319.
-        }, 1);
     }
 
     static setGameRules(newGameRules) {
@@ -212,7 +186,9 @@ class GameTestManager {
     }
 
     static joinAction(player, actionData) {
-        player.simulatedPlayer = this.test.spawnSimulatedPlayer(this.getRelativeCoords(actionData.location), player.name, actionData.gameMode);
+        const dimensionLocation = actionData.location;
+        dimensionLocation.dimension = world.getDimension(actionData.dimensionId);
+        player.simulatedPlayer = spawnSimulatedPlayer(dimensionLocation, player.name, actionData.gameMode);
         this.tpAction(player, actionData);
         system.runTimeout(() => {
             player.loadPlayerInfo();
@@ -222,7 +198,7 @@ class GameTestManager {
 
     static leaveAction(player) {
         player.savePlayerInfo();
-        this.test.removeSimulatedPlayer(player.simulatedPlayer);
+        player.simulatedPlayer.remove();
         world.sendMessage(`§e${player.name} left the game`);
         player.removeLookTarget();
         player.simulatedPlayer = null;
@@ -231,7 +207,7 @@ class GameTestManager {
 
     static tpAction(player, actionData) {
         player.simulatedPlayer.teleport(actionData.location, { dimension: world.getDimension(actionData.dimensionId) });
-        player.simulatedPlayer.lookAtLocation(this.getRelativeCoords(getLookAtLocation(actionData.location, actionData.rotation)));
+        player.simulatedPlayer.lookAtLocation(getLookAtLocation(actionData.location, actionData.rotation));
         player.simulatedPlayer.setRotation(actionData.rotation);
         player.savePlayerInfo();
     }
@@ -243,12 +219,12 @@ class GameTestManager {
                 throw new Error(`[Understudy] Entity with ID ${actionData.entityId} not found`);
             player.simulatedPlayer.lookAtEntity(target);
         } else if (actionData.blockPos !== void 0) {
-            player.simulatedPlayer.lookAtBlock(this.getRelativeCoords(actionData.blockPos));
+            player.simulatedPlayer.lookAtBlock(actionData.blockPos);
         } else if (actionData.rotation !== void 0) {
-            player.simulatedPlayer.lookAtLocation(this.getRelativeCoords(getLookAtLocation(player.simulatedPlayer.location, actionData.rotation)));
+            player.simulatedPlayer.lookAtLocation(getLookAtLocation(player.simulatedPlayer.location, actionData.rotation));
             player.simulatedPlayer.setRotation(actionData.rotation);
         } else {
-            player.simulatedPlayer.lookAtLocation(this.getRelativeCoords(actionData.location));
+            player.simulatedPlayer.lookAtLocation(actionData.location);
         }
     }
 
@@ -259,9 +235,9 @@ class GameTestManager {
                 throw new Error(`[Understudy] Entity with ID ${actionData.entityId} not found`);
             player.simulatedPlayer.navigateToEntity(target);
         } else if (actionData.blockPos !== undefined) {
-            player.simulatedPlayer.navigateToBlock(this.getRelativeCoords(actionData.blockPos));
+            player.simulatedPlayer.navigateToBlock(actionData.blockPos);
         } else {
-            player.simulatedPlayer.navigateToLocation(this.getRelativeCoords(actionData.location));
+            player.simulatedPlayer.navigateToLocation(actionData.location);
         }
         system.runTimeout(() => {
             const simPlayerVelocity = player.simulatedPlayer.getVelocity();
@@ -291,7 +267,7 @@ class GameTestManager {
         const lookingAtLocation = player.simulatedPlayer.getBlockFromViewDirection({ maxDistance: 6 })?.block?.location;
         if (lookingAtLocation === undefined)
             return;
-        player.simulatedPlayer.breakBlock(this.getRelativeCoords(lookingAtLocation));
+        player.simulatedPlayer.breakBlock(lookingAtLocation);
     }
     
     static dropAction(player) {
@@ -424,12 +400,6 @@ class GameTestManager {
         }
         player.refreshHeldItem();
         player.savePlayerInfo();
-    }
-
-    static getRelativeCoords(location) {
-        location = new Vector(location.x, location.y, location.z);
-        const testLocation = this.test.worldLocation(new Vector());
-        return location.subtract(testLocation);
     }
 }
 
