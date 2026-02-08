@@ -1,4 +1,4 @@
-import extension from "../config";
+import { extension } from "../main";
 import { Command } from "../lib/canopy/CanopyExtension";
 import { Block, Player } from "@minecraft/server";
 import UnderstudyManager from "../classes/UnderstudyManager";

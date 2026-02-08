@@ -22,82 +22,114 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
+import { CustomCommandSource, CustomCommandStatus, Player, system } from "@minecraft/server";
+import { extension } from "main";
+import { BlockCommandOrigin } from "./BlockCommandOrigin";
+import { EntityCommandOrigin } from "./EntityCommandOrigin";
+import { ServerCommandOrigin } from "./ServerCommandOrigin";
+import { PlayerCommandOrigin } from "./PlayerCommandOrigin";
 
-class Command {
-    #name;
-    #description;
-    #usage;
-    #callback;
-    #args;
-    #contingentRules;
-	#adminOnly;
-	#helpEntries;
-	#helpHidden;
-	static #prefix = '';
+export class Command {
+    customCommand;
 
-	constructor({ name, description = '', usage, callback, args = [], contingentRules = [], adminOnly = false, helpEntries = [], helpHidden = false }) {
-		this.#name = name;
-        this.#description = description;
-        this.#usage = usage;
-        this.#callback = callback;
-        this.#args = args;
-        this.#contingentRules = contingentRules;
-		this.#adminOnly = adminOnly;
-		this.#helpEntries = helpEntries;
-		this.#helpHidden = helpHidden;
-	}
+    constructor(customCommand) {
+        this.customCommand = customCommand;
+        this.setDefaultArgs();
+        system.beforeEvents.startup.subscribe(this.setupForRegistry.bind(this));
+    }
 
-	getName() {
-		return this.#name;
-	}
+    setupForRegistry(startupEvent) {
+        this.registerCommand(startupEvent.customCommandRegistry);
+        system.beforeEvents.startup.unsubscribe(this.setupForRegistry.bind(this));
+    }
 
-	getDescription() {
-		return this.#description;
-	}
+    registerCommand(customCommandRegistry) {
+        this.addPreCallback();
+        this.registerEnums(customCommandRegistry);
+        this.registerSingleCommand(customCommandRegistry);
+        this.registerAliasCommands(customCommandRegistry);
+    }
 
-	getUsage() {
-		return this.#usage;
-	}
+    setDefaultArgs() {
+        if (this.customCommand.cheatsRequired === void 0)
+            this.customCommand.cheatsRequired = false;
+    }
 
-	getCallback() {
-		return this.#callback;
-	}
-	
-	getArgs() {
-		return this.#args;
-	}
-	
-	getContingentRules() {
-		return this.#contingentRules;
-	}
-	
-	isAdminOnly() {
-		return this.#adminOnly;
-	}
-	
-	getHelpEntries() {
-		return this.#helpEntries;
-	}
+    addPreCallback() {
+        this.callback = (origin, ...args) => {
+            const source = Command.resolveCommandOrigin(origin);
+            const disabledContingentRules = this.#getDisabledContingentRules();
+            this.#printDisabledContingentRules(disabledContingentRules, source);
+            if (disabledContingentRules.length > 0)
+                return;
+            if (this.commandSourceIsNotAllowed(source))
+                return { status: CustomCommandStatus.Failure, message: 'commands.generic.invalidsource' };
+            return this.customCommand.callback(source, ...args);
+        }
+    }
 
-	isHelpHidden() {
-		return this.#helpHidden;
-	}
-	
-	runCallback(sender, args) {
-		this.#callback(sender, args);
-	}
-	
-	sendUsage(sender) {
-		sender.sendMessage(`§cUsage: ${Command.#prefix}${this.#usage}`);
-	}
+    registerEnums(customCommandRegistry) {
+        if (this.customCommand.enums) {
+            for (const customEnum of this.customCommand.enums)
+                customCommandRegistry.registerEnum(customEnum.name, customEnum.values);
+        }
+    }
 
-	static setPrefix(prefix) {
-		Command.#prefix = prefix;
-	}
+    registerSingleCommand(customCommandRegistry, name = this.customCommand.name) {
+        customCommandRegistry.registerCommand({
+            name: name,
+            description: this.customCommand.description,
+            permissionLevel: this.customCommand.permissionLevel,
+            mandatoryParameters: this.customCommand.mandatoryParameters,
+            optionalParameters: this.customCommand.optionalParameters,
+            cheatsRequired: this.customCommand.cheatsRequired
+        }, this.callback);
+    }
 
-	static getPrefix() {
-		return Command.#prefix;
-	}
+    registerAliasCommands(customCommandRegistry) {
+        if (this.customCommand.aliases) {
+            for (const alias of this.customCommand.aliases)
+                this.registerSingleCommand(customCommandRegistry, alias);
+        }
+    }
+
+    isCheatsRequired() {
+        return this.customCommand.cheatsRequired;
+    }
+
+    static resolveCommandOrigin(origin) {
+        switch (origin.sourceType) {
+            case CustomCommandSource.Block:
+                return new BlockCommandOrigin(origin);
+            case CustomCommandSource.Entity:
+                if (origin.sourceEntity instanceof Player)
+                    return new PlayerCommandOrigin(origin);
+                return new EntityCommandOrigin(origin);
+            case CustomCommandSource.Server:
+                return new ServerCommandOrigin(origin);
+            default:
+                throw new Error(`[${extension.name}] Unknown command source: ` + origin?.sourceType);
+        }
+    }
+
+    #getDisabledContingentRules() {
+        const disabledRules = new Array();
+        for (const ruleID of this.customCommand.contingentRules || []) {
+            const ruleValue = extension.getRuleValue(ruleID);
+            if (!ruleValue)
+                disabledRules.push(ruleID);
+        }
+        return disabledRules;
+    }
+
+    #printDisabledContingentRules(disabledContingentRules, source) {
+        for (const ruleID of disabledContingentRules)
+            source.sendMessage({ translate: 'rules.generic.blocked', with: [ruleID] });
+    }
+
+    commandSourceIsNotAllowed(source) {
+        if (!this.customCommand.allowedSources)
+            return false;
+        return !this.customCommand.allowedSources.includes(source.constructor);
+    }
 }
-
-export default Command;

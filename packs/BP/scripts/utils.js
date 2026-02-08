@@ -1,4 +1,4 @@
-import { EntityComponentTypes, GameMode, world } from "@minecraft/server";
+import { Block, Entity, EntityComponentTypes, GameMode, Player, world } from "@minecraft/server";
 
 const PLAYER_EYE_HEIGHT = 1.62001002;
 
@@ -62,6 +62,17 @@ function portOldGameModeToNewUpdate(gameMode) {
     throw new Error(`[Understudy] Game mode must be a string, received: ${typeof gameMode}`);
 }
 
+function getLocationInfoFromSource(source) {
+    if (source instanceof Block)
+        return { location: { x: source.x + .5, y: source.y + 1, z: source.z + .5 }, dimensionId: source.dimension.id };
+    else if (source instanceof Player)
+        return { location: source.location, dimensionId: source.dimension.id, rotation: source.getRotation(), gameMode: source.getGameMode() };
+    else if (source instanceof Entity)
+        return { location: source.location, dimensionId: source.dimension.id, rotation: source.getRotation() };
+    else
+        throw new Error(`[Understudy] Invalid source`);
+}
+
 export { 
-    PLAYER_EYE_HEIGHT, getLookAtLocation, isNumeric, getLookAtRotation, swapSlots, broadcastActionBar, portOldGameModeToNewUpdate
+    PLAYER_EYE_HEIGHT, getLookAtLocation, isNumeric, getLookAtRotation, swapSlots, broadcastActionBar, portOldGameModeToNewUpdate, getLocationInfoFromSource
 };
