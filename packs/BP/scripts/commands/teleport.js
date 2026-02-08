@@ -1,0 +1,28 @@
+import UnderstudyManager from "../classes/UnderstudyManager";
+import { Command, PlayerCommandOrigin, BlockCommandOrigin, EntityCommandOrigin } from "../lib/canopy/CanopyExtension";
+import { CustomCommandParamType, CommandPermissionLevel } from "@minecraft/server";
+import { getLocationInfoFromSource } from "../utils";
+
+export class TeleportCommand extends Command {
+    constructor() {
+        super({
+            name: 'player:teleport',
+            description: 'Make a player teleport to you.',
+            mandatoryParameters: [{ name: 'playername', type: CustomCommandParamType.String }],
+            permissionLevel: CommandPermissionLevel.Any,
+            allowedSources: [PlayerCommandOrigin, BlockCommandOrigin, EntityCommandOrigin],
+            callback: (origin, ...args) => this.teleportCommand(origin, ...args)
+        });
+    }
+
+    teleportCommand(origin, playername) {
+        if (!UnderstudyManager.isOnline(playername)) {
+            origin.sendMessage(`§cPlayer ${playername} is not online.`);
+            return;
+        }
+        const simPlayer = UnderstudyManager.getPlayer(playername);
+        simPlayer.tp(getLocationInfoFromSource(origin.getSource()));
+    }
+}
+
+export const teleportCommand = new TeleportCommand();

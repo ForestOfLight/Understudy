@@ -10,6 +10,8 @@ export const extension = new CanopyExtension({
 import './commands/join';
 import './commands/leave';
 import './commands/rejoin';
+import './commands/teleport';
+import './commands/look';
 
 import { noSimplayerSaving } from './rules/noSimplayerSaving';
 import { simplayerRejoining } from './rules/simplayerRejoining';
