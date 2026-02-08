@@ -1,20 +1,28 @@
 import UnderstudyManager from "../classes/UnderstudyManager";
-import extension from "../config";
-import { Rule } from '../lib/canopy/CanopyExtension';
+import { extension } from "../main";
+import { BooleanRule } from '../lib/canopy/CanopyExtension';
 import { system, world } from "@minecraft/server";
 
-class SimplayerRejoining extends Rule {
+class SimplayerRejoining extends BooleanRule {
     simplayersToRejoinDP = 'simplayersToRejoin';
+
     constructor() {
         super({
             identifier: 'simplayerRejoining',
-            description: { text: 'Makes online SimPlayers rejoin when you leave and rejoin.' }
+            description: 'Makes online SimPlayers rejoin when you leave and rejoin.',
+            defaultValue: false,
+            onEnableCallback: () => this.subscribeToEvent(),
+            onDisableCallback: () => this.unsubscribeFromEvent()
         });
-        this.subscribeToEvents();
+        this.onShutdownBound = this.onShutdown.bind(this);
     }
 
-    subscribeToEvents() {
-        system.beforeEvents.shutdown.subscribe(this.onShutdown.bind(this));
+    subscribeToEvent() {
+        system.beforeEvents.shutdown.subscribe(this.onShutdownBound);
+    }
+
+    unsubscribeFromEvent() {
+        system.beforeEvents.shutdown.unsubscribe(this.onShutdownBound);
     }
 
     onGametestStartup() {
@@ -52,7 +60,4 @@ class SimplayerRejoining extends Rule {
     }
 }
 
-const simplayerRejoining = new SimplayerRejoining();
-extension.addRule(simplayerRejoining);
-
-export { simplayerRejoining };
+export const simplayerRejoining = new SimplayerRejoining();

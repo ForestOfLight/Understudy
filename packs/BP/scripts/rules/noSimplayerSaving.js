@@ -1,13 +1,14 @@
-import extension from "../config";
-import { Rule } from '../lib/canopy/CanopyExtension';
+import { extension } from "../main";
+import { BooleanRule } from '../lib/canopy/CanopyExtension';
 
-class NoSimplayerSaving extends Rule {
+class NoSimplayerSaving extends BooleanRule {
     constructor() {
         super({
             identifier: 'noSimplayerSaving',
-            description: { text: 'Disables saving playerdata for SimPlayers. Improves performance but can destroy items.' }
-        });
+            description: 'Disables saving playerdata for SimPlayers. Improves performance but can destroy items.',
+            defaultValue: false
+        }); 
     }
 }
 
-extension.addRule(new NoSimplayerSaving());
+export const noSimplayerSaving = new NoSimplayerSaving();
