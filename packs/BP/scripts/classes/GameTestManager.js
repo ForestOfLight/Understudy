@@ -239,19 +239,18 @@ class GameTestManager {
         } else {
             player.simulatedPlayer.navigateToLocation(actionData.location);
         }
-        system.runTimeout(() => {
-            const simPlayerVelocity = player.simulatedPlayer.getVelocity();
-            if (simPlayerVelocity.x === 0 && simPlayerVelocity.y === 0 && simPlayerVelocity.z === 0)
-                world.sendMessage(`<${player.simulatedPlayer.name}> §7Could not path to location.`);
-        }, 1);
     }
 
     static moveRelativeAction(player, actionData) {
         const direction = actionData.direction;
-        if (direction === 'forward') player.simulatedPlayer.moveRelative(0, 1);
-        else if (direction === 'backward') player.simulatedPlayer.moveRelative(0, -1);
-        else if (direction === 'left') player.simulatedPlayer.moveRelative(1, 0);
-        else if (direction === 'right') player.simulatedPlayer.moveRelative(-1, 0);
+        if (direction === 'forward')
+            player.simulatedPlayer.moveRelative(0, 1);
+        else if (direction === 'backward')
+            player.simulatedPlayer.moveRelative(0, -1);
+        else if (direction === 'left')
+            player.simulatedPlayer.moveRelative(1, 0);
+        else if (direction === 'right')
+            player.simulatedPlayer.moveRelative(-1, 0);
     }
     
     static buildAction(player) {
