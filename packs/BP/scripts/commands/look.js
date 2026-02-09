@@ -13,7 +13,8 @@ const LOOK_ACTIONS = Object.freeze({
     BLOCK: 'block',
     ENTITY: 'entity',
     ME: 'me',
-    AT: 'at'
+    AT: 'at',
+    STOP: 'stop'
 });
 
 export class LookCommand extends Command {
@@ -60,6 +61,9 @@ export class LookCommand extends Command {
             case LOOK_ACTIONS.AT:
                 this.lookAtLocation(simPlayer, location);
                 break;
+            case LOOK_ACTIONS.STOP:
+                this.stopLooking(simPlayer);
+                break;
             default:
                 throw new Error('§cInvalid look action: ' + lookAction);
         }
@@ -105,6 +109,10 @@ export class LookCommand extends Command {
 
     lookAtLocation(simPlayer, location) {
         simPlayer.lookLocation(Vector.from(location));
+    }
+
+    stopLooking(simPlayer) {
+        simPlayer.stopLooking();
     }
 }
 

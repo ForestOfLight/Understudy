@@ -15,14 +15,14 @@ class Understudy {
         this.simulatedPlayer = null;
         this.nextActions = [];
         this.continuousActions = [];
-        this.#lookTarget = null;
+        this.#lookTarget = void 0;
         this.inventory = new UnderstudyInventory(this);
         this.createdTick = system.currentTick;
     }
 
     onConnectedTick() {
         this.savePlayerInfoOnInterval();
-        if (this.#lookTarget === undefined)
+        if (this.getLookTarget() === void 0)
             this.removeLookTarget();
         if (this.simulatedPlayer !== null)
             this.refreshHeldItem();
@@ -48,14 +48,14 @@ class Understudy {
     }
 
     removeLookTarget() {
-        this.#lookTarget = null;
+        this.#lookTarget = void 0;
     }
 
     getHeadRotation() {
-        if (this.#lookTarget === null) 
+        if (this.#lookTarget === void 0) 
             return this.simulatedPlayer.headRotation;
         let targetLocation;
-        if (this.#lookTarget instanceof Player)
+        if (this.#lookTarget instanceof Entity)
             try {
                targetLocation = this.#lookTarget.getHeadLocation();
             } catch {
@@ -271,6 +271,19 @@ class Understudy {
         const actionData = { type: 'stopAll' };
         this.nextActions.push(actionData);
         this.savePlayerInfo();
+    }
+
+    stopLooking() {
+        const target = this.getLookTarget();
+        if (target === void 0)
+            return;
+        this.removeLookTarget();
+        if (target instanceof Player)
+            this.lookLocation(Vector.from(target.getHeadLocation()));
+        else if (target instanceof Block)
+            this.lookLocation(Vector.from(target.location));
+        else
+            this.lookLocation(Vector.from(target));
     }
 
     printInventory(recipientPlayer) {
