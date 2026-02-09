@@ -1,6 +1,6 @@
 import UnderstudyManager from "../classes/UnderstudyManager";
 import { Command, PlayerCommandOrigin, BlockCommandOrigin, EntityCommandOrigin, ServerCommandOrigin } from "../lib/canopy/CanopyExtension";
-import { CustomCommandParamType, CommandPermissionLevel, Entity, system } from "@minecraft/server";
+import { CustomCommandParamType, CommandPermissionLevel, CustomCommandStatus, Entity, system } from "@minecraft/server";
 import { Vector } from "../lib/Vector";
 
 const MOVE_ACTIONS = Object.freeze({
@@ -43,25 +43,19 @@ export class MoveCommand extends Command {
             case MOVE_ACTIONS.BACKWARD:
             case MOVE_ACTIONS.LEFT:
             case MOVE_ACTIONS.RIGHT:
-                this.moveRelatively(simPlayer, moveAction);
-                break;
+                return this.moveRelatively(simPlayer, moveAction);
             case MOVE_ACTIONS.BLOCK:
-                this.moveToBlock(origin, simPlayer);
-                break;
+                return this.moveToBlock(origin, simPlayer);
             case MOVE_ACTIONS.ENTITY:
-                this.moveToEntity(origin, simPlayer);
-                break;
+                return this.moveToEntity(origin, simPlayer);
             case MOVE_ACTIONS.ME:
-                this.moveToMe(origin, simPlayer);
-                break;
+                return this.moveToMe(origin, simPlayer);
             case MOVE_ACTIONS.TO:
-                this.moveToLocation(simPlayer, location);
-                break;
+                return this.moveToLocation(simPlayer, location);
             case MOVE_ACTIONS.STOP:
-                this.stopMoving(simPlayer);
-                break;
+                return this.stopMoving(simPlayer);
             default:
-                throw new Error(`§cInvalid move action: ${moveAction}`);
+                return { status: CustomCommandStatus.Failure, message: `§cInvalid move action: '${moveAction}'` };
         }
     }
 
@@ -72,26 +66,26 @@ export class MoveCommand extends Command {
     moveToBlock(origin, simPlayer) {
         const source = origin.getSource();
         if (source instanceof Entity === false)
-            throw new Error('§cMoving to a block may only be used by entities.');
+            return { status: CustomCommandStatus.Failure, message: '§cMoving to a block may only be used by entities.' };
         const block = source.getBlockFromViewDirection({ maxDistance: 16*64 })?.block;
         if (block === void 0)
-            throw new Error(`§cNo block in view.`);
+            return { status: CustomCommandStatus.Failure, message: '§cNo block in view.' };
         simPlayer.moveLocation(block);
     }
 
     moveToEntity(origin, simPlayer) {
         const source = origin.getSource();
         if (source instanceof Entity === false)
-            throw new Error('§cMoving to an entity may only be used by entities.');
+            return { status: CustomCommandStatus.Failure, message: '§cMoving to an entity may only be used by entities.' };
         const entity = source.getEntitiesFromViewDirection({ maxDistance: 16*64 })[0]?.entity;
         if (entity === void 0)
-            throw new Error(`§cNo entity in view.`);
+            return { status: CustomCommandStatus.Failure, message: '§cNo entity in view.' };
         simPlayer.moveLocation(entity);
     }
 
     moveToMe(origin, simPlayer) {
         if (origin instanceof ServerCommandOrigin)
-            throw new Error('§cMoving to yourself cannot be used by the server.');
+            return { status: CustomCommandStatus.Failure, message: '§cMoving to yourself cannot be used by the server.' };
         simPlayer.moveLocation(origin.getSource());
     }
 

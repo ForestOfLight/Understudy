@@ -16,10 +16,8 @@ export class TeleportCommand extends Command {
     }
 
     teleportCommand(origin, playername) {
-        if (!UnderstudyManager.isOnline(playername)) {
-            origin.sendMessage(`§cPlayer ${playername} is not online.`);
-            return;
-        }
+        if (!UnderstudyManager.isOnline(playername))
+            return { status: CustomCommandStatus.Failure, message: `§cPlayer ${playername} is not online.` };
         const simPlayer = UnderstudyManager.getPlayer(playername);
         simPlayer.tp(getLocationInfoFromSource(origin.getSource()));
     }

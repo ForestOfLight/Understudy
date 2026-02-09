@@ -16,10 +16,8 @@ export class RejoinCommand extends Command {
     }
 
     rejoinCommand(origin, playername) {
-        if (UnderstudyManager.isOnline(playername)) {
-            origin.sendMessage(`§cPlayer ${playername} is already online.`);
-            return;
-        }
+        if (UnderstudyManager.isOnline(playername))
+            return { status: CustomCommandStatus.Failure, message: `§cPlayer ${playername} is already online.` };
         system.run(() => {
             const simPlayer = UnderstudyManager.newPlayer(playername);
             UnderstudyManager.spawnPlayer(simPlayer);

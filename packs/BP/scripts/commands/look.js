@@ -65,7 +65,7 @@ export class LookCommand extends Command {
                 this.stopLooking(simPlayer);
                 break;
             default:
-                throw new Error('§cInvalid look action: ' + lookAction);
+                return { status: CustomCommandStatus.Failure, message: `§cInvalid look action: '${lookAction}'` };
         }
     }
 
@@ -84,26 +84,26 @@ export class LookCommand extends Command {
     lookAtBlock(origin, simPlayer) {
         const source = origin.getSource();
         if (source instanceof Entity === false)
-            throw new Error('§cBlock targeting may only be used by entities.');
+            return { status: CustomCommandStatus.Failure, message: '§cBlock targeting may only be used by entities.' };
         const block = source.getBlockFromViewDirection({ maxDistance: 16*64 })?.block;
         if (block === void 0)
-            throw new Error(`§cNo block in view.`);
+            return { status: CustomCommandStatus.Failure, message: '§cNo block in view.' };
         simPlayer.lookLocation(block);
     }
 
     lookAtEntity(origin, simPlayer) {
         const source = origin.getSource();
         if (source instanceof Entity === false)
-            throw new Error('§cEntity targeting may only be used by entities.');
+            return { status: CustomCommandStatus.Failure, message: '§cEntity targeting may only be used by entities.' };
         const entity = source.getEntitiesFromViewDirection({ maxDistance: 16*64 })[0]?.entity;
         if (entity === void 0)
-            throw new Error(`§cNo entity in view.`);
+            return { status: CustomCommandStatus.Failure, message: '§cNo entity in view.' };
         simPlayer.lookLocation(entity);
     }
 
     lookAtMe(origin, simPlayer) {
         if (origin instanceof ServerCommandOrigin)
-            throw new Error('§cSelf-targeting cannot be used by the server.');
+            return { status: CustomCommandStatus.Failure, message: '§cSelf-targeting cannot be used by the server.' };
         simPlayer.lookLocation(origin.getSource());
     }
 
