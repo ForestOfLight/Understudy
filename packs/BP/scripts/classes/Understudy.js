@@ -286,6 +286,10 @@ class Understudy {
             this.lookLocation(Vector.from(target));
     }
 
+    stopMoving() {
+        this.simulatedPlayer.stopMoving();
+    }
+
     printInventory(recipientPlayer) {
         const actionData = { type: 'printInventory', recipientPlayer: recipientPlayer };
         this.nextActions.push(actionData);
