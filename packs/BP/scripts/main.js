@@ -13,6 +13,7 @@ import './commands/rejoin';
 import './commands/teleport';
 import './commands/look';
 import './commands/move';
+import './commands/select';
 
 import { noSimplayerSaving } from './rules/noSimplayerSaving';
 import { simplayerRejoining } from './rules/simplayerRejoining';

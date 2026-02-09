@@ -115,9 +115,6 @@ class GameTestManager {
             case 'jump':
                 player.simulatedPlayer.jump();
                 break;
-            case 'select':
-                this.selectSlotAction(player, actionData);
-                break;
             case 'sprint':
                 player.simulatedPlayer.isSprinting = actionData.shouldSprint;
                 break;
@@ -300,11 +297,6 @@ class GameTestManager {
             player.simulatedPlayer.dropSelectedItem();
         }
         player.simulatedPlayer.selectedSlotIndex = selectedSlot;
-    }
-    
-    static selectSlotAction(player, actionData) {
-        player.simulatedPlayer.selectedSlotIndex = actionData.slot;
-        player.savePlayerInfo();
     }
     
     static claimprojectilesAction(player, actionData) {

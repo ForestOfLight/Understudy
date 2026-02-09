@@ -248,8 +248,8 @@ class Understudy {
     }
 
     selectSlot(slotNumber) {
-        const actionData = { type: 'select', slot: slotNumber };
-        this.nextActions.push(actionData);
+        this.simulatedPlayer.selectedSlotIndex = slotNumber;
+        this.savePlayerInfo();
     }
 
     sprint(shouldSprint) {
