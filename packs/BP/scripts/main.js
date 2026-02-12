@@ -18,6 +18,7 @@ import './commands/sprint';
 import './commands/sneak';
 import './commands/claimprojectiles';
 import './commands/stop';
+import './commands/swapheld';
 
 import { noSimplayerSaving } from './rules/noSimplayerSaving';
 import { simplayerRejoining } from './rules/simplayerRejoining';
