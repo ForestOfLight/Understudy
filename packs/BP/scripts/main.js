@@ -20,6 +20,7 @@ import './commands/claimprojectiles';
 import './commands/stop';
 import './commands/swapheld';
 import './commands/inventory';
+import './commands/prefix';
 
 import { noSimplayerSaving } from './rules/noSimplayerSaving';
 import { simplayerRejoining } from './rules/simplayerRejoining';

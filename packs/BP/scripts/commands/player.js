@@ -32,7 +32,7 @@ const commandPlayerCommand = new Command({
         { usage: `player <name> inv`, description: { text: `Print the inventory of a player.` } },
         { usage: `player <name> swapheld`, description: { text: `Swap the held item of a player with your held item.` } },
         { usage: `player <name> stop`, description: { text: `Stop all actions for a player.` } },
-        { usage: `player prefix <prefix>`, description: { text: `Set a prefix player nametags.` } }
+        { usage: `player prefix <prefix>`, description: { text: `Set a prefix for player nametags.` } }
     ]
 });
 extension.addCommand(commandPlayerCommand);

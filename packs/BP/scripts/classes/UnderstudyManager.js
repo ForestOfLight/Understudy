@@ -42,18 +42,13 @@ class UnderstudyManager {
     }
 
     static setNametagPrefix(prefix) {
-        if (prefix === '#none') {
-            world.setDynamicProperty('nametagPrefix', '');
-            for (const player of this.players) {
+        world.setDynamicProperty('nametagPrefix', prefix);
+        if (prefix === '') {
+            for (const player of this.players)
                 player.simulatedPlayer.nameTag = player.name;
-            }
-            broadcastActionBar('§7Understudy prefix removed.');
         } else {
-            world.setDynamicProperty('nametagPrefix', prefix);
-            for (const player of this.players) {
+            for (const player of this.players)
                 player.simulatedPlayer.nameTag = `[${prefix}§r] ${player.name}`;
-            }
-            broadcastActionBar(`§7Understudy prefix set to "§r${prefix}§r§7".`);
         }
     }
 
