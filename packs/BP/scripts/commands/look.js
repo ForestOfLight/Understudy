@@ -3,7 +3,7 @@ import { Command, PlayerCommandOrigin, BlockCommandOrigin, EntityCommandOrigin, 
 import { CustomCommandParamType, CommandPermissionLevel, CustomCommandStatus, Entity } from "@minecraft/server";
 import { Vector } from "../lib/Vector";
 
-const LOOK_ACTIONS = Object.freeze({
+const LOOK_OPTIONS = Object.freeze({
     UP: 'up',
     DOWN: 'down',
     NORTH: 'north',
@@ -22,10 +22,10 @@ export class LookCommand extends Command {
         super({
             name: 'player:look',
             description: 'Make a player look in specified directions.',
-            enums: [{ name: 'player:lookActions', values: Object.values(LOOK_ACTIONS) }],
+            enums: [{ name: 'player:lookOption', values: Object.values(LOOK_OPTIONS) }],
             mandatoryParameters: [{ name: 'playername', type: CustomCommandParamType.String }],
             optionalParameters: [
-                { name: 'player:lookActions', type: CustomCommandParamType.Enum },
+                { name: 'player:lookOption', type: CustomCommandParamType.Enum },
                 { name: 'location', type: CustomCommandParamType.Location }
             ],
             permissionLevel: CommandPermissionLevel.Any,
@@ -34,36 +34,36 @@ export class LookCommand extends Command {
         });
     }
 
-    lookCommand(origin, playername, lookAction, location) {
+    lookCommand(origin, playername, lookOption, location) {
         const simPlayer = UnderstudyManager.getPlayer(playername);
         if (!simPlayer)
             return { status: CustomCommandStatus.Failure, message: `§cPlayer ${playername} is not online.` };
-        switch (lookAction) {
-            case LOOK_ACTIONS.UP:
-            case LOOK_ACTIONS.DOWN:
-            case LOOK_ACTIONS.NORTH:
-            case LOOK_ACTIONS.SOUTH:
-            case LOOK_ACTIONS.EAST:
-            case LOOK_ACTIONS.WEST:
-                this.lookAtCardinal(simPlayer, lookAction);
+        switch (lookOption) {
+            case LOOK_OPTIONS.UP:
+            case LOOK_OPTIONS.DOWN:
+            case LOOK_OPTIONS.NORTH:
+            case LOOK_OPTIONS.SOUTH:
+            case LOOK_OPTIONS.EAST:
+            case LOOK_OPTIONS.WEST:
+                this.lookAtCardinal(simPlayer, lookOption);
                 break;
-            case LOOK_ACTIONS.BLOCK:
+            case LOOK_OPTIONS.BLOCK:
                 this.lookAtBlock(origin, simPlayer);
                 break;
-            case LOOK_ACTIONS.ENTITY:
+            case LOOK_OPTIONS.ENTITY:
                 this.lookAtEntity(origin, simPlayer);
                 break;
-            case LOOK_ACTIONS.ME:
+            case LOOK_OPTIONS.ME:
                 this.lookAtMe(origin, simPlayer);
                 break;
-            case LOOK_ACTIONS.AT:
+            case LOOK_OPTIONS.AT:
                 this.lookAtLocation(simPlayer, location);
                 break;
-            case LOOK_ACTIONS.STOP:
+            case LOOK_OPTIONS.STOP:
                 this.stopLooking(simPlayer);
                 break;
             default:
-                return { status: CustomCommandStatus.Failure, message: `§cInvalid look action: '${lookAction}'` };
+                return { status: CustomCommandStatus.Failure, message: `§cInvalid look option: '${lookOption}'` };
         }
     }
 

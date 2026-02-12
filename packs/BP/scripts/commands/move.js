@@ -3,7 +3,7 @@ import { Command, PlayerCommandOrigin, BlockCommandOrigin, EntityCommandOrigin, 
 import { CustomCommandParamType, CommandPermissionLevel, CustomCommandStatus, Entity, system } from "@minecraft/server";
 import { Vector } from "../lib/Vector";
 
-const MOVE_ACTIONS = Object.freeze({
+const MOVE_OPTIONS = Object.freeze({
     FORWARD: 'forward',
     BACKWARD: 'backward',
     LEFT: 'left',
@@ -20,10 +20,10 @@ export class MoveCommand extends Command {
         super({
             name: 'player:move',
             description: 'Make a player move in specified directions.',
-            enums: [{ name: 'player:moveActions', values: Object.values(MOVE_ACTIONS) }],
+            enums: [{ name: 'player:moveOption', values: Object.values(MOVE_OPTIONS) }],
             mandatoryParameters: [{ name: 'playername', type: CustomCommandParamType.String }],
             optionalParameters: [
-                { name: 'player:moveActions', type: CustomCommandParamType.Enum },
+                { name: 'player:moveOption', type: CustomCommandParamType.Enum },
                 { name: 'location', type: CustomCommandParamType.Location }
             ],
             permissionLevel: CommandPermissionLevel.Any,
@@ -32,28 +32,28 @@ export class MoveCommand extends Command {
         });
     }
 
-    moveCommand(origin, playername, moveAction, location) {
+    moveCommand(origin, playername, moveOption, location) {
         const simPlayer = UnderstudyManager.getPlayer(playername);
         if (!simPlayer)
             return { status: CustomCommandStatus.Failure, message: `§cPlayer ${playername} is not online.` };
-        switch (moveAction) {
-            case MOVE_ACTIONS.FORWARD:
-            case MOVE_ACTIONS.BACKWARD:
-            case MOVE_ACTIONS.LEFT:
-            case MOVE_ACTIONS.RIGHT:
-                return this.moveRelatively(simPlayer, moveAction);
-            case MOVE_ACTIONS.BLOCK:
+        switch (moveOption) {
+            case MOVE_OPTIONS.FORWARD:
+            case MOVE_OPTIONS.BACKWARD:
+            case MOVE_OPTIONS.LEFT:
+            case MOVE_OPTIONS.RIGHT:
+                return this.moveRelatively(simPlayer, moveOption);
+            case MOVE_OPTIONS.BLOCK:
                 return this.moveToBlock(origin, simPlayer);
-            case MOVE_ACTIONS.ENTITY:
+            case MOVE_OPTIONS.ENTITY:
                 return this.moveToEntity(origin, simPlayer);
-            case MOVE_ACTIONS.ME:
+            case MOVE_OPTIONS.ME:
                 return this.moveToMe(origin, simPlayer);
-            case MOVE_ACTIONS.TO:
+            case MOVE_OPTIONS.TO:
                 return this.moveToLocation(simPlayer, location);
-            case MOVE_ACTIONS.STOP:
+            case MOVE_OPTIONS.STOP:
                 return this.stopMoving(simPlayer);
             default:
-                return { status: CustomCommandStatus.Failure, message: `§cInvalid move action: '${moveAction}'` };
+                return { status: CustomCommandStatus.Failure, message: `§cInvalid move option: '${moveOption}'` };
         }
     }
 
