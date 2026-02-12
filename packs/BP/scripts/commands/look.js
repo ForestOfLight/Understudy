@@ -1,6 +1,6 @@
 import UnderstudyManager from "../classes/UnderstudyManager";
 import { Command, PlayerCommandOrigin, BlockCommandOrigin, EntityCommandOrigin, ServerCommandOrigin } from "../lib/canopy/CanopyExtension";
-import { CustomCommandParamType, CommandPermissionLevel, system, Entity } from "@minecraft/server";
+import { CustomCommandParamType, CommandPermissionLevel, CustomCommandStatus, Entity } from "@minecraft/server";
 import { Vector } from "../lib/Vector";
 
 const LOOK_ACTIONS = Object.freeze({
@@ -35,10 +35,8 @@ export class LookCommand extends Command {
     }
 
     lookCommand(origin, playername, lookAction, location) {
-        if (!UnderstudyManager.isOnline(playername)) {
-            origin.sendMessage(`§cPlayer ${playername} is not online.`);
-            return;
-        }
+        if (!UnderstudyManager.isOnline(playername))
+            return { message: CustomCommandStatus.Failure, message: `§cPlayer ${playername} is not online.` };
         const simPlayer = UnderstudyManager.getPlayer(playername);
         switch (lookAction) {
             case LOOK_ACTIONS.UP:

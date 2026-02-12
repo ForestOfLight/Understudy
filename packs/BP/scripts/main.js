@@ -16,6 +16,7 @@ import './commands/move';
 import './commands/select';
 import './commands/sprint';
 import './commands/sneak';
+import './commands/claimprojectiles';
 
 import { noSimplayerSaving } from './rules/noSimplayerSaving';
 import { simplayerRejoining } from './rules/simplayerRejoining';
