@@ -35,9 +35,9 @@ export class LookCommand extends Command {
     }
 
     lookCommand(origin, playername, lookAction, location) {
-        if (!UnderstudyManager.isOnline(playername))
-            return { message: CustomCommandStatus.Failure, message: `§cPlayer ${playername} is not online.` };
         const simPlayer = UnderstudyManager.getPlayer(playername);
+        if (!simPlayer)
+            return { status: CustomCommandStatus.Failure, message: `§cPlayer ${playername} is not online.` };
         switch (lookAction) {
             case LOOK_ACTIONS.UP:
             case LOOK_ACTIONS.DOWN:

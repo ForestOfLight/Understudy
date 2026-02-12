@@ -18,9 +18,9 @@ export class SneakCommand extends Command {
     }
 
     sprintCommand(origin, playername, shouldSneak) {
-        if (!UnderstudyManager.isOnline(playername))
-            return { status: CustomCommandStatus.Failure, message: `§cPlayer ${playername} is not online.` };
         const simPlayer = UnderstudyManager.getPlayer(playername);
+        if (!simPlayer)
+            return { status: CustomCommandStatus.Failure, message: `§cPlayer ${playername} is not online.` };
         simPlayer.sneak(shouldSneak);
     }
 }

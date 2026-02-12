@@ -58,7 +58,7 @@ class UnderstudyManager {
     }
 
     static isOnline(name) {
-        return this.players.find(p => p.name === name) !== undefined;
+        return this.getPlayer(name) !== void 0;
     }
 }
 

@@ -18,9 +18,9 @@ export class SprintCommand extends Command {
     }
 
     sprintCommand(origin, playername, shouldSprint) {
-        if (!UnderstudyManager.isOnline(playername))
-            return { status: CustomCommandStatus.Failure, message: `§cPlayer ${playername} is not online.` };
         const simPlayer = UnderstudyManager.getPlayer(playername);
+        if (!simPlayer)
+            return { status: CustomCommandStatus.Failure, message: `§cPlayer ${playername} is not online.` };
         simPlayer.sprint(shouldSprint);
     }
 }

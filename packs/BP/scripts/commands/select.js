@@ -18,11 +18,11 @@ export class SelectCommand extends Command {
     }
 
     selectCommand(origin, playername, slotNumber) {
-        if (!UnderstudyManager.isOnline(playername))
+        const simPlayer = UnderstudyManager.getPlayer(playername);
+        if (!simPlayer)
             return { status: CustomCommandStatus.Failure, message: `§cPlayer ${playername} is not online.` };
         if (slotNumber < 0 || slotNumber > 8)
             return { status: CustomCommandStatus.Failure, message: `§cInvalid slot number: ${slotNumber}. Expected a number fom 0 to 8.` };
-        const simPlayer = UnderstudyManager.getPlayer(playername);
         system.run(() => simPlayer.selectSlot(slotNumber));
     }
 }

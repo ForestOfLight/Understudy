@@ -33,11 +33,9 @@ export class MoveCommand extends Command {
     }
 
     moveCommand(origin, playername, moveAction, location) {
-        if (!UnderstudyManager.isOnline(playername)) {
-            origin.sendMessage(`§cPlayer ${playername} is not online.`);
-            return;
-        }
         const simPlayer = UnderstudyManager.getPlayer(playername);
+        if (!simPlayer)
+            return { status: CustomCommandStatus.Failure, message: `§cPlayer ${playername} is not online.` };
         switch (moveAction) {
             case MOVE_ACTIONS.FORWARD:
             case MOVE_ACTIONS.BACKWARD:
