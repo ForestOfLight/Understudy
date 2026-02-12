@@ -4,7 +4,7 @@ export const extension = new CanopyExtension({
     author: 'ForestOfLight',
     name: 'Understudy',
     description: 'Simulated Players for §l§aCanopy§r',
-    version: '1.1.1'
+    version: '1.2.0'
 });
 
 import './commands/join';
