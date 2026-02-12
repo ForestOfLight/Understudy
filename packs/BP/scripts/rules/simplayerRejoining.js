@@ -1,5 +1,4 @@
 import UnderstudyManager from "../classes/UnderstudyManager";
-import { extension } from "../main";
 import { BooleanRule } from '../lib/canopy/CanopyExtension';
 import { system, world } from "@minecraft/server";
 
