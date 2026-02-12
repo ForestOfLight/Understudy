@@ -58,8 +58,8 @@ class GameTestManager {
                 if (player.nextActions.length > 0) {
                     this.runNextActions(player);
                 }
-                if (player.continuousActions.length > 0) {
-                    this.runContinuousActions(player);
+                if (player.repeatingActions.length > 0) {
+                    this.runRepeatingActions(player);
                 }
             }
         });
@@ -136,8 +136,8 @@ class GameTestManager {
         }
     }
 
-    static runContinuousActions(player) {
-        for (const actionData of player.continuousActions) {
+    static runRepeatingActions(player) {
+        for (const actionData of player.repeatingActions) {
             if (player.simulatedPlayer === null)
                 return;
             const type = actionData.type
@@ -173,7 +173,7 @@ class GameTestManager {
                     player.simulatedPlayer.jump();
                     break;
                 default:
-                    console.warn(`[Understudy] Invalid continuous action for ${player.name}: ${type}`);
+                    console.warn(`[Understudy] Invalid repeating action for ${player.name}: ${type}`);
                     break;
             }
         }
@@ -335,7 +335,7 @@ class GameTestManager {
         player.simulatedPlayer.stopUsingItem();
         player.simulatedPlayer.isSprinting = false;
         player.simulatedPlayer.isSneaking = false;
-        player.clearContinuousActions();
+        player.clearRepeatingActions();
         this.stopHeadRotation(player);
     }
     

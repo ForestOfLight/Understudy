@@ -14,7 +14,7 @@ class Understudy {
         this.isConnected = false;
         this.simulatedPlayer = null;
         this.nextActions = [];
-        this.continuousActions = [];
+        this.repeatingActions = [];
         this.#lookTarget = void 0;
         this.inventory = new UnderstudyInventory(this);
         this.createdTick = system.currentTick;
@@ -35,7 +35,7 @@ class Understudy {
             this.savePlayerInfo();
             return;
         }
-        if (this.hasContinuousAction()) {
+        if (this.hasRepeatingAction()) {
             if ((system.currentTick - this.createdTick) % (TicksPerSecond*5) === 0)
                 this.savePlayerInfo();
             else
@@ -130,31 +130,30 @@ class Understudy {
         });
     }
 
-    addContinuousAction(actionData) {
-        if (!this.hasContinuousAction(actionData.type)) {
-            this.continuousActions.push(actionData);
+    addRepeatingAction(actionData) {
+        if (!this.hasRepeatingAction(actionData.type)) {
+            this.repeatingActions.push(actionData);
             return;
         }
-        const action = this.continuousActions.find(action => action.type === actionData.type) || actionData;
-        if (isNumeric(actionData.interval)) {
+        const action = this.repeatingActions.find(action => action.type === actionData.type) || actionData;
+        if (isNumeric(actionData.interval))
             action.interval = actionData.interval;
-        } else {
-            action.interval = undefined;
-        }
+        else
+            action.interval = void 0;
     }
 
-    hasContinuousAction(actionType) {
+    hasRepeatingAction(actionType) {
         if (!actionType) 
-            return this.continuousActions.length > 0;
-        return this.continuousActions.some(action => action.type === actionType);
+            return this.repeatingActions.length > 0;
+        return this.repeatingActions.some(action => action.type === actionType);
     }
 
-    removeContinuousAction(actionType) {
-        this.continuousActions = this.continuousActions.filter(action => action.type !== actionType);
+    removeRepeatingAction(actionType) {
+        this.repeatingActions = this.repeatingActions.filter(action => action.type !== actionType);
     }
 
-    clearContinuousActions() {
-        this.continuousActions = [];
+    clearRepeatingActions() {
+        this.repeatingActions = [];
     }
 
     join({ location, dimensionId, rotation = { x: 0, y: 0 }, gameMode = GameMode.Survival }) {
@@ -233,18 +232,21 @@ class Understudy {
         const actionData = { type: 'moveRelative', direction: direction };
         this.nextActions.push(actionData);
     }
-
-    variableTimingAction(actionType, isContinuous, interval) {
-        if (!isContinuous && this.hasContinuousAction(actionType))
-            this.removeContinuousAction(actionType);
-
+    
+    singleTimingAction(actionType, afterTicks = void 0) {
         const actionData = { type: actionType };
-        if (interval)
-            actionData.interval = interval;
-        if (isContinuous)
-            this.addContinuousAction(actionData);
-        else
+        if (afterTicks === void 0)
             this.nextActions.push(actionData);
+        system.runTimeout(() => this.nextActions.push(actionData), afterTicks);
+    }
+
+    repeatingTimingAction(actionType, intervalTicks = void 0) {
+        if (this.hasRepeatingAction(actionType))
+            this.removeRepeatingAction(actionType);
+        const actionData = { type: actionType };
+        if (intervalTicks)
+            actionData.interval = intervalTicks;
+        this.addRepeatingAction(actionData);
     }
 
     selectSlot(slotNumber) {

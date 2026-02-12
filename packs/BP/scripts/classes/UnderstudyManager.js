@@ -1,6 +1,5 @@
 import Understudy from "./Understudy";
 import { system, world } from "@minecraft/server";
-import { broadcastActionBar } from "../utils";
 
 class UnderstudyManager {
     static players = [];
