@@ -1,6 +1,6 @@
 import UnderstudyManager from "../classes/UnderstudyManager";
 import { Command, PlayerCommandOrigin, BlockCommandOrigin, EntityCommandOrigin, ServerCommandOrigin } from "../lib/canopy/CanopyExtension";
-import { CustomCommandParamType, CommandPermissionLevel, CustomCommandStatus } from "@minecraft/server";
+import { CustomCommandParamType, CommandPermissionLevel, CustomCommandStatus, system } from "@minecraft/server";
 
 export class StopCommand extends Command {
     constructor() {
@@ -18,7 +18,7 @@ export class StopCommand extends Command {
         const simPlayer = UnderstudyManager.getPlayer(playername);
         if (!simPlayer)
             return { status: CustomCommandStatus.Failure, message: `§cPlayer ${playername} is not online.` };
-        simPlayer.stopAll();
+        system.run(() => simPlayer.stopAll());
     }
 }
 

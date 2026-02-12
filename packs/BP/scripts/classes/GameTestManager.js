@@ -344,7 +344,7 @@ class GameTestManager {
     
     static stopHeadRotation(player) {
         const target = player.getLookTarget();
-        if (target === null) return;
+        if (target === void 0) return;
         player.removeLookTarget();
         if (target instanceof Player)
             this.lookAction(player, { type: 'look', location: target.getHeadLocation() });
