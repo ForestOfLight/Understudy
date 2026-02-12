@@ -187,7 +187,7 @@ class Understudy {
         });
     }
 
-    tp({ location, dimensionId, rotation }) {
+    tp({ location, dimensionId, rotation = { x: 0, y: 0 } }) {
         const actionData = { 
             type: 'tp',
             location,
