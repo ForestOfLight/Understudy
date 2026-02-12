@@ -37,13 +37,6 @@ function swapSlots(player, slotNumber1, slotNumber2) {
     invContainer.setItem(slotNumber2, slot1);
 }
 
-function broadcastActionBar(message, sender) {
-    let players;
-    if (sender) players = world.getPlayers({ excludeNames: [sender.name] });
-    else players = world.getAllPlayers();
-    players.forEach(player => player?.onScreenDisplay.setActionBar(message));
-}
-
 function portOldGameModeToNewUpdate(gameMode) {
     if (typeof gameMode === 'string') {
         switch (gameMode.toLowerCase()) {
@@ -74,5 +67,5 @@ function getLocationInfoFromSource(source) {
 }
 
 export { 
-    PLAYER_EYE_HEIGHT, getLookAtLocation, isNumeric, getLookAtRotation, swapSlots, broadcastActionBar, portOldGameModeToNewUpdate, getLocationInfoFromSource
+    PLAYER_EYE_HEIGHT, getLookAtLocation, isNumeric, getLookAtRotation, swapSlots, portOldGameModeToNewUpdate, getLocationInfoFromSource
 };
