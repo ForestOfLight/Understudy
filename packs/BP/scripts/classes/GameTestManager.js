@@ -127,9 +127,6 @@ class GameTestManager {
             case 'stopAll':
                 this.stopAllAction(player);
                 break;
-            case 'printInventory':
-                this.printInventory(player, actionData);
-                break;
             case 'swapHeldItem':
                 this.swapHeldItemWithPlayer(player, actionData);
                 break;
@@ -267,7 +264,7 @@ class GameTestManager {
     }
     
     static dropAction(player) {
-        const invContainer = player.simulatedPlayer.getComponent('minecraft:inventory')?.container;
+        const invContainer = player.getInventory();
         if (!invContainer)
             return;
         const itemStack = invContainer.getItem(player.simulatedPlayer.selectedSlotIndex);
@@ -286,7 +283,7 @@ class GameTestManager {
     }
     
     static dropAllAction(player) {
-        const invContainer = player.simulatedPlayer.getComponent(EntityComponentTypes.Inventory)?.container;
+        const invContainer = player.getInventory();
         if (!invContainer)
             return;
         const selectedSlot = player.simulatedPlayer.selectedSlotIndex;
@@ -354,35 +351,10 @@ class GameTestManager {
             this.lookAction(player, { type: 'look', location: target });
     }
 
-    static printInventory(player, actionData) {
-        const invContainer = player.simulatedPlayer.getComponent('minecraft:inventory')?.container;
-        const recipientPlayer = actionData.recipientPlayer;
-        if (!invContainer) {
-            recipientPlayer.sendMessage(`§cNo inventory found`);
-            return;
-        }
-        
-        if (invContainer.size === invContainer.emptySlotsCount)
-            return recipientPlayer.sendMessage(`§7${player.name}'s inventory is empty.`);
-            
-        let message = { rawtext: [ { text: `${player.name}'s inventory:` } ] };
-        for (let i = 0; i < invContainer.size; i++) {
-            const itemStack = invContainer.getItem(i);
-            if (itemStack !== undefined) {
-                message.rawtext.push({ rawtext: [
-                    { text: `\n§7- ${i < 10 ? '§a' : ''}${i}§7: ` },
-                    { translate: itemStack.localizationKey },
-                    { text: ` x${itemStack.amount}` }
-                ]});
-            }
-        }
-        recipientPlayer.sendMessage(message);
-    }
-
     static swapHeldItemWithPlayer(player, actionData) {
         const targetPlayer = actionData.player;
-        const playerInvContainer = player.simulatedPlayer.getComponent('minecraft:inventory')?.container;
-        const targetInvContainer = targetPlayer.getComponent('minecraft:inventory')?.container;
+        const playerInvContainer = player.getInventory();
+        const targetInvContainer = targetPlayer.getComponent(EntityComponentTypes.Inventory)?.container;
         try {
             playerInvContainer.swapItems(player.simulatedPlayer.selectedSlotIndex, targetPlayer.selectedSlotIndex, targetInvContainer);
         } catch(error) {

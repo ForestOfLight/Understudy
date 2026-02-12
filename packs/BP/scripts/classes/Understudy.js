@@ -1,5 +1,5 @@
 import { extension } from "../main";
-import { Block, Entity, Player, world, system, DimensionTypes, TicksPerSecond, GameMode } from "@minecraft/server";
+import { Block, Entity, Player, world, system, DimensionTypes, TicksPerSecond, GameMode, EntityComponentTypes } from "@minecraft/server";
 import { getLookAtRotation, isNumeric, portOldGameModeToNewUpdate } from "../utils";
 import { UnderstudyInventory } from "./UnderstudyInventory";
 import { Vector } from "../lib/Vector";
@@ -290,9 +290,8 @@ class Understudy {
         this.simulatedPlayer.stopMoving();
     }
 
-    printInventory(recipientPlayer) {
-        const actionData = { type: 'printInventory', recipientPlayer: recipientPlayer };
-        this.nextActions.push(actionData);
+    getInventory() {
+        return this.simulatedPlayer.getComponent(EntityComponentTypes.Inventory)?.container;
     }
 
     swapHeldItemWithPlayer(player) {
