@@ -1,6 +1,6 @@
 import UnderstudyManager from "../classes/UnderstudyManager";
 import { Command, PlayerCommandOrigin, BlockCommandOrigin, EntityCommandOrigin, ServerCommandOrigin } from "../lib/canopy/CanopyExtension";
-import { CustomCommandParamType, CommandPermissionLevel, CustomCommandStatus } from "@minecraft/server";
+import { CustomCommandParamType, CommandPermissionLevel, CustomCommandStatus, system } from "@minecraft/server";
 
 export class SneakCommand extends Command {
     constructor() {
@@ -18,10 +18,10 @@ export class SneakCommand extends Command {
     }
 
     sprintCommand(origin, playername, shouldSneak) {
-        const simPlayer = UnderstudyManager.getPlayer(playername);
-        if (!simPlayer)
+        const understudy = UnderstudyManager.get(playername);
+        if (!understudy)
             return { status: CustomCommandStatus.Failure, message: `§cPlayer ${playername} is not online.` };
-        simPlayer.sneak(shouldSneak);
+        system.run(() => understudy.sneak(shouldSneak));
     }
 }
 

@@ -3,7 +3,7 @@ import { Command, PlayerCommandOrigin, BlockCommandOrigin, EntityCommandOrigin, 
 import { CustomCommandParamType, CommandPermissionLevel, CustomCommandStatus, Entity, system } from "@minecraft/server";
 import { Vector } from "../lib/Vector";
 
-const MOVE_OPTIONS = Object.freeze({
+export const MOVE_OPTIONS = Object.freeze({
     FORWARD: 'forward',
     BACKWARD: 'backward',
     LEFT: 'left',
@@ -33,66 +33,66 @@ export class MoveCommand extends Command {
     }
 
     moveCommand(origin, playername, moveOption, location) {
-        const simPlayer = UnderstudyManager.getPlayer(playername);
-        if (!simPlayer)
+        const understudy = UnderstudyManager.get(playername);
+        if (!understudy)
             return { status: CustomCommandStatus.Failure, message: `§cPlayer ${playername} is not online.` };
         switch (moveOption) {
             case MOVE_OPTIONS.FORWARD:
             case MOVE_OPTIONS.BACKWARD:
             case MOVE_OPTIONS.LEFT:
             case MOVE_OPTIONS.RIGHT:
-                return this.moveRelatively(simPlayer, moveOption);
+                return this.moveRelatively(understudy, moveOption);
             case MOVE_OPTIONS.BLOCK:
-                return this.moveToBlock(origin, simPlayer);
+                return this.moveToBlock(origin, understudy);
             case MOVE_OPTIONS.ENTITY:
-                return this.moveToEntity(origin, simPlayer);
+                return this.moveToEntity(origin, understudy);
             case MOVE_OPTIONS.ME:
-                return this.moveToMe(origin, simPlayer);
+                return this.moveToMe(origin, understudy);
             case MOVE_OPTIONS.TO:
-                return this.moveToLocation(simPlayer, location);
+                return this.moveToLocation(understudy, location);
             case MOVE_OPTIONS.STOP:
-                return this.stopMoving(simPlayer);
+                return this.stopMoving(understudy);
             default:
                 return { status: CustomCommandStatus.Failure, message: `§cInvalid move option: '${moveOption}'` };
         }
     }
 
-    moveRelatively(simPlayer, direction) {
-        simPlayer.moveRelative(direction);
+    moveRelatively(understudy, direction) {
+        system.run(() => understudy.moveRelative(direction));
     }
 
-    moveToBlock(origin, simPlayer) {
+    moveToBlock(origin, understudy) {
         const source = origin.getSource();
         if (source instanceof Entity === false)
             return { status: CustomCommandStatus.Failure, message: '§cMoving to a block may only be used by entities.' };
         const block = source.getBlockFromViewDirection({ maxDistance: 16*64 })?.block;
         if (block === void 0)
             return { status: CustomCommandStatus.Failure, message: '§cNo block in view.' };
-        simPlayer.moveLocation(block);
+        system.run(() => understudy.moveLocation(block));
     }
 
-    moveToEntity(origin, simPlayer) {
+    moveToEntity(origin, understudy) {
         const source = origin.getSource();
         if (source instanceof Entity === false)
             return { status: CustomCommandStatus.Failure, message: '§cMoving to an entity may only be used by entities.' };
         const entity = source.getEntitiesFromViewDirection({ maxDistance: 16*64 })[0]?.entity;
         if (entity === void 0)
             return { status: CustomCommandStatus.Failure, message: '§cNo entity in view.' };
-        simPlayer.moveLocation(entity);
+        system.run(() => understudy.moveLocation(entity));
     }
 
-    moveToMe(origin, simPlayer) {
+    moveToMe(origin, understudy) {
         if (origin instanceof ServerCommandOrigin)
             return { status: CustomCommandStatus.Failure, message: '§cMoving to yourself cannot be used by the server.' };
-        simPlayer.moveLocation(origin.getSource());
+        system.run(() => understudy.moveLocation(origin.getSource()));
     }
 
-    moveToLocation(simPlayer, location) {
-        simPlayer.moveLocation(Vector.from(location));
+    moveToLocation(understudy, location) {
+        system.run(() => understudy.moveLocation(Vector.from(location)));
     }
 
-    stopMoving(simPlayer) {
-        system.run(() => simPlayer.stopMoving());
+    stopMoving(understudy) {
+        system.run(() => understudy.stopMoving());
     }
 }
 

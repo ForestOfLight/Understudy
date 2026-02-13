@@ -38,9 +38,9 @@ class SimplayerRejoining extends BooleanRule {
         }
         if (playersToRejoin) {
             playersToRejoin.forEach(name => {
-                const simPlayer = UnderstudyManager.newPlayer(name);
+                const simPlayer = UnderstudyManager.create(name);
                 system.runTimeout(() => {
-                    UnderstudyManager.spawnPlayer(simPlayer);
+                    UnderstudyManager.addNametagPrefix(simPlayer);
                 }, 5);
                 try {
                     simPlayer.rejoin();

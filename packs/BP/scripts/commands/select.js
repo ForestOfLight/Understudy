@@ -18,7 +18,7 @@ export class SelectCommand extends Command {
     }
 
     selectCommand(origin, playername, slotNumber) {
-        const simPlayer = UnderstudyManager.getPlayer(playername);
+        const simPlayer = UnderstudyManager.get(playername);
         if (!simPlayer)
             return { status: CustomCommandStatus.Failure, message: `§cPlayer ${playername} is not online.` };
         if (slotNumber < 0 || slotNumber > 8)

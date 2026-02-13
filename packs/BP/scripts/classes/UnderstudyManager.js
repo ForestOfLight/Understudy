@@ -4,7 +4,7 @@ import { system, world } from "@minecraft/server";
 class UnderstudyManager {
     static players = [];
 
-    static newPlayer(name) {
+    static create(name) {
         if (this.players.find(p => p.name === name)) {
             throw new Error(`[Understudy] Player with name ${name} already exists.`);
         }
@@ -13,16 +13,17 @@ class UnderstudyManager {
         return player;
     }
 
-    static spawnPlayer(player) {
-        system.runTimeout(() => {
-            const prefix = world.getDynamicProperty('nametagPrefix');
-            if (prefix) {
-                player.simulatedPlayer.nameTag = `[${prefix}§r] ${player.name}`;
-            }
-        }, 1);
+    static addNametagPrefix(player) {
+        const prefix = world.getDynamicProperty('nametagPrefix');
+        if (prefix)
+            player.simulatedPlayer.nameTag = `[${prefix}§r] ${player.name}`;
     }
 
-    static removePlayer(player) {
+    static get(name) {
+        return this.players.find(p => p.name === name);
+    }
+
+    static remove(player) {
         const runner = system.runInterval(() => {
             if (player.simulatedPlayer === null) {
                 system.clearRun(runner);
@@ -32,11 +33,7 @@ class UnderstudyManager {
         });
     }
 
-    static getPlayer(name) {
-        return this.players.find(p => p.name === name);
-    }
-
-    static getPlayersCount() {
+    static length() {
         return this.players.length;
     }
 
@@ -52,7 +49,7 @@ class UnderstudyManager {
     }
 
     static isOnline(name) {
-        return this.getPlayer(name) !== void 0;
+        return this.get(name) !== void 0;
     }
 }
 

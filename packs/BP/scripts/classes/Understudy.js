@@ -1,8 +1,10 @@
 import { extension } from "../main";
 import { Block, Entity, Player, world, system, DimensionTypes, TicksPerSecond, GameMode, EntityComponentTypes } from "@minecraft/server";
-import { getLookAtRotation, isNumeric, portOldGameModeToNewUpdate } from "../utils";
+import { spawnSimulatedPlayer } from "@minecraft/server-gametest";
+import { getLookAtLocation, getLookAtRotation, isNumeric, portOldGameModeToNewUpdate } from "../utils";
 import { UnderstudyInventory } from "./UnderstudyInventory";
 import { Vector } from "../lib/Vector";
+import { MOVE_OPTIONS } from "../commands/move";
 
 const SAVE_INTERVAL = 600;
 
@@ -22,7 +24,7 @@ class Understudy {
 
     onConnectedTick() {
         this.savePlayerInfoOnInterval();
-        if (this.getLookTarget() === void 0)
+        if (!this.getLookTarget()?.isValid)
             this.removeLookTarget();
         if (this.simulatedPlayer !== null)
             this.refreshHeldItem();
@@ -52,11 +54,13 @@ class Understudy {
     }
 
     getHeadRotation() {
+        if (!this.#lookTarget?.isValid)
+            this.removeLookTarget();
         if (this.#lookTarget === void 0) 
             return this.simulatedPlayer.headRotation;
         let targetLocation;
         if (this.#lookTarget instanceof Entity)
-            try {
+            try {   
                targetLocation = this.#lookTarget.getHeadLocation();
             } catch {
                 return this.simulatedPlayer.headRotation;
@@ -81,13 +85,13 @@ class Understudy {
         return playerInfo;
     }
 
-    savePlayerInfo({ location, rotation, dimensionId, gameMode, projectileIds } = {}) {
+    savePlayerInfo({ location, rotation, dimension, gameMode, projectileIds } = {}) {
         if (this.simulatedPlayer === null || !this.isConnected || extension.getRuleValue('noSimplayerSaving'))
             return;
         const dynamicInfo = {
             location: location || this.simulatedPlayer.location,
             rotation: rotation || this.getHeadRotation(),
-            dimensionId: dimensionId || this.simulatedPlayer.dimension.id,
+            dimensionId: dimension?.id || this.simulatedPlayer.dimension.id,
             gameMode: gameMode || this.simulatedPlayer.getGameMode(),
             projectileIds: projectileIds || this.getOwnedProjectileIds()
         };
@@ -156,24 +160,26 @@ class Understudy {
         this.repeatingActions = [];
     }
 
-    join({ location, dimensionId, rotation = { x: 0, y: 0 }, gameMode = GameMode.Survival }) {
+    join({ location, dimension, rotation = { x: 0, y: 0 }, gameMode = GameMode.Survival }) {
         const updatedGameMode = portOldGameModeToNewUpdate(gameMode);
-        const actionData = {
-            type: 'join', 
-            location: location, 
-            rotation: rotation, 
-            dimensionId: dimensionId, 
-            gameMode: updatedGameMode
-        };
-        this.nextActions.push(actionData);
+        const dimensionLocation = location;
+        dimensionLocation.dimension = dimension;
+        this.simulatedPlayer = spawnSimulatedPlayer(dimensionLocation, this.name, updatedGameMode);
+        this.teleport({ location, rotation, dimension });
+        system.run(() => this.loadPlayerInfo());
+        this.isConnected = true;
     }
 
     leave() {
         this.savePlayerInfo();
         if (this.simulatedPlayer === null)
             throw new Error(`[Understudy] Player ${this.name} is not connected`);
-        const actionData = { type: 'leave' };
-        this.nextActions.push(actionData);
+        this.savePlayerInfo();
+        this.simulatedPlayer.remove();
+        this.simulatedPlayer = null;
+        this.removeLookTarget();
+        this.isConnected = false;
+        world.sendMessage(`§e${this.name} left the game`);
     }
 
     rejoin() {
@@ -181,56 +187,74 @@ class Understudy {
         this.join({
             location: playerInfo.location,
             rotation: playerInfo.rotation,
-            dimensionId: playerInfo.dimensionId,
+            dimension: world.getDimension(playerInfo.dimensionId),
             gameMode: playerInfo.gameMode
         });
     }
 
-    tp({ location, dimensionId, rotation = { x: 0, y: 0 } }) {
-        const actionData = { 
-            type: 'tp',
-            location,
-            dimensionId,
-            rotation 
+    teleport({ location, dimension, rotation = { x: 0, y: 0 } }) {
+        const teleportOptions = {
+            dimension: dimension,
+            facingLocation: getLookAtLocation(location, rotation),
+            rotation: rotation
         };
-        this.nextActions.push(actionData);
+        this.simulatedPlayer.teleport(location, teleportOptions);
+        this.savePlayerInfo();
     }
 
-    lookLocation(target) {
-        const actionData = { type: 'look' };
+    look(target) {
         if (target instanceof Block) {
-            actionData.blockPos = target?.location;
+            this.simulatedPlayer.lookAtBlock(target);
             this.#lookTarget = target;
         } else if (target instanceof Entity) {
-            actionData.entityId = target?.id;
+            this.simulatedPlayer.lookAtEntity(target);
             this.#lookTarget = target;
         } else if (target instanceof Vector) {
-            actionData.location = target;
+            this.simulatedPlayer.lookAtLocation(target);
         } else {
-            actionData.rotation = target;
+            const rotation = target;
+            this.simulatedPlayer.lookAtLocation(getLookAtLocation(this.simulatedPlayer.location, rotation));
+            this.simulatedPlayer.setRotation(rotation);
         }
-        if (actionData.location === void 0 && actionData.entityId === void 0 && actionData.blockPos === void 0 && actionData.rotation === void 0)
-            throw new Error(`[Understudy] Invalid target provided for ${this.name}`);
-        this.nextActions.push(actionData);
+    }
+
+    stopLooking() {
+        const target = this.getLookTarget();
+        if (target === void 0)
+            return;
+        this.removeLookTarget();
+        if (target instanceof Player)
+            this.look(Vector.from(target.getHeadLocation()));
+        else if (target instanceof Block)
+            this.look(Vector.from(target.location));
+        else
+            this.look(Vector.from(target));
     }
 
     moveLocation(target) {
-        const actionData = { type: 'moveLocation' };
-        if (target instanceof Block) {
-            actionData.blockPos = target?.location;
-        } else if (target instanceof Entity) {
-            actionData.entityId = target?.id;
-        } else {
-            actionData.location = target;
-        }
-        if (actionData.location === undefined && actionData.entityId === undefined && actionData.blockPos === undefined)
-            throw new Error(`[Understudy] Invalid target provided for ${this.name}`);
-        this.nextActions.push(actionData);
+        if (target instanceof Block)
+            this.simulatedPlayer.navigateToBlock(target);
+        else if (target instanceof Entity)
+            this.simulatedPlayer.navigateToEntity(target);
+        else
+            this.simulatedPlayer.navigateToLocation(target);
     }
 
     moveRelative(direction) {
-        const actionData = { type: 'moveRelative', direction: direction };
-        this.nextActions.push(actionData);
+        const relativeDirectionMap = {
+            [MOVE_OPTIONS.FORWARD]: [0, 1],
+            [MOVE_OPTIONS.BACKWARD]: [0, -1],
+            [MOVE_OPTIONS.LEFT]: [1, 0],
+            [MOVE_OPTIONS.RIGHT]: [-1, 0]
+        };
+        const relativeDirection = relativeDirectionMap[direction];
+        if (!relativeDirection)
+            throw new Error(`[Understudy] Invalid relative movement direction: ${direction}`);
+        this.simulatedPlayer.moveRelative(...relativeDirection);
+    }
+
+    stopMoving() {
+        this.simulatedPlayer.stopMoving();
     }
     
     singleTimingAction(actionType, afterTicks = void 0) {
@@ -255,50 +279,84 @@ class Understudy {
     }
 
     sprint(shouldSprint) {
-        const actionData = { type: 'sprint', shouldSprint: shouldSprint };
-        this.nextActions.push(actionData);
+        this.simulatedPlayer.isSprinting = shouldSprint;
     }
 
     sneak(shouldSneak) {
-        const actionData = { type: 'sneak', shouldSneak: shouldSneak };
-        this.nextActions.push(actionData);
+        this.simulatedPlayer.isSneaking = shouldSneak;
     }
 
     claimProjectiles(radius) {
-        const actionData = { type: 'claimProjectiles', radius: radius };
-        this.nextActions.push(actionData);
-    }
-
-    stopAll() {
-        const actionData = { type: 'stopAll' };
-        this.nextActions.push(actionData);
+        const projectileComponents = this.getProjectileComponentsInRange(this.simulatedPlayer, radius);
+        if (projectileComponents.length === 0)
+            return world.sendMessage(`<${this.simulatedPlayer.name}> §7No projectiles found within ${radius} blocks.`);
+        const numChanged = this.changeProjectileOwner(projectileComponents, this.simulatedPlayer);
+        world.sendMessage(`<${this.simulatedPlayer.name}> §7Successfully became the owner of ${numChanged} projectiles.`);
         this.savePlayerInfo();
     }
 
-    stopLooking() {
+    getProjectileComponentsInRange(player, radius) {
+        const projectileComponents = [];
+        const radiusEntities = player.dimension.getEntities({ location: player.location, maxDistance: radius });
+        for (const entity of radiusEntities) {
+            const projectileComponent = entity?.getComponent(EntityComponentTypes.Projectile);
+            if (projectileComponent)
+                projectileComponents.push(projectileComponent);
+        }
+        return projectileComponents;
+    }
+
+    changeProjectileOwner(projectileComponents, newOwner) {
+        for (const projectileComponent of projectileComponents) {
+            if (!projectileComponent?.isValid)
+                continue;
+            projectileComponent.owner = newOwner;
+        }
+        return projectileComponents.length;
+    }
+
+    stopAll() {
+        this.clearRepeatingActions();
+        this.stopMoving();
+        this.simulatedPlayer.stopBuild();
+        this.simulatedPlayer.stopInteracting();
+        this.simulatedPlayer.stopBreakingBlock();
+        this.simulatedPlayer.stopUsingItem();
+        this.simulatedPlayer.stopSwimming();
+        this.simulatedPlayer.stopGliding();
+        this.simulatedPlayer.stopUsingItem();
+        this.sprint(false);
+        this.sneak(false);
+        this.stopHeadRotationInPlace();
+        this.savePlayerInfo();
+    }
+
+    stopHeadRotationInPlace() {
         const target = this.getLookTarget();
         if (target === void 0)
             return;
         this.removeLookTarget();
         if (target instanceof Player)
-            this.lookLocation(Vector.from(target.getHeadLocation()));
-        else if (target instanceof Block)
-            this.lookLocation(Vector.from(target.location));
+            this.look(Vector.from(target.getHeadLocation()));
         else
-            this.lookLocation(Vector.from(target));
-    }
-
-    stopMoving() {
-        this.simulatedPlayer.stopMoving();
+            this.look(Vector.from(target));
     }
 
     getInventory() {
         return this.simulatedPlayer.getComponent(EntityComponentTypes.Inventory)?.container;
     }
 
-    swapHeldItemWithPlayer(player) {
-        const actionData = { type: 'swapHeldItem', player: player };
-        this.nextActions.push(actionData);
+    swapHeldItemWithPlayer(targetPlayer) {
+        const playerInvContainer = this.getInventory();
+        const targetInvContainer = targetPlayer.getComponent(EntityComponentTypes.Inventory)?.container;
+        try {
+            playerInvContainer.swapItems(this.simulatedPlayer.selectedSlotIndex, targetPlayer.selectedSlotIndex, targetInvContainer);
+        } catch(error) {
+            targetPlayer.sendMessage(`§cError while swapping items: ${error.name}`);
+            console.warn(error);
+        }
+        this.refreshHeldItem();
+        this.savePlayerInfo();
     }
 
     refreshHeldItem() {

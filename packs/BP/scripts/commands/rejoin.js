@@ -19,14 +19,14 @@ export class RejoinCommand extends Command {
         if (UnderstudyManager.isOnline(playername))
             return { status: CustomCommandStatus.Failure, message: `§cPlayer ${playername} is already online.` };
         system.run(() => {
-            const simPlayer = UnderstudyManager.newPlayer(playername);
-            UnderstudyManager.spawnPlayer(simPlayer);
+            const simPlayer = UnderstudyManager.create(playername);
             try {
                 simPlayer.rejoin();
             } catch (error) {
                 console.warn(`[Understudy] Error while rejoing. Joining instead. Error: ${String(error)}`)
                 simPlayer.join(getLocationInfoFromSource(origin.getSource()));
             }
+            UnderstudyManager.addNametagPrefix(simPlayer);
         });
     }
 }

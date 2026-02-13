@@ -34,16 +34,16 @@ class GameTestManager {
     static subscribeToEvents() {
         world.afterEvents.entityDie.subscribe((event) => {
             if (event.deadEntity.typeId === 'minecraft:player') {
-                const player = UnderstudyManager.getPlayer(event.deadEntity?.name);
+                const player = UnderstudyManager.get(event.deadEntity?.name);
                 if (player !== undefined) {
                     this.leaveAction(player);
-                    UnderstudyManager.removePlayer(player);
+                    UnderstudyManager.remove(player);
                 }
             }
         });
 
         world.afterEvents.playerGameModeChange.subscribe((event) => {
-            const player = UnderstudyManager.getPlayer(event.player?.name);
+            const player = UnderstudyManager.get(event.player?.name);
             if (player !== undefined)
                 player.savePlayerInfo();
         });
@@ -70,24 +70,6 @@ class GameTestManager {
         const type = actionData.type;
 
         switch (type) {
-            case 'join':
-                this.joinAction(player, actionData);
-                break;
-            case 'leave':
-                this.leaveAction(player, actionData);
-                break;
-            case 'tp':
-                this.tpAction(player, actionData);
-                break;
-            case 'look':
-                this.lookAction(player, actionData);
-                break;
-            case 'moveLocation':
-                this.moveLocationAction(player, actionData);
-                break;
-            case 'moveRelative':
-                this.moveRelativeAction(player, actionData);
-                break;
             case 'attack':
                 player.simulatedPlayer.attack();
                 break;
@@ -114,21 +96,6 @@ class GameTestManager {
                 break;
             case 'jump':
                 player.simulatedPlayer.jump();
-                break;
-            case 'sprint':
-                player.simulatedPlayer.isSprinting = actionData.shouldSprint;
-                break;
-            case 'sneak':
-                player.simulatedPlayer.isSneaking = actionData.shouldSneak;
-                break;
-            case 'claimProjectiles':
-                this.claimprojectilesAction(player, actionData);
-                break;
-            case 'stopAll':
-                this.stopAllAction(player);
-                break;
-            case 'swapHeldItem':
-                this.swapHeldItemWithPlayer(player, actionData);
                 break;
             default:
                 console.warn(`[Understudy] Invalid action for ${player.name}: ${type}`);
@@ -177,74 +144,6 @@ class GameTestManager {
                     break;
             }
         }
-    }
-
-    static joinAction(player, actionData) {
-        const dimensionLocation = actionData.location;
-        dimensionLocation.dimension = world.getDimension(actionData.dimensionId);
-        player.simulatedPlayer = spawnSimulatedPlayer(dimensionLocation, player.name, actionData.gameMode);
-        this.tpAction(player, actionData);
-        system.runTimeout(() => {
-            player.loadPlayerInfo();
-        });
-        player.isConnected = true;
-    }
-
-    static leaveAction(player) {
-        player.savePlayerInfo();
-        player.simulatedPlayer.remove();
-        world.sendMessage(`§e${player.name} left the game`);
-        player.removeLookTarget();
-        player.simulatedPlayer = null;
-        player.isConnected = false;
-    }
-
-    static tpAction(player, actionData) {
-        player.simulatedPlayer.teleport(actionData.location, { dimension: world.getDimension(actionData.dimensionId) });
-        player.simulatedPlayer.lookAtLocation(getLookAtLocation(actionData.location, actionData.rotation));
-        player.simulatedPlayer.setRotation(actionData.rotation);
-        player.savePlayerInfo();
-    }
-
-    static lookAction(player, actionData) {
-        if (actionData.entityId !== void 0) {
-            const target = world.getEntity(actionData.entityId);
-            if (target === void 0)
-                throw new Error(`[Understudy] Entity with ID ${actionData.entityId} not found`);
-            player.simulatedPlayer.lookAtEntity(target);
-        } else if (actionData.blockPos !== void 0) {
-            player.simulatedPlayer.lookAtBlock(actionData.blockPos);
-        } else if (actionData.rotation !== void 0) {
-            player.simulatedPlayer.lookAtLocation(getLookAtLocation(player.simulatedPlayer.location, actionData.rotation));
-            player.simulatedPlayer.setRotation(actionData.rotation);
-        } else {
-            player.simulatedPlayer.lookAtLocation(actionData.location);
-        }
-    }
-
-    static moveLocationAction(player, actionData) {
-        if (actionData.entityId !== undefined) {
-            const target = world.getEntity(actionData.entityId);
-            if (target === undefined)
-                throw new Error(`[Understudy] Entity with ID ${actionData.entityId} not found`);
-            player.simulatedPlayer.navigateToEntity(target);
-        } else if (actionData.blockPos !== undefined) {
-            player.simulatedPlayer.navigateToBlock(actionData.blockPos);
-        } else {
-            player.simulatedPlayer.navigateToLocation(actionData.location);
-        }
-    }
-
-    static moveRelativeAction(player, actionData) {
-        const direction = actionData.direction;
-        if (direction === 'forward')
-            player.simulatedPlayer.moveRelative(0, 1);
-        else if (direction === 'backward')
-            player.simulatedPlayer.moveRelative(0, -1);
-        else if (direction === 'left')
-            player.simulatedPlayer.moveRelative(1, 0);
-        else if (direction === 'right')
-            player.simulatedPlayer.moveRelative(-1, 0);
     }
     
     static buildAction(player) {
@@ -296,49 +195,6 @@ class GameTestManager {
         player.simulatedPlayer.selectedSlotIndex = selectedSlot;
     }
     
-    static claimprojectilesAction(player, actionData) {
-        const projectiles = this.getProjectilesInRange(player.simulatedPlayer, actionData.radius);
-        if (projectiles.length === 0)
-            return world.sendMessage(`<${player.simulatedPlayer.name}> §7No projectiles found within ${actionData.radius} blocks.`);
-        const numChanged = this.changeProjectileOwner(projectiles, player.simulatedPlayer);
-        world.sendMessage(`<${player.simulatedPlayer.name}> §7Successfully became the owner of ${numChanged} projectiles.`);
-        player.savePlayerInfo();
-    }
-    
-    static getProjectilesInRange(player, radius) {
-        const radiusProjectiles = new Array();
-        const radiusEntities = player.dimension.getEntities({ location: player.location, maxDistance: radius });
-        for (const entity of radiusEntities) {
-            if (entity?.hasComponent('minecraft:projectile'))
-                radiusProjectiles.push(entity);
-        }
-        return radiusProjectiles;
-    }
-    
-    static changeProjectileOwner(projectiles, owner) {
-        for (const projectile of projectiles) {
-            if (!projectile)
-                continue;
-            projectile.getComponent('minecraft:projectile').owner = owner;
-        }
-        return projectiles.length;
-    }
-    
-    static stopAllAction(player) {
-        player.simulatedPlayer.stopMoving();
-        player.simulatedPlayer.stopBuild();
-        player.simulatedPlayer.stopInteracting();
-        player.simulatedPlayer.stopBreakingBlock();
-        player.simulatedPlayer.stopUsingItem();
-        player.simulatedPlayer.stopSwimming();
-        player.simulatedPlayer.stopGliding();
-        player.simulatedPlayer.stopUsingItem();
-        player.simulatedPlayer.isSprinting = false;
-        player.simulatedPlayer.isSneaking = false;
-        player.clearRepeatingActions();
-        this.stopHeadRotation(player);
-    }
-    
     static stopHeadRotation(player) {
         const target = player.getLookTarget();
         if (target === void 0) return;
@@ -349,20 +205,6 @@ class GameTestManager {
             this.lookAction(player, { type: 'look', location: target.location });
         else
             this.lookAction(player, { type: 'look', location: target });
-    }
-
-    static swapHeldItemWithPlayer(player, actionData) {
-        const targetPlayer = actionData.player;
-        const playerInvContainer = player.getInventory();
-        const targetInvContainer = targetPlayer.getComponent(EntityComponentTypes.Inventory)?.container;
-        try {
-            playerInvContainer.swapItems(player.simulatedPlayer.selectedSlotIndex, targetPlayer.selectedSlotIndex, targetInvContainer);
-        } catch(error) {
-            targetPlayer.sendMessage(`§cError while swapping items: ${error.name}`);
-            console.warn(error);
-        }
-        player.refreshHeldItem();
-        player.savePlayerInfo();
     }
 }
 

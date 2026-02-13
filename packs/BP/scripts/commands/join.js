@@ -19,9 +19,9 @@ export class JoinCommand extends Command {
         if (UnderstudyManager.isOnline(playername))
             return { status: CustomCommandStatus.Failure, message: `§cPlayer ${playername} is already online.` };
         system.run(() => {
-            const simPlayer = UnderstudyManager.newPlayer(playername);
-            simPlayer.join(getLocationInfoFromSource(origin.getSource()));
-            UnderstudyManager.spawnPlayer(simPlayer);
+            const understudy = UnderstudyManager.create(playername);
+            understudy.join(getLocationInfoFromSource(origin.getSource()));
+            UnderstudyManager.addNametagPrefix(understudy);
         });
     }
 }

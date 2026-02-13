@@ -1,6 +1,6 @@
 import UnderstudyManager from "../classes/UnderstudyManager";
 import { Command, PlayerCommandOrigin, BlockCommandOrigin, EntityCommandOrigin, ServerCommandOrigin } from "../lib/canopy/CanopyExtension";
-import { CustomCommandParamType, CommandPermissionLevel, CustomCommandStatus, Entity } from "@minecraft/server";
+import { CustomCommandParamType, CommandPermissionLevel, CustomCommandStatus, Entity, system } from "@minecraft/server";
 import { Vector } from "../lib/Vector";
 
 const LOOK_OPTIONS = Object.freeze({
@@ -35,8 +35,8 @@ export class LookCommand extends Command {
     }
 
     lookCommand(origin, playername, lookOption, location) {
-        const simPlayer = UnderstudyManager.getPlayer(playername);
-        if (!simPlayer)
+        const understudy = UnderstudyManager.get(playername);
+        if (!understudy)
             return { status: CustomCommandStatus.Failure, message: `§cPlayer ${playername} is not online.` };
         switch (lookOption) {
             case LOOK_OPTIONS.UP:
@@ -45,22 +45,22 @@ export class LookCommand extends Command {
             case LOOK_OPTIONS.SOUTH:
             case LOOK_OPTIONS.EAST:
             case LOOK_OPTIONS.WEST:
-                this.lookAtCardinal(simPlayer, lookOption);
+                this.lookAtCardinal(understudy, lookOption);
                 break;
             case LOOK_OPTIONS.BLOCK:
-                this.lookAtBlock(origin, simPlayer);
+                this.lookAtBlock(origin, understudy);
                 break;
             case LOOK_OPTIONS.ENTITY:
-                this.lookAtEntity(origin, simPlayer);
+                this.lookAtEntity(origin, understudy);
                 break;
             case LOOK_OPTIONS.ME:
-                this.lookAtMe(origin, simPlayer);
+                this.lookAtMe(origin, understudy);
                 break;
             case LOOK_OPTIONS.AT:
-                this.lookAtLocation(simPlayer, location);
+                this.lookAtLocation(understudy, location);
                 break;
             case LOOK_OPTIONS.STOP:
-                this.stopLooking(simPlayer);
+                this.stopLooking(understudy);
                 break;
             default:
                 return { status: CustomCommandStatus.Failure, message: `§cInvalid look option: '${lookOption}'` };
@@ -76,7 +76,7 @@ export class LookCommand extends Command {
             'east': { x: 0, y: -90 },
             'west': { x: 0, y: 90 }
         };
-        simPlayer.lookLocation(directions[direction]);
+        system.run(() => simPlayer.lookLocation(directions[direction]));
     }
 
     lookAtBlock(origin, simPlayer) {
@@ -86,7 +86,7 @@ export class LookCommand extends Command {
         const block = source.getBlockFromViewDirection({ maxDistance: 16*64 })?.block;
         if (block === void 0)
             return { status: CustomCommandStatus.Failure, message: '§cNo block in view.' };
-        simPlayer.lookLocation(block);
+        system.run(() => simPlayer.lookLocation(block));
     }
 
     lookAtEntity(origin, simPlayer) {
@@ -96,21 +96,21 @@ export class LookCommand extends Command {
         const entity = source.getEntitiesFromViewDirection({ maxDistance: 16*64 })[0]?.entity;
         if (entity === void 0)
             return { status: CustomCommandStatus.Failure, message: '§cNo entity in view.' };
-        simPlayer.lookLocation(entity);
+        system.run(() => simPlayer.lookLocation(entity));
     }
 
     lookAtMe(origin, simPlayer) {
         if (origin instanceof ServerCommandOrigin)
             return { status: CustomCommandStatus.Failure, message: '§cSelf-targeting cannot be used by the server.' };
-        simPlayer.lookLocation(origin.getSource());
+        system.run(() => simPlayer.lookLocation(origin.getSource()));
     }
 
     lookAtLocation(simPlayer, location) {
-        simPlayer.lookLocation(Vector.from(location));
+        system.run(() => simPlayer.lookLocation(Vector.from(location)));
     }
 
     stopLooking(simPlayer) {
-        simPlayer.stopLooking();
+        system.run(() => simPlayer.stopLooking());
     }
 }
 

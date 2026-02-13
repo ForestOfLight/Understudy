@@ -46,7 +46,7 @@ export class ActionCommand extends Command {
     }
 
     actionCommand(origin, playername, action, timingOption = TIMING_OPTIONS.ONCE, ticks) {
-        const simPlayer = UnderstudyManager.getPlayer(playername);
+        const simPlayer = UnderstudyManager.get(playername);
         if (!simPlayer)
             return { status: CustomCommandStatus.Failure, message: `§cPlayer ${playername} is not online.` };
         if (!Object.values(ACTIONS).includes(action))

@@ -57,11 +57,11 @@ function portOldGameModeToNewUpdate(gameMode) {
 
 function getLocationInfoFromSource(source) {
     if (source instanceof Block)
-        return { location: { x: source.x + .5, y: source.y + 1, z: source.z + .5 }, dimensionId: source.dimension.id };
+        return { location: { x: source.x + .5, y: source.y + 1, z: source.z + .5 }, dimension: source.dimension };
     else if (source instanceof Player)
-        return { location: source.location, dimensionId: source.dimension.id, rotation: source.getRotation(), gameMode: source.getGameMode() };
+        return { location: source.location, dimension: source.dimension, rotation: source.getRotation(), gameMode: source.getGameMode() };
     else if (source instanceof Entity)
-        return { location: source.location, dimensionId: source.dimension.id, rotation: source.getRotation() };
+        return { location: source.location, dimension: source.dimension, rotation: source.getRotation() };
     else
         throw new Error(`[Understudy] Invalid source`);
 }

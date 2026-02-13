@@ -15,10 +15,10 @@ export class StopCommand extends Command {
     }
 
     stopCommand(origin, playername) {
-        const simPlayer = UnderstudyManager.getPlayer(playername);
-        if (!simPlayer)
+        const understudy = UnderstudyManager.get(playername);
+        if (!understudy)
             return { status: CustomCommandStatus.Failure, message: `§cPlayer ${playername} is not online.` };
-        system.run(() => simPlayer.stopAll());
+        system.run(() => understudy.stopAll());
     }
 }
 

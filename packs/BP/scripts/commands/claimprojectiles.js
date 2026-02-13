@@ -1,6 +1,6 @@
 import UnderstudyManager from "../classes/UnderstudyManager";
 import { Command, PlayerCommandOrigin, BlockCommandOrigin, EntityCommandOrigin, ServerCommandOrigin } from "../lib/canopy/CanopyExtension";
-import { CustomCommandParamType, CommandPermissionLevel, CustomCommandStatus } from "@minecraft/server";
+import { CustomCommandParamType, CommandPermissionLevel, CustomCommandStatus, system } from "@minecraft/server";
 
 export class ClaimProjectilesCommand extends Command {
     constructor() {
@@ -16,10 +16,10 @@ export class ClaimProjectilesCommand extends Command {
     }
 
     claimprojectilesCommand(origin, playername, radius = 25) {
-        const simPlayer = UnderstudyManager.getPlayer(playername);
-        if (!simPlayer)
+        const understudy = UnderstudyManager.get(playername);
+        if (!understudy)
             return { status: CustomCommandStatus.Failure, message: `§cPlayer ${playername} is not online.` };
-        simPlayer.claimProjectiles(radius);
+        system.run(() => understudy.claimProjectiles(radius));
     }
 }
 
