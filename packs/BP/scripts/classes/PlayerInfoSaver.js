@@ -57,7 +57,7 @@ export class PlayerInfoSaver {
             gameMode: gameMode || simulatedPlayer.getGameMode(),
             projectileIds: projectileIds || this.findOwnedProjectileIds()
         };
-        world.setDynamicProperty(`${this.name}:playerinfo`, JSON.stringify(playerInfo));
+        world.setDynamicProperty(`${this.understudy.name}:playerinfo`, JSON.stringify(playerInfo));
         this.inventory.save();
     }
 
@@ -81,7 +81,7 @@ export class PlayerInfoSaver {
             const dimension = world.getDimension(dimensionType.typeId);
             const projectiles = dimension.getEntities().filter(entity => {
                 const projectileComponent = entity.getComponent(EntityComponentTypes.Projectile);
-                return projectileComponent?.owner === this.simulatedPlayer;
+                return projectileComponent?.owner === this.understudy.simulatedPlayer;
             });
             projectileIds = projectileIds.concat(projectiles.map(projectile => projectile.id));
         }
@@ -93,7 +93,7 @@ export class PlayerInfoSaver {
             const projectile = world.getEntity(projectileId);
             const projectileComponent = projectile?.getComponent(EntityComponentTypes.Projectile);
             if (projectileComponent)
-                projectileComponent.owner = this.simulatedPlayer;
+                projectileComponent.owner = this.understudy.simulatedPlayer;
         });
     }
 }
