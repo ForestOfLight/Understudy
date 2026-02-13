@@ -35,7 +35,7 @@ export class MoveCommand extends Command {
     moveCommand(origin, playername, moveOption, location) {
         const understudy = Understudies.get(playername);
         if (!understudy)
-            return { status: CustomCommandStatus.Failure, message: `§cPlayer ${playername} is not online.` };
+            return { status: CustomCommandStatus.Failure, message: Understudies.getNotOnlineMessage(playername) };
         switch (moveOption) {
             case MOVE_OPTIONS.FORWARD:
             case MOVE_OPTIONS.BACKWARD:

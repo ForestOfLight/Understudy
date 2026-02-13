@@ -17,7 +17,7 @@ export class SwapHeldCommand extends Command {
     swapHeldCommand(origin, playername) {
         const understudy = Understudies.get(playername);
         if (!understudy)
-            return { status: CustomCommandStatus.Failure, message: `§cPlayer ${playername} is not online.` };
+            return { status: CustomCommandStatus.Failure, message: Understudies.getNotOnlineMessage(playername) };
         system.run(() => understudy.swapHeldItemWithPlayer(origin.getSource()));
     }
 }

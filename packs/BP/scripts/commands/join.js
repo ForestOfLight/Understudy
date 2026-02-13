@@ -17,7 +17,7 @@ export class JoinCommand extends Command {
 
     joinCommand(origin, playername) {
         if (Understudies.isOnline(playername))
-            return { status: CustomCommandStatus.Failure, message: `§cPlayer ${playername} is already online.` };
+            return { status: CustomCommandStatus.Failure, message: Understudies.getAlreadyOnlineMessage(playername) };
         system.run(() => {
             const understudy = Understudies.create(playername);
             understudy.join(getLocationInfoFromSource(origin.getSource()));

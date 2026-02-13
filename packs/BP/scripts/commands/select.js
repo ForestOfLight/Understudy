@@ -18,12 +18,12 @@ export class SelectCommand extends Command {
     }
 
     selectCommand(origin, playername, slotNumber) {
-        const simPlayer = Understudies.get(playername);
-        if (!simPlayer)
-            return { status: CustomCommandStatus.Failure, message: `§cPlayer ${playername} is not online.` };
+        const understudy = Understudies.get(playername);
+        if (!understudy)
+            return { status: CustomCommandStatus.Failure, message: Understudies.getNotOnlineMessage(playername) };
         if (slotNumber < 0 || slotNumber > 8)
             return { status: CustomCommandStatus.Failure, message: `§cInvalid slot number: ${slotNumber}. Expected a number fom 0 to 8.` };
-        system.run(() => simPlayer.selectSlot(slotNumber));
+        system.run(() => understudy.selectSlot(slotNumber));
     }
 }
 

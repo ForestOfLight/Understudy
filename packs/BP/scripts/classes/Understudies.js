@@ -82,6 +82,14 @@ class Understudies {
     static isOnline(name) {
         return this.get(name) !== void 0;
     }
+
+    static getNotOnlineMessage(name) {
+        return `§cUnderstudy '${name}' is not online.`;
+    }
+
+    static getAlreadyOnlineMessage(name) {
+        return `§cUnderstudy '${name}' is already online.`;
+    }
 }
 
 export default Understudies;

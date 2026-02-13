@@ -17,7 +17,7 @@ export class InventoryCommand extends Command {
     inventoryCommand(origin, playername) {
         const simPlayer = Understudies.get(playername);
         if (!simPlayer)
-            return { status: CustomCommandStatus.Failure, message: `§cPlayer ${playername} is not online.` };
+            return { status: CustomCommandStatus.Failure, message: Understudies.getNotOnlineMessage(playername) };
         return { status: CustomCommandStatus.Success, message: this.getInventoryMessage(simPlayer) };
     }
 

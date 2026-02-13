@@ -17,7 +17,7 @@ export class LeaveCommand extends Command {
     leaveCommand(origin, playername) {
         const simPlayer = Understudies.get(playername);
         if (!simPlayer)
-            return { status: CustomCommandStatus.Failure, message: `§cPlayer ${playername} is not online.` };
+            return { status: CustomCommandStatus.Failure, message: Understudies.getNotOnlineMessage(playername) };
         system.run(() => {
             simPlayer.leave();
             Understudies.remove(simPlayer);

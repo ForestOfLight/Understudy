@@ -48,7 +48,7 @@ export class ActionCommand extends Command {
     actionCommand(origin, playername, action, timingOption = TIMING_OPTIONS.ONCE, ticks) {
         const understudy = Understudies.get(playername);
         if (!understudy)
-            return { status: CustomCommandStatus.Failure, message: `§cPlayer ${playername} is not online.` };
+            return { status: CustomCommandStatus.Failure, message: Understudies.getNotOnlineMessage(playername) };
         if (!Object.values(REPEATABLE_ACTIONS).includes(action))
             return { status: CustomCommandStatus.Failure, message: `§cInvalid action: '${action}'` };
 
