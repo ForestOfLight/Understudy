@@ -1,6 +1,6 @@
-import { Block, Entity, Player, world, system, DimensionTypes, GameMode, EntityComponentTypes } from "@minecraft/server";
+import { Block, Entity, Player, world, system, GameMode, EntityComponentTypes } from "@minecraft/server";
 import { spawnSimulatedPlayer } from "@minecraft/server-gametest";
-import { getLookAtLocation, getLookAtRotation, isNumeric, portOldGameModeToNewUpdate } from "../utils";
+import { getLookAtLocation, getLookAtRotation, portOldGameModeToNewUpdate } from "../utils";
 import { Vector } from "../lib/Vector";
 import { MOVE_OPTIONS } from "../commands/move";
 import { RepeatableAction } from "./RepeatableAction";
