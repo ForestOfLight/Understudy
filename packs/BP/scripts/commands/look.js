@@ -1,4 +1,4 @@
-import UnderstudyManager from "../classes/UnderstudyManager";
+import Understudies from "../classes/Understudies";
 import { Command, PlayerCommandOrigin, BlockCommandOrigin, EntityCommandOrigin, ServerCommandOrigin } from "../lib/canopy/CanopyExtension";
 import { CustomCommandParamType, CommandPermissionLevel, CustomCommandStatus, Entity, system } from "@minecraft/server";
 import { Vector } from "../lib/Vector";
@@ -35,7 +35,7 @@ export class LookCommand extends Command {
     }
 
     lookCommand(origin, playername, lookOption, location) {
-        const understudy = UnderstudyManager.get(playername);
+        const understudy = Understudies.get(playername);
         if (!understudy)
             return { status: CustomCommandStatus.Failure, message: `§cPlayer ${playername} is not online.` };
         switch (lookOption) {
@@ -76,7 +76,7 @@ export class LookCommand extends Command {
             'east': { x: 0, y: -90 },
             'west': { x: 0, y: 90 }
         };
-        system.run(() => simPlayer.lookLocation(directions[direction]));
+        system.run(() => simPlayer.look(directions[direction]));
     }
 
     lookAtBlock(origin, simPlayer) {
@@ -86,7 +86,7 @@ export class LookCommand extends Command {
         const block = source.getBlockFromViewDirection({ maxDistance: 16*64 })?.block;
         if (block === void 0)
             return { status: CustomCommandStatus.Failure, message: '§cNo block in view.' };
-        system.run(() => simPlayer.lookLocation(block));
+        system.run(() => simPlayer.look(block));
     }
 
     lookAtEntity(origin, simPlayer) {
@@ -96,17 +96,17 @@ export class LookCommand extends Command {
         const entity = source.getEntitiesFromViewDirection({ maxDistance: 16*64 })[0]?.entity;
         if (entity === void 0)
             return { status: CustomCommandStatus.Failure, message: '§cNo entity in view.' };
-        system.run(() => simPlayer.lookLocation(entity));
+        system.run(() => simPlayer.look(entity));
     }
 
     lookAtMe(origin, simPlayer) {
         if (origin instanceof ServerCommandOrigin)
             return { status: CustomCommandStatus.Failure, message: '§cSelf-targeting cannot be used by the server.' };
-        system.run(() => simPlayer.lookLocation(origin.getSource()));
+        system.run(() => simPlayer.look(origin.getSource()));
     }
 
     lookAtLocation(simPlayer, location) {
-        system.run(() => simPlayer.lookLocation(Vector.from(location)));
+        system.run(() => simPlayer.look(Vector.from(location)));
     }
 
     stopLooking(simPlayer) {

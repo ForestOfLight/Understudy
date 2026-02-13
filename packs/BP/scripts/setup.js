@@ -1,14 +1,14 @@
 import { world, system } from "@minecraft/server";
-import GameTestManager from "./classes/GameTestManager";
+import { GameRuleCertifier } from "./classes/GameRuleCertifier";
+import Understudies from "./classes/Understudies";
+import { simplayerRejoining } from "./rules/simplayerRejoining";
 
 let firstJoin = false;
-let savedGameRules;
 world.afterEvents.worldLoad.subscribe(() => {
-    savedGameRules = getGameRules();
+    GameRuleCertifier.fixGameRules();
     const players = world.getAllPlayers();
-    if (players[0]?.isValid) {
+    if (players[0]?.isValid)
         onScriptReload();
-    }
 });
 
 world.afterEvents.playerJoin.subscribe((event) => {
@@ -28,26 +28,12 @@ world.afterEvents.playerJoin.subscribe((event) => {
     });
 });
 
-world.afterEvents.gameRuleChange.subscribe((event) => {
-    world.setDynamicProperty(`gamerule:${event.rule}`, event.value);
-});
-
 function onValidWorld() {
-    GameTestManager.startPlayers(savedGameRules);
+    Understudies.onStartup();
+    simplayerRejoining.onStartup();
 }
 
 function onScriptReload() {
-    GameTestManager.startPlayers(savedGameRules);
-}
-
-function getGameRules() {
-    const gameRuleMap = {};
-    for (const gamerule in world.gameRules) {
-        const value = world.getDynamicProperty(`gamerule:${gamerule}`);
-        if (value === undefined) {
-            world.setDynamicProperty(`gamerule:${gamerule}`, world.gameRules[gamerule]);
-        }
-        gameRuleMap[gamerule] = value || world.gameRules[gamerule];
-    }
-    return gameRuleMap;
+    Understudies.onStartup();
+    simplayerRejoining.onStartup();
 }

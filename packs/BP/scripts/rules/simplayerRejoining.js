@@ -1,4 +1,4 @@
-import UnderstudyManager from "../classes/UnderstudyManager";
+import Understudies from "../classes/Understudies";
 import { BooleanRule } from '../lib/canopy/CanopyExtension';
 import { system, world } from "@minecraft/server";
 
@@ -24,7 +24,7 @@ class SimplayerRejoining extends BooleanRule {
         system.beforeEvents.shutdown.unsubscribe(this.onShutdownBound);
     }
 
-    onGametestStartup() {
+    onStartup() {
         if (!this.getValue())
             return;
         const simplayersToRejoinStr = world.getDynamicProperty(this.simplayersToRejoinDP);
@@ -38,9 +38,9 @@ class SimplayerRejoining extends BooleanRule {
         }
         if (playersToRejoin) {
             playersToRejoin.forEach(name => {
-                const simPlayer = UnderstudyManager.create(name);
+                const simPlayer = Understudies.create(name);
                 system.runTimeout(() => {
-                    UnderstudyManager.addNametagPrefix(simPlayer);
+                    Understudies.addNametagPrefix(simPlayer);
                 }, 5);
                 try {
                     simPlayer.rejoin();
@@ -53,7 +53,7 @@ class SimplayerRejoining extends BooleanRule {
 
     onShutdown() {
         if (this.getValue())
-            world.setDynamicProperty(this.simplayersToRejoinDP, JSON.stringify(UnderstudyManager.players.map(player => player.name)));
+            world.setDynamicProperty(this.simplayersToRejoinDP, JSON.stringify(Understudies.understudies.map(player => player.name)));
         else
             world.setDynamicProperty(this.simplayersToRejoinDP, JSON.stringify([]));
     }

@@ -1,4 +1,4 @@
-import UnderstudyManager from "../classes/UnderstudyManager";
+import Understudies from "../classes/Understudies";
 import { Command, PlayerCommandOrigin, EntityCommandOrigin } from "../lib/canopy/CanopyExtension";
 import { CustomCommandParamType, CommandPermissionLevel, CustomCommandStatus, system } from "@minecraft/server";
 
@@ -15,7 +15,7 @@ export class SwapHeldCommand extends Command {
     }
 
     swapHeldCommand(origin, playername) {
-        const understudy = UnderstudyManager.get(playername);
+        const understudy = Understudies.get(playername);
         if (!understudy)
             return { status: CustomCommandStatus.Failure, message: `§cPlayer ${playername} is not online.` };
         system.run(() => understudy.swapHeldItemWithPlayer(origin.getSource()));

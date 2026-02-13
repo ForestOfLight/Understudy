@@ -1,8 +1,8 @@
-import UnderstudyManager from "../classes/UnderstudyManager";
+import Understudies from "../classes/Understudies";
 import { Command, PlayerCommandOrigin, BlockCommandOrigin, EntityCommandOrigin, ServerCommandOrigin } from "../lib/canopy/CanopyExtension";
 import { CustomCommandParamType, CommandPermissionLevel, CustomCommandStatus } from "@minecraft/server";
 
-const ACTIONS = Object.freeze({
+export const REPEATABLE_ACTIONS = Object.freeze({
     ATTACK: 'attack',
     INTERACT: 'interact',
     USE: 'use',
@@ -28,7 +28,7 @@ export class ActionCommand extends Command {
             name: 'player:action',
             description: 'Make a player do actions with variable timing.',
             enums: [
-                { name: 'player:action', values: Object.values(ACTIONS) },
+                { name: 'player:action', values: Object.values(REPEATABLE_ACTIONS) },
                 { name: 'player:timingOption', values: Object.values(TIMING_OPTIONS) }
             ],
             mandatoryParameters: [
@@ -46,41 +46,41 @@ export class ActionCommand extends Command {
     }
 
     actionCommand(origin, playername, action, timingOption = TIMING_OPTIONS.ONCE, ticks) {
-        const simPlayer = UnderstudyManager.get(playername);
-        if (!simPlayer)
+        const understudy = Understudies.get(playername);
+        if (!understudy)
             return { status: CustomCommandStatus.Failure, message: `§cPlayer ${playername} is not online.` };
-        if (!Object.values(ACTIONS).includes(action))
+        if (!Object.values(REPEATABLE_ACTIONS).includes(action))
             return { status: CustomCommandStatus.Failure, message: `§cInvalid action: '${action}'` };
 
         switch (timingOption) {
             case TIMING_OPTIONS.ONCE:
-                simPlayer.singleTimingAction(action);
+                understudy.singleRepeatableAction(action);
                 break;
             case TIMING_OPTIONS.AFTER:
-                return this.afterTimingAction(simPlayer, action, timingOption, ticks);
+                return this.singleAfterAction(understudy, action, timingOption, ticks);
             case TIMING_OPTIONS.CONTINUOUS:
-                simPlayer.repeatingTimingAction(action);
+                understudy.repeatingAction(action);
                 break;
             case TIMING_OPTIONS.INTERVAL:
-                return this.intervalTimingAction(simPlayer, action, timingOption, ticks);
+                return this.intervalAction(understudy, action, timingOption, ticks);
             case TIMING_OPTIONS.STOP:
-                simPlayer.removeRepeatingAction(action);
+                understudy.removeRepeatingAction(action);
                 break;
             default:
                 return { status: CustomCommandStatus.Failure, message: `§cInvalid ${action} timing: ${timingOption}.` };
         }
     }
 
-    afterTimingAction(simPlayer, action, timingOption, ticks) {
+    singleAfterAction(simPlayer, action, timingOption, ticks) {
         if (ticks === void 0)
             return { status: CustomCommandStatus.Failure, message: `§cInvalid '${timingOption}' tick duration: ${ticks}. Expected an integer.` };
-        simPlayer.singleTimingAction(action, ticks);
+        simPlayer.singleRepeatableAction(action, ticks);
     }
 
-    intervalTimingAction(simPlayer, action, timingOption, ticks) {
+    intervalAction(simPlayer, action, timingOption, ticks) {
         if (ticks === void 0)
             return { status: CustomCommandStatus.Failure, message: `§cInvalid '${timingOption}' tick duration: ${ticks}. Expected an integer.` };
-        simPlayer.repeatingTimingAction(action, ticks);
+        simPlayer.repeatingAction(action, ticks);
     }
 }
 

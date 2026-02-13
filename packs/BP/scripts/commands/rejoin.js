@@ -1,4 +1,4 @@
-import UnderstudyManager from "../classes/UnderstudyManager";
+import Understudies from "../classes/Understudies";
 import { Command, PlayerCommandOrigin, BlockCommandOrigin, EntityCommandOrigin, ServerCommandOrigin } from "../lib/canopy/CanopyExtension";
 import { CustomCommandParamType, CommandPermissionLevel, CustomCommandStatus, system } from "@minecraft/server";
 import { getLocationInfoFromSource } from "../utils";
@@ -16,17 +16,17 @@ export class RejoinCommand extends Command {
     }
 
     rejoinCommand(origin, playername) {
-        if (UnderstudyManager.isOnline(playername))
+        if (Understudies.isOnline(playername))
             return { status: CustomCommandStatus.Failure, message: `§cPlayer ${playername} is already online.` };
         system.run(() => {
-            const simPlayer = UnderstudyManager.create(playername);
+            const simPlayer = Understudies.create(playername);
             try {
                 simPlayer.rejoin();
             } catch (error) {
                 console.warn(`[Understudy] Error while rejoing. Joining instead. Error: ${String(error)}`)
                 simPlayer.join(getLocationInfoFromSource(origin.getSource()));
             }
-            UnderstudyManager.addNametagPrefix(simPlayer);
+            Understudies.addNametagPrefix(simPlayer);
         });
     }
 }

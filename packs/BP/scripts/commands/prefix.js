@@ -1,4 +1,4 @@
-import UnderstudyManager from "../classes/UnderstudyManager";
+import Understudies from "../classes/Understudies";
 import { Command, PlayerCommandOrigin, BlockCommandOrigin, EntityCommandOrigin, ServerCommandOrigin } from "../lib/canopy/CanopyExtension";
 import { CustomCommandParamType, CommandPermissionLevel, CustomCommandStatus, system } from "@minecraft/server";
 
@@ -16,10 +16,10 @@ export class PrefixCommand extends Command {
 
     sprintCommand(origin, prefix) {
         if (prefix === '-none') {
-            system.run(() => UnderstudyManager.setNametagPrefix(''));
+            system.run(() => Understudies.setNametagPrefix(''));
             return { status: CustomCommandStatus.Success, message: '§7Understudy prefix removed.' };
         } else {
-            system.run(() => UnderstudyManager.setNametagPrefix(prefix));
+            system.run(() => Understudies.setNametagPrefix(prefix));
             return { status: CustomCommandStatus.Success, message: `§7Understudy prefix set to "§r${prefix}§r§7".` };
         }
     }

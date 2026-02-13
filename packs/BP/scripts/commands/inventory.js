@@ -1,4 +1,4 @@
-import UnderstudyManager from "../classes/UnderstudyManager";
+import Understudies from "../classes/Understudies";
 import { Command, PlayerCommandOrigin, BlockCommandOrigin, EntityCommandOrigin, ServerCommandOrigin } from "../lib/canopy/CanopyExtension";
 import { CustomCommandParamType, CommandPermissionLevel, CustomCommandStatus } from "@minecraft/server";
 
@@ -15,7 +15,7 @@ export class InventoryCommand extends Command {
     }
 
     inventoryCommand(origin, playername) {
-        const simPlayer = UnderstudyManager.get(playername);
+        const simPlayer = Understudies.get(playername);
         if (!simPlayer)
             return { status: CustomCommandStatus.Failure, message: `§cPlayer ${playername} is not online.` };
         return { status: CustomCommandStatus.Success, message: this.getInventoryMessage(simPlayer) };

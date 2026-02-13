@@ -1,4 +1,4 @@
-import UnderstudyManager from "../classes/UnderstudyManager";
+import Understudies from "../classes/Understudies";
 import { Command, PlayerCommandOrigin, BlockCommandOrigin, EntityCommandOrigin } from "../lib/canopy/CanopyExtension";
 import { CustomCommandParamType, CommandPermissionLevel, CustomCommandStatus, system } from "@minecraft/server";
 import { getLocationInfoFromSource } from "../utils";
@@ -16,7 +16,7 @@ export class TeleportCommand extends Command {
     }
 
     teleportCommand(origin, playername) {
-        const simPlayer = UnderstudyManager.get(playername);
+        const simPlayer = Understudies.get(playername);
         if (!simPlayer)
             return { status: CustomCommandStatus.Failure, message: `§cPlayer ${playername} is not online.` };
         system.run(() => simPlayer.teleport(getLocationInfoFromSource(origin.getSource())));

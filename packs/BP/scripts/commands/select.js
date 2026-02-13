@@ -1,4 +1,4 @@
-import UnderstudyManager from "../classes/UnderstudyManager";
+import Understudies from "../classes/Understudies";
 import { Command, PlayerCommandOrigin, BlockCommandOrigin, EntityCommandOrigin, ServerCommandOrigin } from "../lib/canopy/CanopyExtension";
 import { CustomCommandParamType, CommandPermissionLevel, CustomCommandStatus, system } from "@minecraft/server";
 
@@ -18,7 +18,7 @@ export class SelectCommand extends Command {
     }
 
     selectCommand(origin, playername, slotNumber) {
-        const simPlayer = UnderstudyManager.get(playername);
+        const simPlayer = Understudies.get(playername);
         if (!simPlayer)
             return { status: CustomCommandStatus.Failure, message: `§cPlayer ${playername} is not online.` };
         if (slotNumber < 0 || slotNumber > 8)

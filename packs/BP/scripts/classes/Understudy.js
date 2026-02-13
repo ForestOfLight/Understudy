@@ -1,48 +1,42 @@
-import { extension } from "../main";
-import { Block, Entity, Player, world, system, DimensionTypes, TicksPerSecond, GameMode, EntityComponentTypes } from "@minecraft/server";
+import { Block, Entity, Player, world, system, DimensionTypes, GameMode, EntityComponentTypes } from "@minecraft/server";
 import { spawnSimulatedPlayer } from "@minecraft/server-gametest";
 import { getLookAtLocation, getLookAtRotation, isNumeric, portOldGameModeToNewUpdate } from "../utils";
-import { UnderstudyInventory } from "./UnderstudyInventory";
 import { Vector } from "../lib/Vector";
 import { MOVE_OPTIONS } from "../commands/move";
-
-const SAVE_INTERVAL = 600;
+import { RepeatableAction } from "./RepeatableAction";
+import { PlayerInfoSaver } from "./PlayerInfoSaver";
 
 class Understudy {
+    name;
+    isConnected = false;
+    simulatedPlayer = null;
+    createdTick;
+    singleActions = [];
+    repeatingActions = [];
     #lookTarget;
+    playerInfoSaver;
 
     constructor(name) {
         this.name = name;
-        this.isConnected = false;
-        this.simulatedPlayer = null;
-        this.nextActions = [];
-        this.repeatingActions = [];
-        this.#lookTarget = void 0;
-        this.inventory = new UnderstudyInventory(this);
         this.createdTick = system.currentTick;
+        this.playerInfoSaver = new PlayerInfoSaver(this);
     }
 
     onConnectedTick() {
-        this.savePlayerInfoOnInterval();
+        this.playerInfoSaver.onConnectedTick();
         if (!this.getLookTarget()?.isValid)
             this.removeLookTarget();
         if (this.simulatedPlayer !== null)
             this.refreshHeldItem();
+        for (const singleAction of this.singleActions)
+            singleAction.perform();
+        this.singleActions.length = 0;
+        for (const repeatingAction of this.repeatingActions)
+            repeatingAction.onTick();
     }
 
-    savePlayerInfoOnInterval() {
-        if (extension.getRuleValue('noSimplayerSaving'))
-            return;
-        if ((system.currentTick - this.createdTick) % SAVE_INTERVAL === 0) {
-            this.savePlayerInfo();
-            return;
-        }
-        if (this.hasRepeatingAction()) {
-            if ((system.currentTick - this.createdTick) % (TicksPerSecond*5) === 0)
-                this.savePlayerInfo();
-            else
-                this.inventory.saveWithoutNBT();
-        }
+    savePlayerInfo() {
+        this.playerInfoSaver.save();
     }
 
     getLookTarget() {
@@ -70,94 +64,46 @@ class Understudy {
         return getLookAtRotation(this.simulatedPlayer.location, targetLocation);
     }
 
-    getPlayerInfo() {
-        if (extension.getRuleValue('noSimplayerSaving'))
-            throw new Error(`[Understudy] Player ${this.name} has no player info saved due to 'noSimplayerSaving' rule being enabled`);
-        let playerInfo;
-        try {
-            playerInfo = JSON.parse(world.getDynamicProperty(`${this.name}:playerinfo`));
-        } catch (error) {
-            if (error.name === 'SyntaxError') {
-                throw new Error(`[Understudy] Player ${this.name} has no player info saved`);
-            }
-            throw error;
-        }
-        return playerInfo;
-    }
-
-    savePlayerInfo({ location, rotation, dimension, gameMode, projectileIds } = {}) {
-        if (this.simulatedPlayer === null || !this.isConnected || extension.getRuleValue('noSimplayerSaving'))
-            return;
-        const dynamicInfo = {
-            location: location || this.simulatedPlayer.location,
-            rotation: rotation || this.getHeadRotation(),
-            dimensionId: dimension?.id || this.simulatedPlayer.dimension.id,
-            gameMode: gameMode || this.simulatedPlayer.getGameMode(),
-            projectileIds: projectileIds || this.getOwnedProjectileIds()
-        };
-        world.setDynamicProperty(`${this.name}:playerinfo`, JSON.stringify(dynamicInfo));
-        this.inventory.save();
-    }
-
-    loadPlayerInfo() {
-        if (extension.getRuleValue('noSimplayerSaving'))
-            return void 0;
-        let playerInfo;
-        try {
-            playerInfo = this.getPlayerInfo();
-            this.claimProjectileIds(playerInfo.projectileIds);
-            this.inventory.load();
-            return playerInfo;
-        } catch {
-            return void 0;
-        }
-    }
-
-    getOwnedProjectileIds() {
-        let projectileIds = [];
-        for (const dimension of DimensionTypes.getAll()) {
-            const projectiles = world.getDimension(dimension.typeId).getEntities().filter(entity => {
-                const projectileComponent = entity.getComponent('minecraft:projectile');
-                return projectileComponent?.owner === this.simulatedPlayer;
-            });
-            projectileIds = projectileIds.concat(projectiles.map(projectile => projectile.id));
-        }
-        return projectileIds;
-    }
-
-    claimProjectileIds(projectileIds) {
-        projectileIds?.forEach(projectileId => {
-            const projectile = world.getEntity(projectileId);
-            if (projectile?.getComponent('minecraft:projectile')) {
-                projectile.getComponent('minecraft:projectile').owner = this.simulatedPlayer;
-            }
-        });
-    }
-
-    addRepeatingAction(actionData) {
-        if (!this.hasRepeatingAction(actionData.type)) {
-            this.repeatingActions.push(actionData);
+    addRepeatingAction(repeatingAction) {
+        if (this.hasRepeatingAction(repeatingAction.type)) {
+            const existingRepeatingAction = this.getRepeatingAction(type) || repeatingAction;
+            existingRepeatingAction.setInterval(repeatingAction.intervalTicks);
             return;
         }
-        const action = this.repeatingActions.find(action => action.type === actionData.type) || actionData;
-        if (isNumeric(actionData.interval))
-            action.interval = actionData.interval;
-        else
-            action.interval = void 0;
+        this.repeatingActions.push(repeatingAction);
     }
 
-    hasRepeatingAction(actionType) {
-        if (!actionType) 
+    getRepeatingAction(type) {
+        return this.repeatingActions.find(action => action.type === type);
+    }
+
+    hasRepeatingAction(type) {
+        if (!type) 
             return this.repeatingActions.length > 0;
-        return this.repeatingActions.some(action => action.type === actionType);
+        return this.repeatingActions.some(action => action.type === type);
     }
 
-    removeRepeatingAction(actionType) {
-        this.repeatingActions = this.repeatingActions.filter(action => action.type !== actionType);
+    removeRepeatingAction(type) {
+        this.repeatingActions = this.repeatingActions.filter(action => action.type !== type);
     }
 
     clearRepeatingActions() {
-        this.repeatingActions = [];
+        this.repeatingActions.length = 0;
+    }
+
+    singleRepeatableAction(type, afterTicks = void 0) {
+        const repeatableAction = new RepeatableAction(this, type);
+        if (afterTicks === void 0)
+            this.singleActions.push(repeatableAction);
+        else
+            system.runTimeout(() => this.singleActions.push(repeatableAction), afterTicks);
+    }
+
+    repeatingAction(type, intervalTicks = 0) {
+        if (this.hasRepeatingAction(type))
+            this.removeRepeatingAction(type);
+        const repeatingAction = new RepeatableAction(this, type, intervalTicks);
+        this.addRepeatingAction(repeatingAction);
     }
 
     join({ location, dimension, rotation = { x: 0, y: 0 }, gameMode = GameMode.Survival }) {
@@ -166,7 +112,7 @@ class Understudy {
         dimensionLocation.dimension = dimension;
         this.simulatedPlayer = spawnSimulatedPlayer(dimensionLocation, this.name, updatedGameMode);
         this.teleport({ location, rotation, dimension });
-        system.run(() => this.loadPlayerInfo());
+        system.run(() => this.playerInfoSaver.load());
         this.isConnected = true;
     }
 
@@ -183,7 +129,7 @@ class Understudy {
     }
 
     rejoin() {
-        const playerInfo = this.getPlayerInfo();
+        const playerInfo = this.playerInfoSaver.get();
         this.join({
             location: playerInfo.location,
             rotation: playerInfo.rotation,
@@ -255,22 +201,6 @@ class Understudy {
 
     stopMoving() {
         this.simulatedPlayer.stopMoving();
-    }
-    
-    singleTimingAction(actionType, afterTicks = void 0) {
-        const actionData = { type: actionType };
-        if (afterTicks === void 0)
-            this.nextActions.push(actionData);
-        system.runTimeout(() => this.nextActions.push(actionData), afterTicks);
-    }
-
-    repeatingTimingAction(actionType, intervalTicks = void 0) {
-        if (this.hasRepeatingAction(actionType))
-            this.removeRepeatingAction(actionType);
-        const actionData = { type: actionType };
-        if (intervalTicks)
-            actionData.interval = intervalTicks;
-        this.addRepeatingAction(actionData);
     }
 
     selectSlot(slotNumber) {

@@ -1,4 +1,4 @@
-import UnderstudyManager from "../classes/UnderstudyManager";
+import Understudies from "../classes/Understudies";
 import { Command, PlayerCommandOrigin, BlockCommandOrigin, EntityCommandOrigin } from "../lib/canopy/CanopyExtension";
 import { CustomCommandParamType, CommandPermissionLevel, CustomCommandStatus, system } from "@minecraft/server";
 import { getLocationInfoFromSource } from "../utils";
@@ -16,12 +16,12 @@ export class JoinCommand extends Command {
     }
 
     joinCommand(origin, playername) {
-        if (UnderstudyManager.isOnline(playername))
+        if (Understudies.isOnline(playername))
             return { status: CustomCommandStatus.Failure, message: `§cPlayer ${playername} is already online.` };
         system.run(() => {
-            const understudy = UnderstudyManager.create(playername);
+            const understudy = Understudies.create(playername);
             understudy.join(getLocationInfoFromSource(origin.getSource()));
-            UnderstudyManager.addNametagPrefix(understudy);
+            Understudies.addNametagPrefix(understudy);
         });
     }
 }
