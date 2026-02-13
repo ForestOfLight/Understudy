@@ -24,6 +24,7 @@
  */
 import IPC from '../../lib/ipc/ipc';
 import { Ready, RegisterExtension, RegisterRule, RuleValueRequest, RuleValueSet, RuleValueResponse } from './extension.ipc';
+import { system, world } from '@minecraft/server';
 import { Command } from './Command';
 import { BlockCommandOrigin } from './BlockCommandOrigin';
 import { EntityCommandOrigin } from './EntityCommandOrigin';
@@ -34,6 +35,7 @@ import { Rule } from './Rule';
 import { BooleanRule } from './BooleanRule';
 import { IntegerRule } from './IntegerRule';
 import { FloatRule } from './FloatRule';
+import { extension } from 'main';
 
 class CanopyExtension {
     name;
@@ -65,6 +67,10 @@ class CanopyExtension {
 
     getRuleValue(ruleID) {
         return this.#rules[ruleID].getValue();
+    }
+
+    isRegistered() {
+        return this.#isRegistrationReady;
     }
 
     #makeID(name) {
@@ -127,6 +133,23 @@ class CanopyExtension {
         });
     }
 }
+
+world.afterEvents.playerJoin.subscribe((event) => {
+    const runner = system.runInterval(() => {
+        const players = world.getPlayers({ name: event.playerName });
+        players.forEach(player => {
+            if (!player) return;
+            if (player?.isValid) {
+                system.clearRun(runner);
+                if (!extension.isRegistered()) {
+                    const unregisteredMessage = `§c[${extension.name}] Error: Canopy was not found. Please install a compatible version of Canopy. Canopy is required to edit rules.`
+                    console.error(unregisteredMessage);
+                    player.sendMessage(unregisteredMessage);
+                }
+            }
+        });
+    });
+});
 
 export {
     CanopyExtension,
