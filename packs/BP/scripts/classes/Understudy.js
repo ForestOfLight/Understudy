@@ -66,7 +66,7 @@ class Understudy {
 
     addRepeatingAction(repeatingAction) {
         if (this.hasRepeatingAction(repeatingAction.type)) {
-            const existingRepeatingAction = this.getRepeatingAction(type) || repeatingAction;
+            const existingRepeatingAction = this.getRepeatingAction(repeatingAction.type) || repeatingAction;
             existingRepeatingAction.setInterval(repeatingAction.intervalTicks);
             return;
         }
