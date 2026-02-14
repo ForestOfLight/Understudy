@@ -25,18 +25,18 @@ const TIMING_OPTIONS = Object.freeze({
 export class ActionCommand extends Command {
     constructor() {
         super({
-            name: 'player:action',
-            description: 'Make a player do actions with variable timing.',
+            name: 'simplayer:action',
+            description: 'Make a simplayer do actions with variable timing.',
             enums: [
-                { name: 'player:action', values: Object.values(REPEATABLE_ACTIONS) },
-                { name: 'player:timingOption', values: Object.values(TIMING_OPTIONS) }
+                { name: 'simplayer:action', values: Object.values(REPEATABLE_ACTIONS) },
+                { name: 'simplayer:timingOption', values: Object.values(TIMING_OPTIONS) }
             ],
             mandatoryParameters: [
                 { name: 'playername', type: CustomCommandParamType.String },
-                { name: 'player:action', type: CustomCommandParamType.Enum }
+                { name: 'simplayer:action', type: CustomCommandParamType.Enum }
             ],
             optionalParameters: [
-                { name: 'player:timingOption', type: CustomCommandParamType.Enum },
+                { name: 'simplayer:timingOption', type: CustomCommandParamType.Enum },
                 { name: 'ticks', type: CustomCommandParamType.Integer }
             ],
             permissionLevel: CommandPermissionLevel.Any,
@@ -71,16 +71,16 @@ export class ActionCommand extends Command {
         }
     }
 
-    singleAfterAction(simPlayer, action, timingOption, ticks) {
+    singleAfterAction(understudy, action, timingOption, ticks) {
         if (ticks === void 0)
             return { status: CustomCommandStatus.Failure, message: `§cInvalid '${timingOption}' tick duration: ${ticks}. Expected an integer.` };
-        simPlayer.singleRepeatableAction(action, ticks);
+        understudy.singleRepeatableAction(action, ticks);
     }
 
-    intervalAction(simPlayer, action, timingOption, ticks) {
+    intervalAction(understudy, action, timingOption, ticks) {
         if (ticks === void 0)
             return { status: CustomCommandStatus.Failure, message: `§cInvalid '${timingOption}' tick duration: ${ticks}. Expected an integer.` };
-        simPlayer.repeatingAction(action, ticks);
+        understudy.repeatingAction(action, ticks);
     }
 }
 

@@ -20,81 +20,81 @@ Understudy gives you complete control over simulated players in your Minecraft B
 
 ### Commands
 
-**Usage: `/player:join <playername: string>`**  
-Spawn a player with the given name at your current location in your current game mode.
+**Usage: `/simplayer:join <playername: string>`**  
+Spawn a simulated player with the given name at your current location in your current game mode.
 
-**Usage: `/player:leave <playername: string>`**  
-Remove the player with the given name. 
+**Usage: `/simplayer:leave <playername: string>`**  
+Remove the simulated player with the given name. 
 
-**Usage: `/player:rejoin <playername: string>`**  
-Spawn a player with the given name at its last location, if it has one.
+**Usage: `/simplayer:rejoin <playername: string>`**  
+Spawn a simulated player with the given name at its last location, if it has one.
 
-**Usage: `/player:tp <playername: string>`**  
-Teleport the player with the given name to your current location.
+**Usage: `/simplayer:tp <playername: string>`**  
+Teleport the simulated player with the given name to your current location.
 
-**Usage: `/player:look <playername: string> [lookOption: up/down/noth/south/east/west/block/entity/me/at] [x y z: location]`**  
-Make the player with the given name look at the specified target.
-- `up`, `down`, `north`, `south`, `east`, `west` will make the player look in different cardinal directions.
-- `block` and `entity` will make the player look at the block or entity you are looking at.
-- `me` will make the player look at you.
-- `at \<x y z\>` will make the player look at the specified coordinates.
+**Usage: `/simplayer:look <playername: string> [lookOption: up/down/noth/south/east/west/block/entity/me/at] [x y z: location]`**  
+Make the simulated player with the given name look at the specified target.
+- `up`, `down`, `north`, `south`, `east`, `west` will make the simulated player look in different cardinal directions.
+- `block` and `entity` will make the simulated player look at the block or entity you are looking at.
+- `me` will make the simulated player look at you.
+- `at \<x y z\>` will make the simulated player look at the specified coordinates.
 
-**Usage: `/player:move <playername: string> [moveOption: forward/backward/left/right/block/entity/me/to] [location: x y z]`**  
-Make the player with the given name move in the specified direction or (navigate) to the specified location. This command uses Minecraft's normal pathfinding system, so the player won't be able to navigate very far very far at once.
-- `forward`, `backward`, `left`, `right` will make the player move continuously relative to the direction they are facing.
-- `block` and `entity` will make the player move towards the block or entity you are looking at.
-- `me` will make the player move towards you.
-- `to \<location: x y z\>` will make the player move towards the specified coordinates. 
+**Usage: `/simplayer:move <playername: string> [moveOption: forward/backward/left/right/block/entity/me/to] [location: x y z]`**  
+Make the simulated player with the given name move in the specified direction or (navigate) to the specified location. This command uses Minecraft's normal pathfinding system, so the simulated player won't be able to navigate very far very far at once.
+- `forward`, `backward`, `left`, `right` will make the simulated player move continuously relative to the direction they are facing.
+- `block` and `entity` will make the simulated player move towards the block or entity you are looking at.
+- `me` will make the simulated player move towards you.
+- `to \<location: x y z\>` will make the simulated player move towards the specified coordinates. 
 
-**Usage: `/player:action <name: string> <action: attack/interact/use/build/break/drop/dropstack/dropall/jump> [timingOption: once/after/continuous/interval/stop] [ticks: int]`**  
-Make the player with the given name perform the specified action. 
+**Usage: `/simplayer:action <name: string> <action: attack/interact/use/build/break/drop/dropstack/dropall/jump> [timingOption: once/after/continuous/interval/stop] [ticks: int]`**  
+Make the simulated player with the given name perform the specified action. 
 
 **Actions:**  
-- `attack` will make the player attack the block or entity they are looking at.
-- `interact` will make the player interact with the block or entity they are looking at.
-- `use` will make the player use the item they are holding.
-- `build` will make the player place a block from their inventory at the location they are looking at.
-- `break` will make the player break the block they are looking at.
-- `drop` will make the player drop one item from their hand.
-- `dropstack` will make the player drop the entire stack of items from their hand.
-- `dropall` will make the player drop their entire inventory.
-- `jump` will make the player jump.
+- `attack` will make the simulated player attack the block or entity they are looking at.
+- `interact` will make the simulated player interact with the block or entity they are looking at.
+- `use` will make the simulated player use the item they are holding.
+- `build` will make the simulated player place a block from their inventory at the location they are looking at.
+- `break` will make the simulated player break the block they are looking at.
+- `drop` will make the simulated player drop one item from their hand.
+- `dropstack` will make the simulated player drop the entire stack of items from their hand.
+- `dropall` will make the simulated player drop their entire inventory.
+- `jump` will make the simulated player jump.
 
 **Timing options:**  
-If no timing option is specified, the player will perform the action once. 
-- `once` will make the player perform the action once.
-- `after` will make the player perform the action after a delay specified by the last argument.
-- `continuous` will make the player perform the action continuously.
-- `interval` will make the player perform the action at regular intervals specified by the last argument.
-- `stop` will make the player stop performing the action.
+If no timing option is specified, the simulated player will perform the action once. 
+- `once` will make the simulated player perform the action once.
+- `after` will make the simulated player perform the action after a delay specified by the last argument.
+- `continuous` will make the simulated player perform the action continuously.
+- `interval` will make the simulated player perform the action at regular intervals specified by the last argument.
+- `stop` will make the simulated player stop performing the action.
 
-**Usage: `/player:select <playername: string> <slotNumber: int>`**  
-Make the player with the given name select the item in the specified hotbar slot.
+**Usage: `/simplayer:select <playername: string> <slotNumber: int>`**  
+Make the simulated player with the given name select the item in the specified hotbar slot.
 
-**Usage: `/player:sprint <playername: string> <shouldSprint: boolean>`**  
-Make the player with the given name sprint or stop sprinting.
+**Usage: `/simplayer:sprint <playername: string> <shouldSprint: boolean>`**  
+Make the simulated player with the given name sprint or stop sprinting.
 
-**Usage: `/player:sneak <playername: string> <shouldSneak: boolean>`**  
-Make the player with the given name sneak or stop sneaking.
+**Usage: `/simplayer:sneak <playername: string> <shouldSneak: boolean>`**  
+Make the simulated player with the given name sneak or stop sneaking.
 
-**Usage: `/player:claimprojectiles <playername: string> [radius: int]`**  
-Make the player with the given name become the owner of all projectiles within a block radius. If no radius is specified, it defaults to 25 blocks.
+**Usage: `/simplayer:claimprojectiles <playername: string> [radius: int]`**  
+Make the simulated player with the given name become the owner of all projectiles within a block radius. If no radius is specified, it defaults to 25 blocks.
 
-**Usage: `/player:stop <playername: string>`**  
-Stop all actions the player with the given name is doing.
+**Usage: `/simplayer:stop <playername: string>`**  
+Stop all actions the simulated player with the given name is doing.
 
-**Usage: `/player:swapheld <playername: string>`**  
-Swaps the held item of the player with the given name with the item you are holding.
+**Usage: `/simplayer:swapheld <playername: string>`**  
+Swaps the held item of the simulated player with the given name with the item you are holding.
 
-**Usage: `/player:inventory <playername: string>`**  
-Shows the inventory of the player with the given name in chat.
+**Usage: `/simplayer:inventory <playername: string>`**  
+Shows the inventory of the simulated player with the given name in chat.
 
-**Usage: `/player:prefix <prefix: string>`**  
+**Usage: `/simplayer:prefix <prefix: string>`**  
 Set a nametag prefix for all simulated players. Use `-none` to remove the prefix.
 
 ### Rules
 
 These rules can be toggled in **Canopy**.
 
-- **`simplayerRejoining`**: Makes online SimPlayers rejoin when you leave and rejoin.  
-- **`noSimplayerSaving`**: Disables saving playerdata for SimPlayers. Improves performance but causes SimPlayers to lose their inventory and location when they leave and rejoin.
+- **`simplayerRejoining`**: Makes online simulated players rejoin when the world reloads.
+- **`noSimplayerSaving`**: Disables saving playerdata for simulated players. Improves performance but causes simulated players to lose their inventory and location when they leave and rejoin.

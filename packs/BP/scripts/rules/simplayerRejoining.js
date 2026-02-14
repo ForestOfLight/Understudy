@@ -8,7 +8,7 @@ class SimplayerRejoining extends BooleanRule {
     constructor() {
         super({
             identifier: 'simplayerRejoining',
-            description: 'Makes online SimPlayers rejoin when you leave and rejoin.',
+            description: 'Makes online simplayers rejoin when the world reloads.',
             defaultValue: false,
             onEnableCallback: () => this.subscribeToEvent(),
             onDisableCallback: () => this.unsubscribeFromEvent()
@@ -34,7 +34,7 @@ class SimplayerRejoining extends BooleanRule {
             if (Array.isArray(parsedPlayers))
                 playersToRejoin = parsedPlayers;
         } catch (error) {
-            console.error(`[SimplayerRejoining] Error parsing simplayersToRejoin:`, error);
+            console.error(`[SimplayerRejoining] Error parsing ${this.simplayersToRejoinDP} DP:`, error);
         }
         if (playersToRejoin) {
             playersToRejoin.forEach(name => {

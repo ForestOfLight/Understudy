@@ -4,7 +4,7 @@ class NoSimplayerSaving extends BooleanRule {
     constructor() {
         super({
             identifier: 'noSimplayerSaving',
-            description: 'Disables saving playerdata for SimPlayers. Improves performance but causes SimPlayers to lose their inventory and location when they leave and rejoin.',
+            description: 'Disables saving playerdata for simplayers. Improves performance but causes simplayers to lose their inventory and location when they leave and rejoin.',
             defaultValue: false
         }); 
     }

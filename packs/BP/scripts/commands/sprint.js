@@ -5,8 +5,8 @@ import { CustomCommandParamType, CommandPermissionLevel, CustomCommandStatus, sy
 export class SprintCommand extends Command {
     constructor() {
         super({
-            name: 'player:sprint',
-            description: 'Make a player start or stop sprinting.',
+            name: 'simplayer:sprint',
+            description: 'Make a simplayer start or stop sprinting.',
             mandatoryParameters: [
                 { name: 'playername', type: CustomCommandParamType.String },
                 { name: 'shouldSprint', type: CustomCommandParamType.Boolean }

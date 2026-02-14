@@ -5,8 +5,8 @@ import { CustomCommandParamType, CommandPermissionLevel, CustomCommandStatus, sy
 export class SelectCommand extends Command {
     constructor() {
         super({
-            name: 'player:select',
-            description: 'Make a player select a hotbar slot.',
+            name: 'simplayer:select',
+            description: 'Make a simplayer select a hotbar slot.',
             mandatoryParameters: [
                 { name: 'playername', type: CustomCommandParamType.String },
                 { name: 'slotNumber', type: CustomCommandParamType.Integer }

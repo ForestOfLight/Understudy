@@ -5,8 +5,8 @@ import { CustomCommandParamType, CommandPermissionLevel, CustomCommandStatus, sy
 export class LeaveCommand extends Command {
     constructor() {
         super({
-            name: 'player:leave',
-            description: 'Make a player leave the game.',
+            name: 'simplayer:leave',
+            description: 'Make a simplayer leave the game.',
             mandatoryParameters: [{ name: 'playername', type: CustomCommandParamType.String }],
             permissionLevel: CommandPermissionLevel.Any,
             allowedSources: [PlayerCommandOrigin, BlockCommandOrigin, EntityCommandOrigin, ServerCommandOrigin],
@@ -15,12 +15,12 @@ export class LeaveCommand extends Command {
     }
 
     leaveCommand(origin, playername) {
-        const simPlayer = Understudies.get(playername);
-        if (!simPlayer)
+        const understudy = Understudies.get(playername);
+        if (!understudy)
             return { status: CustomCommandStatus.Failure, message: Understudies.getNotOnlineMessage(playername) };
         system.run(() => {
-            simPlayer.leave();
-            Understudies.remove(simPlayer);
+            understudy.leave();
+            Understudies.remove(understudy);
         });
     }
 }

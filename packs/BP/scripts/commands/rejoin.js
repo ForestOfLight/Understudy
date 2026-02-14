@@ -6,8 +6,8 @@ import { getLocationInfoFromSource } from "../utils";
 export class RejoinCommand extends Command {
     constructor() {
         super({
-            name: 'player:rejoin',
-            description: 'Make a player rejoin at its last location.',
+            name: 'simplayer:rejoin',
+            description: 'Make a simplayer rejoin at its last location.',
             mandatoryParameters: [{ name: 'playername', type: CustomCommandParamType.String }],
             permissionLevel: CommandPermissionLevel.Any,
             allowedSources: [PlayerCommandOrigin, BlockCommandOrigin, EntityCommandOrigin, ServerCommandOrigin],
@@ -19,14 +19,14 @@ export class RejoinCommand extends Command {
         if (Understudies.isOnline(playername))
             return { status: CustomCommandStatus.Failure, message: Understudies.getAlreadyOnlineMessage(playername) };
         system.run(() => {
-            const simPlayer = Understudies.create(playername);
+            const understudy = Understudies.create(playername);
             try {
-                simPlayer.rejoin();
+                understudy.rejoin();
             } catch (error) {
                 console.warn(`[Understudy] Error while rejoing. Joining instead. Error: ${String(error)}`)
-                simPlayer.join(getLocationInfoFromSource(origin.getSource()));
+                understudy.join(getLocationInfoFromSource(origin.getSource()));
             }
-            Understudies.addNametagPrefix(simPlayer);
+            Understudies.addNametagPrefix(understudy);
         });
     }
 }

@@ -5,8 +5,8 @@ import { CustomCommandParamType, CommandPermissionLevel, CustomCommandStatus } f
 export class InventoryCommand extends Command {
     constructor() {
         super({
-            name: 'player:inventory',
-            description: 'Print the inventory of a player.',
+            name: 'simplayer:inventory',
+            description: 'Print the inventory of a simplayer.',
             mandatoryParameters: [{ name: 'playername', type: CustomCommandParamType.String }],
             permissionLevel: CommandPermissionLevel.Any,
             allowedSources: [PlayerCommandOrigin, BlockCommandOrigin, EntityCommandOrigin, ServerCommandOrigin],
@@ -15,23 +15,23 @@ export class InventoryCommand extends Command {
     }
 
     inventoryCommand(origin, playername) {
-        const simPlayer = Understudies.get(playername);
-        if (!simPlayer)
+        const understudy = Understudies.get(playername);
+        if (!understudy)
             return { status: CustomCommandStatus.Failure, message: Understudies.getNotOnlineMessage(playername) };
-        return { status: CustomCommandStatus.Success, message: this.getInventoryMessage(simPlayer) };
+        return { status: CustomCommandStatus.Success, message: this.getInventoryMessage(understudy) };
     }
 
-    getInventoryMessage(simPlayer) {
-        const playerInventory = simPlayer.getInventory();
+    getInventoryMessage(understudy) {
+        const playerInventory = understudy.getInventory();
         if (!playerInventory)
             return `§cNo inventory found`;
         if (playerInventory.size === playerInventory.emptySlotsCount)
-            return `§7${simPlayer.name}'s inventory is empty.`;
-        return this.getFormattedInventoryMessage(simPlayer, playerInventory);
+            return `§7${understudy.name}'s inventory is empty.`;
+        return this.getFormattedInventoryMessage(understudy, playerInventory);
     }
 
-    getFormattedInventoryMessage(simPlayer, playerInventory) {
-        let message = `${simPlayer.name}'s inventory:`;
+    getFormattedInventoryMessage(understudy, playerInventory) {
+        let message = `${understudy.name}'s inventory:`;
         for (let i = 0; i < playerInventory.size; i++) {
             const itemStack = playerInventory.getItem(i);
             if (itemStack !== void 0) {

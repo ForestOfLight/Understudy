@@ -5,8 +5,8 @@ import { CustomCommandParamType, CommandPermissionLevel, CustomCommandStatus, sy
 export class StopCommand extends Command {
     constructor() {
         super({
-            name: 'player:stop',
-            description: 'Make a player stop doing all actions.',
+            name: 'simplayer:stop',
+            description: 'Make a simplayer stop doing all actions.',
             mandatoryParameters: [{ name: 'playername', type: CustomCommandParamType.String }],
             permissionLevel: CommandPermissionLevel.Any,
             allowedSources: [PlayerCommandOrigin, BlockCommandOrigin, EntityCommandOrigin, ServerCommandOrigin],

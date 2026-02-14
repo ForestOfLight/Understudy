@@ -6,8 +6,8 @@ import { getLocationInfoFromSource } from "../utils";
 export class TeleportCommand extends Command {
     constructor() {
         super({
-            name: 'player:teleport',
-            description: 'Make a player teleport to you.',
+            name: 'simplayer:tp',
+            description: 'Make a simplayer teleport to you.',
             mandatoryParameters: [{ name: 'playername', type: CustomCommandParamType.String }],
             permissionLevel: CommandPermissionLevel.Any,
             allowedSources: [PlayerCommandOrigin, BlockCommandOrigin, EntityCommandOrigin],
@@ -16,10 +16,10 @@ export class TeleportCommand extends Command {
     }
 
     teleportCommand(origin, playername) {
-        const simPlayer = Understudies.get(playername);
-        if (!simPlayer)
+        const understudy = Understudies.get(playername);
+        if (!understudy)
             return { status: CustomCommandStatus.Failure, message: Understudies.getNotOnlineMessage(playername) };
-        system.run(() => simPlayer.teleport(getLocationInfoFromSource(origin.getSource())));
+        system.run(() => understudy.teleport(getLocationInfoFromSource(origin.getSource())));
     }
 }
 

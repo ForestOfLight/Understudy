@@ -84,11 +84,11 @@ class Understudies {
     }
 
     static getNotOnlineMessage(name) {
-        return `§cUnderstudy '${name}' is not online.`;
+        return `§cSimplayer '${name}' is not online.`;
     }
 
     static getAlreadyOnlineMessage(name) {
-        return `§cUnderstudy '${name}' is already online.`;
+        return `§cSimplayer '${name}' is already online.`;
     }
 }
 

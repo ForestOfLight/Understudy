@@ -18,12 +18,12 @@ export const MOVE_OPTIONS = Object.freeze({
 export class MoveCommand extends Command {
     constructor() {
         super({
-            name: 'player:move',
-            description: 'Make a player move in specified directions.',
-            enums: [{ name: 'player:moveOption', values: Object.values(MOVE_OPTIONS) }],
+            name: 'simplayer:move',
+            description: 'Make a simplayer move in specified directions.',
+            enums: [{ name: 'simplayer:moveOption', values: Object.values(MOVE_OPTIONS) }],
             mandatoryParameters: [{ name: 'playername', type: CustomCommandParamType.String }],
             optionalParameters: [
-                { name: 'player:moveOption', type: CustomCommandParamType.Enum },
+                { name: 'simplayer:moveOption', type: CustomCommandParamType.Enum },
                 { name: 'location', type: CustomCommandParamType.Location }
             ],
             permissionLevel: CommandPermissionLevel.Any,

@@ -5,8 +5,8 @@ import { CustomCommandParamType, CommandPermissionLevel, CustomCommandStatus, sy
 export class SwapHeldCommand extends Command {
     constructor() {
         super({
-            name: 'player:swapheld',
-            description: 'Swap the held item of a player with your held item.',
+            name: 'simplayer:swapheld',
+            description: 'Swap the held item of a simplayer with your held item.',
             mandatoryParameters: [{ name: 'playername', type: CustomCommandParamType.String }],
             permissionLevel: CommandPermissionLevel.Any,
             allowedSources: [PlayerCommandOrigin, EntityCommandOrigin],

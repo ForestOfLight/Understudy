@@ -5,8 +5,8 @@ import { CustomCommandParamType, CommandPermissionLevel, CustomCommandStatus, sy
 export class PrefixCommand extends Command {
     constructor() {
         super({
-            name: 'player:prefix',
-            description: "Set a for prefix player nametags. Use '-none' to clear.",
+            name: 'simplayer:prefix',
+            description: "Set a prefix for simplayer nametags. Use '-none' to clear.",
             mandatoryParameters: [{ name: 'prefix', type: CustomCommandParamType.String }],
             permissionLevel: CommandPermissionLevel.Any,
             allowedSources: [PlayerCommandOrigin, BlockCommandOrigin, EntityCommandOrigin, ServerCommandOrigin],
@@ -17,10 +17,10 @@ export class PrefixCommand extends Command {
     sprintCommand(origin, prefix) {
         if (prefix === '-none') {
             system.run(() => Understudies.setNametagPrefix(''));
-            return { status: CustomCommandStatus.Success, message: '§7Understudy prefix removed.' };
+            return { status: CustomCommandStatus.Success, message: '§7Simplayer prefix removed.' };
         } else {
             system.run(() => Understudies.setNametagPrefix(prefix));
-            return { status: CustomCommandStatus.Success, message: `§7Understudy prefix set to "§r${prefix}§r§7".` };
+            return { status: CustomCommandStatus.Success, message: `§7Simplayer prefix set to "§r${prefix}§r§7".` };
         }
     }
 }

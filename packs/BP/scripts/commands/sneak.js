@@ -5,8 +5,8 @@ import { CustomCommandParamType, CommandPermissionLevel, CustomCommandStatus, sy
 export class SneakCommand extends Command {
     constructor() {
         super({
-            name: 'player:sneak',
-            description: 'Make a player start or stop sneaking.',
+            name: 'simplayer:sneak',
+            description: 'Make a simplayer start or stop sneaking.',
             mandatoryParameters: [
                 { name: 'playername', type: CustomCommandParamType.String },
                 { name: 'shouldSneak', type: CustomCommandParamType.Boolean }

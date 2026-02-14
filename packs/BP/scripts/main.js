@@ -10,7 +10,7 @@ export const extension = new CanopyExtension({
 import './commands/join';
 import './commands/leave';
 import './commands/rejoin';
-import './commands/teleport';
+import './commands/tp';
 import './commands/look';
 import './commands/move';
 import './commands/select';
@@ -25,7 +25,6 @@ import './commands/action';
 
 import { noSimplayerSaving } from './rules/noSimplayerSaving';
 import { simplayerRejoining } from './rules/simplayerRejoining';
-
 extension.addRule(noSimplayerSaving);
 extension.addRule(simplayerRejoining);
 

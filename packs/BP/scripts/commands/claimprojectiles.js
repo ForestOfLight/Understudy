@@ -5,8 +5,8 @@ import { CustomCommandParamType, CommandPermissionLevel, CustomCommandStatus, sy
 export class ClaimProjectilesCommand extends Command {
     constructor() {
         super({
-            name: 'player:claimprojectiles',
-            description: 'Make a player the owner of all nearby projectiles.',
+            name: 'simplayer:claimprojectiles',
+            description: 'Make a simplayer the owner of all nearby projectiles.',
             mandatoryParameters: [ { name: 'playername', type: CustomCommandParamType.String } ],
             optionalParameters: [ { name: 'radius', type: CustomCommandParamType.Float } ],
             permissionLevel: CommandPermissionLevel.Any,

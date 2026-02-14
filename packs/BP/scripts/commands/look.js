@@ -20,12 +20,12 @@ const LOOK_OPTIONS = Object.freeze({
 export class LookCommand extends Command {
     constructor() {
         super({
-            name: 'player:look',
-            description: 'Make a player look in specified directions.',
-            enums: [{ name: 'player:lookOption', values: Object.values(LOOK_OPTIONS) }],
+            name: 'simplayer:look',
+            description: 'Make a simplayer look in specified directions.',
+            enums: [{ name: 'simplayer:lookOption', values: Object.values(LOOK_OPTIONS) }],
             mandatoryParameters: [{ name: 'playername', type: CustomCommandParamType.String }],
             optionalParameters: [
-                { name: 'player:lookOption', type: CustomCommandParamType.Enum },
+                { name: 'simplayer:lookOption', type: CustomCommandParamType.Enum },
                 { name: 'location', type: CustomCommandParamType.Location }
             ],
             permissionLevel: CommandPermissionLevel.Any,
@@ -67,7 +67,7 @@ export class LookCommand extends Command {
         }
     }
 
-    lookAtCardinal(simPlayer, direction) {
+    lookAtCardinal(understudy, direction) {
         const directions = {
             'up': { x: -90, y: 0 },
             'down': { x: 90, y: 0 },
@@ -76,41 +76,41 @@ export class LookCommand extends Command {
             'east': { x: 0, y: -90 },
             'west': { x: 0, y: 90 }
         };
-        system.run(() => simPlayer.look(directions[direction]));
+        system.run(() => understudy.look(directions[direction]));
     }
 
-    lookAtBlock(origin, simPlayer) {
+    lookAtBlock(origin, understudy) {
         const source = origin.getSource();
         if (source instanceof Entity === false)
             return { status: CustomCommandStatus.Failure, message: '§cBlock targeting may only be used by entities.' };
         const block = source.getBlockFromViewDirection({ maxDistance: 16*64 })?.block;
         if (block === void 0)
             return { status: CustomCommandStatus.Failure, message: '§cNo block in view.' };
-        system.run(() => simPlayer.look(block));
+        system.run(() => understudy.look(block));
     }
 
-    lookAtEntity(origin, simPlayer) {
+    lookAtEntity(origin, understudy) {
         const source = origin.getSource();
         if (source instanceof Entity === false)
             return { status: CustomCommandStatus.Failure, message: '§cEntity targeting may only be used by entities.' };
         const entity = source.getEntitiesFromViewDirection({ maxDistance: 16*64 })[0]?.entity;
         if (entity === void 0)
             return { status: CustomCommandStatus.Failure, message: '§cNo entity in view.' };
-        system.run(() => simPlayer.look(entity));
+        system.run(() => understudy.look(entity));
     }
 
-    lookAtMe(origin, simPlayer) {
+    lookAtMe(origin, understudy) {
         if (origin instanceof ServerCommandOrigin)
             return { status: CustomCommandStatus.Failure, message: '§cSelf-targeting cannot be used by the server.' };
-        system.run(() => simPlayer.look(origin.getSource()));
+        system.run(() => understudy.look(origin.getSource()));
     }
 
-    lookAtLocation(simPlayer, location) {
-        system.run(() => simPlayer.look(Vector.from(location)));
+    lookAtLocation(understudy, location) {
+        system.run(() => understudy.look(Vector.from(location)));
     }
 
-    stopLooking(simPlayer) {
-        system.run(() => simPlayer.stopLooking());
+    stopLooking(understudy) {
+        system.run(() => understudy.stopLooking());
     }
 }
 

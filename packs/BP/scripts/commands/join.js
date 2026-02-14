@@ -6,8 +6,8 @@ import { getLocationInfoFromSource } from "../utils";
 export class JoinCommand extends Command {
     constructor() {
         super({
-            name: 'player:join',
-            description: 'Make a new player join at your location.',
+            name: 'simplayer:join',
+            description: 'Make a new simplayer join at your location.',
             mandatoryParameters: [{ name: 'playername', type: CustomCommandParamType.String }],
             permissionLevel: CommandPermissionLevel.Any,
             allowedSources: [PlayerCommandOrigin, BlockCommandOrigin, EntityCommandOrigin],
