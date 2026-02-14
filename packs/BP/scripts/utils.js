@@ -1,4 +1,4 @@
-import { Block, Entity, EntityComponentTypes, GameMode, Player, world } from "@minecraft/server";
+import { Block, Entity, EntityComponentTypes, GameMode, Player } from "@minecraft/server";
 
 const PLAYER_EYE_HEIGHT = 1.62001002;
 
