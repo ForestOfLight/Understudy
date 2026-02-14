@@ -1,0 +1,34 @@
+{
+	"$schema": "https://raw.githubusercontent.com/Bedrock-OSS/regolith-schemas/main/config/v1.7.json",
+	"author": "ForestOfLight",
+	"name": "Understudy",
+	"packs": {
+		"behaviorPack": "./packs/BP",
+		"resourcePack": "./packs/RP"
+	},
+	"regolith": {
+		"dataPath": "./packs/data",
+		"filterDefinitions": {},
+		"formatVersion": "1.7.0",
+		"profiles": {
+			"default": {
+				"export": {
+					"build": "standard",
+					"readOnly": false,
+					"target": "development",
+					"bpName": "project.name"
+				},
+				"filters": []
+			},
+			"preview": {
+				"export": {
+					"build": "preview",
+					"readOnly": false,
+					"target": "development",
+					"bpName": "project.name"
+				},
+				"filters": []
+			}
+		}
+	}
+}
