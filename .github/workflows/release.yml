@@ -1,0 +1,98 @@
+name: Build & Publish Behavior Pack
+
+permissions:
+  contents: write
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    env:
+      PROJECT_NAME: Understudy
+      BP_SOURCE: packs/BP
+      CF_PROJECT_ID: 1093805
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Package mcpack
+        run: |
+            VERSION=${{ github.event.release.tag_name }}
+            OUTPUT="${PROJECT_NAME}-${VERSION}.mcpack"
+
+            rm -rf build
+            mkdir -p build
+            cp -r "$BP_SOURCE"/. build/
+            cp LICENSE build/
+
+            cd build
+            zip -r "../$OUTPUT" .
+            cd ..
+
+      - name: Upload asset to GitHub Release
+        uses: softprops/action-gh-release@e798e6a1ede8d07b74ac4cdac6bdfa4cc1653907
+        with:
+          files: ${{ env.PROJECT_NAME }}-${{ github.event.release.tag_name }}.mcpack
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload to CurseForge
+        env:
+          RELEASE_BODY: ${{ github.event.release.body }}
+        run: |
+            VERSION=${{ github.event.release.tag_name }}
+
+            # Read the game version from manifest.json
+            MIN_ENGINE_VERSION=$(jq -r '.header.min_engine_version | @csv' "$BP_SOURCE/manifest.json")
+            IFS=',' read -r LEADING MAJOR MINOR <<< "$MIN_ENGINE_VERSION"
+            ENGINE_PREFIX="${MAJOR}.${MINOR}"
+
+            # Fetch all Bedrock versions from CurseForge API
+            CF_VERSIONS_JSON=$(curl -s -H "X-Api-Token: ${{ secrets.CF_API_TOKEN }}" \
+                "https://minecraft-bedrock.curseforge.com/api/game/versions")
+
+            # Extract all game version IDs whose name matches the game version from the manifest.json
+            GAME_VERSION_IDS=$(echo "$CF_VERSIONS_JSON" | jq -c --arg prefix "$ENGINE_PREFIX" '
+                [ .[] | select(.name | startswith($prefix)) | .id ]
+            ')
+            if [ -z "$GAME_VERSION_IDS" ]; then
+                echo "No matching CurseForge versions found for engine prefix $ENGINE_PREFIX"
+                exit 1
+            fi
+            echo "Found CurseForge version IDs for game version $ENGINE_PREFIX: $GAME_VERSION_IDS"
+
+            PACK_FILENAME=${PROJECT_NAME}-$VERSION.mcpack
+
+            # Build metadata as JSON so the changelog is uploaded with preserved Markdown.
+            printf "%s" "$RELEASE_BODY" > curseforge-changelog.md
+            jq -n \
+              --rawfile changelog curseforge-changelog.md \
+              --arg displayName "$PACK_FILENAME" \
+              --argjson gameVersions "$GAME_VERSION_IDS" \
+              '{
+                changelog: $changelog,
+                changelogType: "markdown",
+                displayName: $displayName,
+                releaseType: "release",
+                gameVersions: $gameVersions
+              }' > curseforge-metadata.json
+
+            # Upload the behavior pack
+            RESPONSE=$(curl -s --fail-with-body -X POST \
+                -H "X-Api-Token: ${{ secrets.CF_API_TOKEN }}" \
+              -F "metadata=@curseforge-metadata.json;type=application/json" \
+                -F "file=@$PACK_FILENAME" \
+                https://minecraft-bedrock.curseforge.com/api/projects/$CF_PROJECT_ID/upload-file
+            )
+            
+            UPLOADED_ID=$(echo "$RESPONSE" | jq -r '.id // empty')
+            if [ -n "$UPLOADED_ID" ]; then
+                echo "Successfully uploaded release. File ID: $UPLOADED_ID"
+            else
+                echo "Upload failed. Response:"
+                echo "$RESPONSE"
+                exit 1
+            fi
