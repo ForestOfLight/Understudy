@@ -44,6 +44,7 @@ jobs:
           RELEASE_BODY: ${{ github.event.release.body }}
         run: |
             VERSION=${{ github.event.release.tag_name }}
+            set -o pipefail
 
             # Read the game version from manifest.json
             MIN_ENGINE_VERSION=$(jq -r '.header.min_engine_version | @csv' "$BP_SOURCE/manifest.json")
@@ -51,14 +52,25 @@ jobs:
             ENGINE_PREFIX="${MAJOR}.${MINOR}"
 
             # Fetch all Bedrock versions from CurseForge API
-            CF_VERSIONS_JSON=$(curl -s -H "X-Api-Token: ${{ secrets.CF_API_TOKEN }}" \
+            CF_VERSIONS_JSON=$(curl -sS -L --fail-with-body \
+                -H "Accept: application/json" \
+                -H "X-Api-Token: ${{ secrets.CF_API_TOKEN }}" \
                 "https://minecraft-bedrock.curseforge.com/api/game/versions")
+
+            # Guard against non-JSON responses (HTML/proxy errors), which break jq parsing later.
+            echo "$CF_VERSIONS_JSON" | jq -e . >/dev/null
 
             # Extract all game version IDs whose name matches the game version from the manifest.json
             GAME_VERSION_IDS=$(echo "$CF_VERSIONS_JSON" | jq -c --arg prefix "$ENGINE_PREFIX" '
-                [ .[] | select(.name | startswith($prefix)) | .id ]
+                if type == "array" then
+                  [ .[] | select((.name // "") | startswith($prefix)) | .id ]
+                elif (type == "object" and has("data") and (.data | type == "array")) then
+                  [ .data[] | select((.name // "") | startswith($prefix)) | .id ]
+                else
+                  []
+                end
             ')
-            if [ -z "$GAME_VERSION_IDS" ]; then
+            if [ "$GAME_VERSION_IDS" = "[]" ]; then
                 echo "No matching CurseForge versions found for engine prefix $ENGINE_PREFIX"
                 exit 1
             fi
