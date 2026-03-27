@@ -102,6 +102,7 @@ jobs:
                 releaseType: "release",
                 gameVersions: $gameVersions
               }' > curseforge-metadata.json
+            METADATA_JSON=$(jq -c . curseforge-metadata.json)
 
             # Upload the behavior pack
             UPLOAD_HTTP=$(curl -sS -X POST \
@@ -109,7 +110,7 @@ jobs:
               -w "%{http_code}" \
               -H "Accept: application/json" \
                 -H "X-Api-Token: ${{ secrets.CF_API_TOKEN }}" \
-              -F "metadata=@curseforge-metadata.json;type=application/json" \
+              --form-string "metadata=$METADATA_JSON" \
                 -F "file=@$PACK_FILENAME" \
                 https://minecraft-bedrock.curseforge.com/api/projects/$CF_PROJECT_ID/upload-file
             )
