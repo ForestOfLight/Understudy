@@ -47,7 +47,7 @@ jobs:
             set -euo pipefail
 
             # Read the game version from manifest.json
-            MIN_ENGINE_VERSION=$(jq -r '.header.min_engine_version | @csv' "$BP_SOURCE/manifest.json")
+            MIN_ENGINE_VERSION=$(sed -E 's,//.*$,,' "$BP_SOURCE/manifest.json" | jq -r '.header.min_engine_version | @csv')
             IFS=',' read -r LEADING MAJOR MINOR <<< "$MIN_ENGINE_VERSION"
             ENGINE_PREFIX="${MAJOR}.${MINOR}"
 
