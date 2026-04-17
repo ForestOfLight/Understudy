@@ -5,16 +5,12 @@ import { RepeatableAction } from '../../packs/BP/scripts/classes/RepeatableActio
 import { REPEATABLE_ACTIONS } from '../../packs/BP/scripts/commands/action.js'
 import Understudy from '../../packs/BP/scripts/classes/Understudy.js'
 
-function understudyJoin(simulatedPlayerOverrides = {}) {
-    const u = new Understudy('TestBot')
-    u.join({ location: { x: 0, y: 64, z: 0 }, dimensionId: world.getDimension() })
-    u.#simulatedPlayer = { ...u.#simulatedPlayer, ...simulatedPlayerOverrides }
-    return u
-}
-
 describe('RepeatableAction', () => {
+    let understudy
     beforeEach(() => {
+        vi.clearAllMocks()
         system.currentTick = 0
+        understudy = new Understudy('TestBot')
     })
 
     describe('constructor', () => {

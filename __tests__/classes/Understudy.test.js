@@ -1,6 +1,6 @@
 import { vi, describe, it, expect, beforeEach } from 'vitest'
 import { system, world, EntityComponentTypes, Block, Entity, Player, dynamicPropertyStore } from '@minecraft/server'
-import { spawnSimulatedPlayer, makeSimulatedPlayer, makeContainer } from '@minecraft/server-gametest'
+import { spawnSimulatedPlayer } from '@minecraft/server-gametest'
 import Understudy from '../../packs/BP/scripts/classes/Understudy.js'
 import { MOVE_OPTIONS } from '../../packs/BP/scripts/commands/move.js'
 
@@ -58,18 +58,44 @@ describe('Understudy', () => {
 
     describe('join', () => {
         beforeEach(() => {
-            understudy.join({ location: { x: 0, y: 64, z: 0 }, dimension: world.getDimension() })
+            vi.clearAllMocks()
         })
 
         it('creates a new simulated player', () => {
+            understudy.join({ location: { x: 0, y: 64, z: 0 }, dimension: world.getDimension() })
             expect(understudy.simulatedPlayer).toBeDefined()
         })
 
         it('sets isConnected to true', () => {
+            understudy.join({ location: { x: 0, y: 64, z: 0 }, dimension: world.getDimension() })
             expect(understudy.isConnected()).toBe(true)
         })
 
         it('throws if already connected', () => {
+            understudy.join({ location: { x: 0, y: 64, z: 0 }, dimension: world.getDimension() })
+            expect(() => understudy.join({ location: { x: 0, y: 64, z: 0 }, dimension: world.getDimension() })).toThrow()
+        })
+
+        it('warns if loading player info hits a known error', () => {
+            vi.spyOn(world, 'getDynamicProperty').mockImplementation((key, value) => {
+                if (key === 'TestBot:playerinfo')
+                    return 'invalid json'
+                return void 0
+            })
+            const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {})
+            understudy.join({ location: { x: 0, y: 64, z: 0 }, dimension: world.getDimension() })
+            expect(warnSpy).toHaveBeenCalled()
+        })
+
+        it('throws if loading player info hits an unknown error', () => {
+            const original = world.getDynamicProperty;
+            vi.spyOn(world, 'getDynamicProperty').mockImplementation((key, value) => { 
+                if (key === 'TestBot:playerinfo')
+                    throw new Error('Unexpected error')
+                else
+                    return original.call(world, key, value)
+            })
+            const savedInfo = { location: { x: 1, y: 64, z: 2 }, dimensionId: 'minecraft:overworld', rotation: { x: 0, y: 90 }, gameMode: 'Creative' }
             expect(() => understudy.join({ location: { x: 0, y: 64, z: 0 }, dimension: world.getDimension() })).toThrow()
         })
     })
@@ -80,7 +106,7 @@ describe('Understudy', () => {
             dynamicPropertyStore.set('TestBot:playerinfo', JSON.stringify(savedInfo))
             vi.spyOn(understudy, 'join')
             understudy.rejoin()
-            expect(understudy.join).toHaveBeenCalled();
+            expect(understudy.join).toHaveBeenCalledWith({ location: savedInfo.location, dimension: world.getDimension(), rotation: savedInfo.rotation, gameMode: savedInfo.gameMode })
         })
 
         it('throws if already connected', () => {

@@ -8,6 +8,7 @@ import { PlayerInfoSaver } from "./PlayerInfoSaver";
 import { Actions } from "./Actions";
 import { UnderstudyNotConnectedError } from "../errors/UnderstudyNotConnectedError";
 import { UnderstudyConnectedError } from "../errors/UnderstudyConnectedError";
+import { UnderstudySaveInfoError } from "../errors/UnderstudySaveInfoError";
 
 class Understudy {
     name;
@@ -88,12 +89,19 @@ class Understudy {
     join({ location, dimension, rotation = { x: 0, y: 0 }, gameMode = GameMode.Survival }) {
         this.#assertNotConnected();
         const updatedGameMode = portOldGameModeToNewUpdate(gameMode);
-        const dimensionLocation = location;
-        dimensionLocation.dimension = dimension;
-        this.#simulatedPlayer = spawnSimulatedPlayer(dimensionLocation, this.name, updatedGameMode);
+        this.#simulatedPlayer = spawnSimulatedPlayer({ ...location, dimension }, this.name, updatedGameMode);
         this.#isConnected = true;
         this.teleport({ location, rotation, dimension });
-        system.run(() => this.#playerInfoSaver.load());
+        system.run(() => {
+            try{
+                this.#playerInfoSaver.loadInventoryAndProjectileOwnership();
+            } catch (error) {
+                if (error instanceof UnderstudySaveInfoError)
+                    console.warn(`[Understudy] Failed to load player info for ${this.name}:`, error);
+                else
+                    throw error;
+            }
+        });
     }
 
     leave() {

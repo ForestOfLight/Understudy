@@ -1,6 +1,10 @@
 import { system, world } from "@minecraft/server";
 
 export class GameRuleCertifier {
+    static onGameRuleChange(event) {
+        world.setDynamicProperty(`gamerule:${event.rule}`, event.value);
+    }
+
     static fixGameRules() {
         this.setGameRules(this.getGameRules());
     }
@@ -29,10 +33,6 @@ export class GameRuleCertifier {
             gameRuleMap[gamerule] = value || world.gameRules[gamerule];
         }
         return gameRuleMap;
-    }
-
-    static onGameRuleChange(event) {
-        world.setDynamicProperty(`gamerule:${event.rule}`, event.value);
     }
 }
 

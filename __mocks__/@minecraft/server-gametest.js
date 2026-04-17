@@ -1,15 +1,6 @@
 import { vi } from 'vitest'
 import { EntityComponentTypes } from '@minecraft/server'
-
-export function makeContainer({ size = 3, items = {}, swapItems = false, moveItem = false } = {}) {
-    return {
-        size,
-        getItem: vi.fn(i => items[i]),
-        setItem: vi.fn(),
-        ...(swapItems && { swapItems: vi.fn() }),
-        ...(moveItem && { moveItem: vi.fn() }),
-    }
-}
+import { Container } from './server'
 
 export function makeEquippable(items = {}) {
     return {
@@ -19,7 +10,7 @@ export function makeEquippable(items = {}) {
 }
 
 export function makeSimulatedPlayer(overrides = {}) {
-    const container = overrides.container ?? makeContainer({ swapItems: true, moveItem: true })
+    const container = overrides.container ?? new Container()
     const equippable = overrides.equippable ?? makeEquippable()
     delete overrides.container
     delete overrides.equippable

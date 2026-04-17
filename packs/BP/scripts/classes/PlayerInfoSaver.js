@@ -1,99 +1,94 @@
 import { world, system, DimensionTypes, TicksPerSecond, EntityComponentTypes } from "@minecraft/server";
 import { UnderstudyInventory } from "./UnderstudyInventory";
 import { noSimplayerSaving } from "../rules/noSimplayerSaving";
+import { UnderstudySaveInfoError } from "../errors/UnderstudySaveInfoError";
+import { UnderstudyNotConnectedError } from "../errors/UnderstudyNotConnectedError";
 
 export class PlayerInfoSaver {
-    understudy;
-    inventory;
     saveInterval = 600;
+    #understudy;
+    #inventory;
 
     constructor(understudy) {
-        this.understudy = understudy;
-        this.inventory = new UnderstudyInventory(understudy);
+        this.#understudy = understudy;
+        this.#inventory = new UnderstudyInventory(understudy);
     }
 
     onConnectedTick() {
-        this.saveOnInterval();
+        this.#saveOnInterval();
     }
 
-    saveOnInterval() {
+    #saveOnInterval() {
         if (noSimplayerSaving.getValue())
             return;
-        if ((system.currentTick - this.understudy.createdTick) % this.saveInterval === 0) {
+        if ((system.currentTick - this.#understudy.createdTick) % this.saveInterval === 0) {
             this.save();
             return;
         }
-        if (!this.understudy.actions.isEmpty()) {
-            if ((system.currentTick - this.understudy.createdTick) % (TicksPerSecond*5) === 0)
+        if (!this.#understudy.actions.isEmpty()) {
+            if ((system.currentTick - this.#understudy.createdTick) % (TicksPerSecond*5) === 0)
                 this.save();
             else
-                this.inventory.saveWithoutNBT();
+                this.#inventory.saveWithoutNBT();
         }
     }
 
     get() {
         if (noSimplayerSaving.getValue())
-            throw new Error(`[Understudy] Player ${this.understudy.name} has no player info saved due to '${noSimplayerSaving.getID()}' rule being enabled`);
+            throw new UnderstudySaveInfoError(`Player ${this.#understudy.name} has no player info saved due to '${noSimplayerSaving.getID()}' rule being enabled`);
         let playerInfo;
         try {
-            playerInfo = JSON.parse(world.getDynamicProperty(`${this.understudy.name}:playerinfo`));
+            playerInfo = JSON.parse(world.getDynamicProperty(`${this.#understudy.name}:playerinfo`));
         } catch (error) {
-            if (error.name === 'SyntaxError') {
-                throw new Error(`[Understudy] Player ${this.understudy.name} has no player info saved`);
-            }
+            if (error.name === 'SyntaxError')
+                throw new UnderstudySaveInfoError(`Player ${this.#understudy.name} has corrupted player info saved, unable to parse player info.`);
             throw error;
         }
         return playerInfo;
     }
 
-    save({ location, rotation, dimension, gameMode, projectileIds } = {}) {
-        const simulatedPlayer = this.understudy.simulatedPlayer;
-        if (!this.understudy.isConnected() || noSimplayerSaving.getValue())
-            return;
-        const playerInfo = {
-            location: location || simulatedPlayer.location,
-            rotation: rotation || this.understudy.headRotation,
-            dimensionId: dimension?.id || simulatedPlayer.dimension.id,
-            gameMode: gameMode || simulatedPlayer.getGameMode(),
-            projectileIds: projectileIds || this.findOwnedProjectileIds()
-        };
-        world.setDynamicProperty(`${this.understudy.name}:playerinfo`, JSON.stringify(playerInfo));
-        this.inventory.save();
-    }
-
-    load() {
+    save() {
         if (noSimplayerSaving.getValue())
-            return void 0;
-        let playerInfo;
-        try {
-            playerInfo = this.get();
-            this.claimProjectileIds(playerInfo.projectileIds);
-            this.inventory.load();
-            return playerInfo;
-        } catch {
-            return void 0;
-        }
+            return;
+        if (!this.#understudy.isConnected())
+            throw new UnderstudyNotConnectedError();
+        const simulatedPlayer = this.#understudy.simulatedPlayer;
+        const playerInfo = {
+            location: simulatedPlayer.location,
+            rotation: this.#understudy.headRotation,
+            dimensionId: simulatedPlayer.dimension.id,
+            gameMode: simulatedPlayer.getGameMode(),
+            projectileIds: this.#findOwnedProjectileIds()
+        };
+        world.setDynamicProperty(`${this.#understudy.name}:playerinfo`, JSON.stringify(playerInfo));
+        this.#inventory.save();
     }
 
-    findOwnedProjectileIds() {
+    #findOwnedProjectileIds() {
         let projectileIds = [];
         for (const dimensionType of DimensionTypes.getAll()) {
             const dimension = world.getDimension(dimensionType.typeId);
             const projectiles = dimension.getEntities().filter(entity => {
                 const projectileComponent = entity.getComponent(EntityComponentTypes.Projectile);
-                return projectileComponent?.owner === this.understudy.simulatedPlayer;
+                return projectileComponent?.owner === this.#understudy.simulatedPlayer;
             });
             projectileIds = projectileIds.concat(projectiles.map(projectile => projectile.id));
         }
         return projectileIds;
     }
 
-    claimProjectileIds(projectileIds) {
+    loadInventoryAndProjectileOwnership() {
+        const playerInfo = this.get();
+        this.#claimProjectileIds(playerInfo.projectileIds);
+        this.#inventory.load();
+    }
+
+    #claimProjectileIds(projectileIds) {
         projectileIds?.forEach(projectileId => {
             const projectile = world.getEntity(projectileId);
             const projectileComponent = projectile?.getComponent(EntityComponentTypes.Projectile);
             if (projectileComponent)
-                projectileComponent.owner = this.understudy.simulatedPlayer;
+                projectileComponent.owner = this.#understudy.simulatedPlayer;
         });
     }
 }

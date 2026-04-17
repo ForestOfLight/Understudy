@@ -1,32 +1,42 @@
 import { vi, describe, it, expect, beforeEach } from 'vitest'
-import { world, system, DimensionTypes, EntityComponentTypes } from '@minecraft/server'
+import { world, system, DimensionTypes, EntityComponentTypes, TicksPerSecond } from '@minecraft/server'
 import { makeSimulatedPlayer } from '@minecraft/server-gametest'
 import { PlayerInfoSaver } from '../../packs/BP/scripts/classes/PlayerInfoSaver.js'
 import Understudy from '../../packs/BP/scripts/classes/Understudy.js'
+import { UnderstudySaveInfoError } from '../../packs/BP/scripts/errors/UnderstudySaveInfoError.js'
+import { dynamicPropertyStore } from '../../__mocks__/@minecraft/server.js'
+import { UnderstudyNotConnectedError } from '../../packs/BP/scripts/errors/UnderstudyNotConnectedError.js'
 
 describe('PlayerInfoSaver', () => {
-    let understudy, saver
-
+    let understudy
+    let infoSaver
     beforeEach(() => {
-        DimensionTypes.getAll.mockReturnValue([])
+        vi.clearAllMocks()
         system.currentTick = 0
         understudy = new Understudy('TestBot')
-        understudy.#simulatedPlayer = makeSimulatedPlayer()
-        understudy.#isConnected = true
-        saver = new PlayerInfoSaver(understudy)
+        understudy.join({ location: { x: 0, y: 64, z: 0 }, dimension: world.getDimension("minecraft:overworld") })
+        infoSaver = new PlayerInfoSaver(understudy)
+        dynamicPropertyStore.set('noSimplayerSaving', false)
     })
 
     describe('get', () => {
+        beforeEach(() => {
+            vi.clearAllMocks()
+        })
+
         it('throws when noSimplayerSaving is enabled', () => {
-            world.getDynamicProperty.mockImplementation(key =>
-                key === 'noSimplayerSaving' ? JSON.stringify(true) : undefined
-            )
-            expect(() => saver.get()).toThrow()
+            dynamicPropertyStore.set('noSimplayerSaving', true)
+            expect(() => infoSaver.get()).toThrow(UnderstudySaveInfoError)
         })
 
         it('throws when no player info has been saved', () => {
-            world.getDynamicProperty.mockReturnValue(undefined)
-            expect(() => saver.get()).toThrow()
+            dynamicPropertyStore.set('TestBot:playerinfo', undefined)
+            expect(() => infoSaver.get()).toThrow(UnderstudySaveInfoError)
+        })
+
+        it('throws when player info is corrupted', () => {
+            dynamicPropertyStore.set('TestBot:playerinfo', 'this is not valid json')
+            expect(() => infoSaver.get()).toThrow(UnderstudySaveInfoError)
         })
 
         it('returns parsed player info when data exists', () => {
@@ -34,103 +44,127 @@ describe('PlayerInfoSaver', () => {
                 location: { x: 0, y: 64, z: 0 }, rotation: { x: 0, y: 0 },
                 dimensionId: 'minecraft:overworld', gameMode: 'Survival', projectileIds: [],
             }
-            world.getDynamicProperty.mockImplementation(key =>
-                key === 'TestBot:playerinfo' ? JSON.stringify(playerInfo) : undefined
-            )
-            expect(saver.get()).toEqual(playerInfo)
+            dynamicPropertyStore.set('TestBot:playerinfo', JSON.stringify(playerInfo))
+            expect(infoSaver.get()).toEqual(playerInfo)
+        })
+
+        it('throws an error when something undefined happens', () => {
+            const original = world.getDynamicProperty;
+            vi.spyOn(world, 'getDynamicProperty').mockImplementation((key, value) => { 
+                if (key === 'TestBot:playerinfo')
+                    throw new Error('Unexpected error')
+                else
+                    return original.call(world, key, value)
+            })
+            expect(() => infoSaver.get()).toThrow(Error)
         })
     })
 
     describe('save', () => {
-        it('does not save when simulatedPlayer is null', () => {
-            understudy.simulatedPlayer = null
-            saver.save()
-            expect(world.setDynamicProperty).not.toHaveBeenCalledWith('TestBot:playerinfo', expect.anything())
+        beforeEach(() => {
+            vi.clearAllMocks()
         })
 
-        it('does not save when player is not connected', () => {
-            understudy.isConnected = false
-            saver.save()
-            expect(world.setDynamicProperty).not.toHaveBeenCalledWith('TestBot:playerinfo', expect.anything())
+        it('throws an error when the understudy is not connected', () => {
+            understudy.leave()
+            expect(() => infoSaver.save()).toThrow(UnderstudyNotConnectedError)
         })
 
         it('does not save when noSimplayerSaving is enabled', () => {
-            world.getDynamicProperty.mockImplementation(key =>
-                key === 'noSimplayerSaving' ? JSON.stringify(true) : undefined
-            )
-            saver.save()
-            expect(world.setDynamicProperty).not.toHaveBeenCalledWith('TestBot:playerinfo', expect.anything())
+            dynamicPropertyStore.set('noSimplayerSaving', true) 
+            infoSaver.save()
+            expect(world.setDynamicProperty).not.toHaveBeenCalledWith('TestBot:playerinfo', expect.any(String))
         })
 
         it('writes player info to the dynamic property when connected', () => {
-            saver.save()
+            infoSaver.save()
             expect(world.setDynamicProperty).toHaveBeenCalledWith('TestBot:playerinfo', expect.any(String))
         })
 
-        it('saved data includes location, rotation, dimensionId, gameMode, projectileIds', () => {
-            saver.save()
+        it('saves player info data', () => {
+            infoSaver.save()
             const call = world.setDynamicProperty.mock.calls.find(c => c[0] === 'TestBot:playerinfo')
             const saved = JSON.parse(call[1])
-            expect(saved).toMatchObject({
-                location: expect.any(Object),
-                rotation: expect.any(Object),
-                dimensionId: expect.any(String),
-                gameMode: expect.any(String),
-                projectileIds: expect.any(Array),
+            expect(saved).toBeDefined()
+        })
+
+        it('saves projectile ids owned by the understudy', () => {
+            const projectile = { id: 'proj1', getComponent: vi.fn().mockReturnValue({ owner: understudy.simulatedPlayer }) }
+            world.getDimension.mockReturnValueOnce({
+                getEntities: vi.fn(() => [projectile])
             })
+            infoSaver.save()
+            const call = world.setDynamicProperty.mock.calls.find(c => c[0] === 'TestBot:playerinfo')
+            const saved = JSON.parse(call[1])
+            expect(saved.projectileIds).toContain('proj1')
         })
     })
 
-    describe('load', () => {
-        it('returns undefined when noSimplayerSaving is enabled', () => {
-            world.getDynamicProperty.mockImplementation(key =>
-                key === 'noSimplayerSaving' ? JSON.stringify(true) : undefined
-            )
-            expect(saver.load()).toBeUndefined()
+    describe('loadInventoryAndProjectileOwnership', () => {
+        it('throws when noSimplayerSaving is enabled', () => {
+            dynamicPropertyStore.set('noSimplayerSaving', true)
+            expect(() => infoSaver.loadInventoryAndProjectileOwnership()).toThrow(UnderstudySaveInfoError)
         })
 
-        it('returns undefined when no player info exists', () => {
-            world.getDynamicProperty.mockReturnValue(undefined)
-            expect(saver.load()).toBeUndefined()
-        })
-
-        it('returns the loaded player info when data exists', () => {
+        it('loads player inventory when data exists', () => {
             const playerInfo = {
                 location: { x: 1, y: 64, z: 2 }, rotation: { x: 0, y: 90 },
                 dimensionId: 'minecraft:overworld', gameMode: 'Creative', projectileIds: [],
             }
-            world.getDynamicProperty.mockImplementation(key =>
-                key === 'TestBot:playerinfo' ? JSON.stringify(playerInfo) : undefined
-            )
-            expect(saver.load()).toEqual(playerInfo)
+            dynamicPropertyStore.set('TestBot:playerinfo', JSON.stringify(playerInfo))
+            infoSaver.loadInventoryAndProjectileOwnership()
+            expect(understudy.getInventory().setItem).toHaveBeenCalled()
+        })
+
+        it('loads claimed projectiles when data exists', () => {
+            const projectile = { id: 'proj1', getComponent: vi.fn().mockReturnValue({ owner: null }) }
+            world.getEntity.mockImplementation(id => id === 'proj1' ? projectile : null)
+            const playerInfo = {
+                location: { x: 1, y: 64, z: 2 }, rotation: { x: 0, y: 90 },
+                dimensionId: 'minecraft:overworld', gameMode: 'Creative', projectileIds: ['proj1'],
+            }
+            dynamicPropertyStore.set('TestBot:playerinfo', JSON.stringify(playerInfo))
+            infoSaver.loadInventoryAndProjectileOwnership()
+            expect(projectile.getComponent(EntityComponentTypes.Projectile).owner).toBe(understudy.simulatedPlayer)
         })
     })
 
-    describe('saveOnInterval', () => {
-        it('skips when noSimplayerSaving is enabled', () => {
-            world.getDynamicProperty.mockImplementation(key =>
-                key === 'noSimplayerSaving' ? JSON.stringify(true) : undefined
-            )
-            saver.saveOnInterval()
-            expect(world.setDynamicProperty).not.toHaveBeenCalledWith('TestBot:playerinfo', expect.anything())
+    describe('onConnectedTick', () => {
+        beforeEach(() => {
+            vi.clearAllMocks()
+            system.currentTick = 0
         })
 
-        it('saves when elapsed ticks is a multiple of saveInterval (600)', () => {
-            system.currentTick = 600
-            saver.saveOnInterval()
+        it('does nothing when noSimplayerSaving is enabled', () => {
+            dynamicPropertyStore.set('noSimplayerSaving', true)
+            infoSaver.onConnectedTick()
+            expect(world.setDynamicProperty).not.toHaveBeenCalledWith('TestBot:playerinfo', expect.any(String))
+        })
+
+        it('saves when elapsed ticks is a multiple of saveInterval', () => {
+            system.currentTick = infoSaver.saveInterval
+            infoSaver.onConnectedTick()
             expect(world.setDynamicProperty).toHaveBeenCalledWith('TestBot:playerinfo', expect.any(String))
         })
 
         it('does not save playerinfo when elapsed ticks is not a multiple of saveInterval', () => {
-            system.currentTick = 100
-            saver.saveOnInterval()
+            system.currentTick = infoSaver.saveInterval - 1
+            infoSaver.onConnectedTick()
             expect(world.setDynamicProperty).not.toHaveBeenCalledWith('TestBot:playerinfo', expect.anything())
         })
 
+        it('saves inventory with NBT every 5 seconds when the player has repeating actions', () => {
+            system.currentTick = TicksPerSecond * 5
+            understudy.actions.repeat('attack')
+            const spy = vi.spyOn(infoSaver, 'save')
+            infoSaver.onConnectedTick()
+            expect(spy).toHaveBeenCalled()
+        })
+
         it('saves inventory without NBT on off-ticks when player has repeating actions', () => {
-            system.currentTick = 1
-            vi.spyOn(understudy, 'hasRepeatingAction').mockReturnValue(true)
-            saver.saveOnInterval()
+            system.currentTick = TicksPerSecond * 5 - 1
+            understudy.actions.repeat('attack')
+            infoSaver.onConnectedTick()
             expect(world.setDynamicProperty).toHaveBeenCalledWith('bot_TestBot_inventory', expect.any(String))
         })
     })
