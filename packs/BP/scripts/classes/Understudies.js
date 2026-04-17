@@ -30,7 +30,7 @@ class Understudies {
     static startProcessingPlayers() {
         system.runInterval(() => {
             for (const understudy of this.understudies) {
-                if (understudy.isConnected)
+                if (understudy.isConnected())
                     understudy.onConnectedTick();
             }
         });

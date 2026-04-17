@@ -51,36 +51,37 @@ export class ActionCommand extends Command {
             return { status: CustomCommandStatus.Failure, message: Understudies.getNotOnlineMessage(playername) };
         if (!Object.values(REPEATABLE_ACTIONS).includes(action))
             return { status: CustomCommandStatus.Failure, message: `§cInvalid action: '${action}'` };
+        const actions = understudy.actions;
 
         switch (timingOption) {
             case TIMING_OPTIONS.ONCE:
-                understudy.singleRepeatableAction(action);
+                actions.once(action);
                 break;
             case TIMING_OPTIONS.AFTER:
-                return this.singleAfterAction(understudy, action, timingOption, ticks);
+                return this.singleAfterAction(actions, action, timingOption, ticks);
             case TIMING_OPTIONS.CONTINUOUS:
-                understudy.repeatingAction(action);
+                actions.repeat(action);
                 break;
             case TIMING_OPTIONS.INTERVAL:
-                return this.intervalAction(understudy, action, timingOption, ticks);
+                return this.intervalAction(actions, action, timingOption, ticks);
             case TIMING_OPTIONS.STOP:
-                understudy.removeRepeatingAction(action);
+                actions.remove(action);
                 break;
             default:
                 return { status: CustomCommandStatus.Failure, message: `§cInvalid ${action} timing: ${timingOption}.` };
         }
     }
 
-    singleAfterAction(understudy, action, timingOption, ticks) {
+    singleAfterAction(actions, action, timingOption, ticks) {
         if (ticks === void 0)
             return { status: CustomCommandStatus.Failure, message: `§cInvalid '${timingOption}' tick duration: ${ticks}. Expected an integer.` };
-        understudy.singleRepeatableAction(action, ticks);
+        actions.once(action, ticks);
     }
 
-    intervalAction(understudy, action, timingOption, ticks) {
+    intervalAction(actions, action, timingOption, ticks) {
         if (ticks === void 0)
             return { status: CustomCommandStatus.Failure, message: `§cInvalid '${timingOption}' tick duration: ${ticks}. Expected an integer.` };
-        understudy.repeatingAction(action, ticks);
+        actions.repeat(action, ticks);
     }
 }
 

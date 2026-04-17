@@ -30,8 +30,10 @@ export class GameRuleCertifier {
         }
         return gameRuleMap;
     }
+
+    static onGameRuleChange(event) {
+        world.setDynamicProperty(`gamerule:${event.rule}`, event.value);
+    }
 }
 
-world.afterEvents.gameRuleChange.subscribe((event) => {
-    world.setDynamicProperty(`gamerule:${event.rule}`, event.value);
-});
+world.afterEvents.gameRuleChange.subscribe(GameRuleCertifier.onGameRuleChange);

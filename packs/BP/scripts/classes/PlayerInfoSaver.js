@@ -23,7 +23,7 @@ export class PlayerInfoSaver {
             this.save();
             return;
         }
-        if (this.understudy.hasRepeatingAction()) {
+        if (!this.understudy.actions.isEmpty()) {
             if ((system.currentTick - this.understudy.createdTick) % (TicksPerSecond*5) === 0)
                 this.save();
             else
@@ -48,11 +48,11 @@ export class PlayerInfoSaver {
 
     save({ location, rotation, dimension, gameMode, projectileIds } = {}) {
         const simulatedPlayer = this.understudy.simulatedPlayer;
-        if (simulatedPlayer === null || !this.understudy.isConnected || noSimplayerSaving.getValue())
+        if (!this.understudy.isConnected() || noSimplayerSaving.getValue())
             return;
         const playerInfo = {
             location: location || simulatedPlayer.location,
-            rotation: rotation || this.understudy.getHeadRotation(),
+            rotation: rotation || this.understudy.headRotation,
             dimensionId: dimension?.id || simulatedPlayer.dimension.id,
             gameMode: gameMode || simulatedPlayer.getGameMode(),
             projectileIds: projectileIds || this.findOwnedProjectileIds()
