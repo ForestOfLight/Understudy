@@ -29,15 +29,6 @@ export class Actions {
         if (this.has(type))
             this.remove(type);
         const repeatingAction = new RepeatableAction(this.understudy, type, intervalTicks);
-        this.#add(repeatingAction);
-    }
-
-    #add(repeatingAction) {
-        if (this.has(repeatingAction.type)) {
-            const existingRepeatingAction = this.get(repeatingAction.type) || repeatingAction;
-            existingRepeatingAction.setInterval(repeatingAction.intervalTicks);
-            return;
-        }
         this.#repeatingActions.push(repeatingAction);
     }
 
@@ -46,8 +37,6 @@ export class Actions {
     }
 
     has(type) {
-        if (!type) 
-            return this.#repeatingActions.length > 0;
         return this.#repeatingActions.some(action => action.type === type);
     }
 

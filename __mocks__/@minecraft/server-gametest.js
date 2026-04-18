@@ -24,7 +24,7 @@ export function makeSimulatedPlayer(overrides = {}) {
         getComponent: vi.fn(type => {
             if (type === EntityComponentTypes.Inventory) return { container }
             if (type === EntityComponentTypes.Equippable) return equippable
-            return undefined
+            return void 0
         }),
         navigateToLocation: vi.fn(), navigateToEntity: vi.fn(), navigateToBlock: vi.fn(),
         moveRelative: vi.fn(), stopMoving: vi.fn(),
@@ -41,7 +41,7 @@ export function makeSimulatedPlayer(overrides = {}) {
         jump: vi.fn(),
         startBuild: vi.fn(),
         breakBlock: vi.fn(),
-        getBlockFromViewDirection: vi.fn(() => undefined),
+        getBlockFromViewDirection: vi.fn(() => void 0),
         ...overrides,
     }
 }

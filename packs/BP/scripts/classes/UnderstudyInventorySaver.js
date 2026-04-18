@@ -1,7 +1,7 @@
 import { EntityComponentTypes, EquipmentSlot, world } from "@minecraft/server";
 import SRCItemDatabase from "../lib/SRCItemDatabase/ItemDatabase.js";
 
-export class UnderstudyInventory {
+export class UnderstudyInventorySaver {
     constructor(understudy) {
         this.understudy = understudy;
         const tableName = 'bot_' + understudy.name.substr(0, 8);
@@ -13,18 +13,23 @@ export class UnderstudyInventory {
     }
 
     save() {
-        this.saveInventoryItems({ saveNBT: true });
-        this.saveEquippableItems({ saveNBT: true });
+        this.#saveInventoryItems({ saveNBT: true });
+        this.#saveEquippableItems({ saveNBT: true });
     }
 
     saveWithoutNBT() {
-        this.saveInventoryItems({ saveNBT: false });
-        this.saveEquippableItems({ saveNBT: false });
+        this.#saveInventoryItems({ saveNBT: false });
+        this.#saveEquippableItems({ saveNBT: false });
+    }
+    
+    load() {
+        this.#loadInventoryItems();
+        this.#loadEquippableItems();
     }
 
-    saveInventoryItems({ saveNBT = true } = {}) {
+    #saveInventoryItems({ saveNBT = true } = {}) {
         const inventoryItems = {};
-        const inventoryContainer = this.understudy.simulatedPlayer.getComponent(EntityComponentTypes.Inventory)?.container;
+        const inventoryContainer = this.understudy.getInventory();
         if (inventoryContainer !== void 0) {
             for (let i = 0; i < inventoryContainer.size; i++) {
                 const itemStack = inventoryContainer.getItem(i);
@@ -33,28 +38,28 @@ export class UnderstudyInventory {
                 else
                     inventoryItems[i] = itemStack;
             }
-            this.saveItemsWithoutNBT(this.inventoryDP, inventoryItems);
+            this.#saveItemsWithoutNBT(this.inventoryDP, inventoryItems);
             if (saveNBT)
-                this.saveItemsWithNBT(this.inventoryDBKey, inventoryItems);
+                this.#saveItemsWithNBT(this.inventoryDBKey, inventoryItems);
         }
     }
 
-    saveEquippableItems({ saveNBT = true } = {}) {
+    #saveEquippableItems({ saveNBT = true } = {}) {
         const equippableItems = {};
         const equippable = this.understudy.simulatedPlayer.getComponent(EntityComponentTypes.Equippable);
-        if (equippable !== undefined) {
+        if (equippable !== void 0) {
             for (const equipmentSlot in EquipmentSlot) {
                 const itemStack = equippable.getEquipment(equipmentSlot);
-                if (itemStack !== undefined)
+                if (itemStack !== void 0)
                     equippableItems[equipmentSlot] = itemStack;
             }
-            this.saveItemsWithoutNBT(this.equippableDP, equippableItems);
+            this.#saveItemsWithoutNBT(this.equippableDP, equippableItems);
             if (saveNBT)
-                this.saveItemsWithNBT(this.equippableDBKey, equippableItems);
+                this.#saveItemsWithNBT(this.equippableDBKey, equippableItems);
         }
     }
 
-    saveItemsWithoutNBT(dynamicProperty, itemStacks) {
+    #saveItemsWithoutNBT(dynamicProperty, itemStacks) {
         const items = {};
         for (let [key, itemStack] of Object.entries(itemStacks)) {
             if (itemStack) {
@@ -65,22 +70,17 @@ export class UnderstudyInventory {
         world.setDynamicProperty(dynamicProperty, itemsWithoutNBT);
     }
 
-    saveItemsWithNBT(DBKey, itemStacks) {
+    #saveItemsWithNBT(DBKey, itemStacks) {
         const itemsWithNBT = Object.values(itemStacks).filter(item => item !== void 0);
         this.itemDatabase.setItems(DBKey, itemsWithNBT);
     }
 
-    load() {
-        this.loadInventoryItems();
-        this.loadEquippableItems();
-    }
-
-    loadInventoryItems() {
-        const inventoryContainer = this.understudy.simulatedPlayer.getComponent(EntityComponentTypes.Inventory)?.container;
+    #loadInventoryItems() {
+        const inventoryContainer = this.understudy.getInventory();
         if (inventoryContainer === void 0)
             return;
         const itemsWithoutNBTStr = world.getDynamicProperty(this.inventoryDP);
-        if (itemsWithoutNBTStr === undefined)
+        if (itemsWithoutNBTStr === '{}' || itemsWithoutNBTStr === void 0)
             return;
         const itemsWithoutNBT = JSON.parse(itemsWithoutNBTStr);
         const itemsWithNBT = this.itemDatabase.getItems(this.inventoryDBKey);
@@ -96,19 +96,19 @@ export class UnderstudyInventory {
         }
     }
 
-    loadEquippableItems() {
+    #loadEquippableItems() {
         const equippable = this.understudy.simulatedPlayer.getComponent(EntityComponentTypes.Equippable);
-        if (equippable === undefined)
+        if (equippable === void 0)
             return;
         const itemsWithoutNBTStr = world.getDynamicProperty(this.equippableDP);
-        if (itemsWithoutNBTStr === undefined)
+        if (itemsWithoutNBTStr === '{}' || itemsWithoutNBTStr === void 0)
             return;
         const itemsWithoutNBT = JSON.parse(itemsWithoutNBTStr);
         const itemsWithNBT = this.itemDatabase.getItems(this.equippableDBKey);
         for (const equipmentSlot in EquipmentSlot) {
             const itemWithoutNBT = itemsWithoutNBT[equipmentSlot];
             let itemStack = void 0;
-            if (itemWithoutNBT !== null && itemWithoutNBT !== void 0)
+            if (itemWithoutNBT !== void 0)
                 itemStack = itemsWithNBT.find(item => item.typeId === itemWithoutNBT.typeId && item.amount === itemWithoutNBT.amount);
             equippable.setEquipment(equipmentSlot, itemStack);
         }

@@ -1,5 +1,5 @@
 import { world, system, DimensionTypes, TicksPerSecond, EntityComponentTypes } from "@minecraft/server";
-import { UnderstudyInventory } from "./UnderstudyInventory";
+import { UnderstudyInventorySaver } from "./UnderstudyInventorySaver";
 import { noSimplayerSaving } from "../rules/noSimplayerSaving";
 import { UnderstudySaveInfoError } from "../errors/UnderstudySaveInfoError";
 import { UnderstudyNotConnectedError } from "../errors/UnderstudyNotConnectedError";
@@ -11,7 +11,7 @@ export class PlayerInfoSaver {
 
     constructor(understudy) {
         this.#understudy = understudy;
-        this.#inventory = new UnderstudyInventory(understudy);
+        this.#inventory = new UnderstudyInventorySaver(understudy);
     }
 
     onConnectedTick() {

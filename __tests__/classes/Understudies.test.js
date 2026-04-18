@@ -1,54 +1,104 @@
 import { vi, describe, it, expect, beforeEach } from 'vitest'
 import { world, system } from '@minecraft/server'
 import Understudies from '../../packs/BP/scripts/classes/Understudies.js'
+import { advanceTicks, resetScheduler } from '../../__mocks__/@minecraft/server.js'
 
 describe('Understudies', () => {
     beforeEach(() => {
         Understudies.understudies = []
+        resetScheduler()
+    })
+
+    describe('onStartup', () => {
+        it('subscribes to entityDie and playerGameModeChange events', () => {
+            const subscribeSpy = vi.spyOn(world.afterEvents.entityDie, 'subscribe')
+            const subscribeSpy2 = vi.spyOn(world.afterEvents.playerGameModeChange, 'subscribe')
+            Understudies.onStartup()
+            expect(subscribeSpy).toHaveBeenCalled()
+            expect(subscribeSpy2).toHaveBeenCalled()
+        })
+        
+        it('starts processing players on an interval', () => {
+            Understudies.onStartup()
+            const understudy = Understudies.create('TestBot')
+            understudy.join({ location: { x: 0, y: 0, z: 0 }, dimension: world.getDimension('overworld') })
+            const onConnectedTickSpy = vi.spyOn(understudy, 'onConnectedTick').mockImplementation(() => {})
+            advanceTicks(1)
+            expect(onConnectedTickSpy).toHaveBeenCalled()
+        })
+    })
+
+    describe('onEntityDie', () => {
+        it('ignores non-player deaths', () => {
+            const event = { deadEntity: { typeId: 'minecraft:zombie' } }
+            Understudies.onEntityDie(event)
+            expect(Understudies.understudies.length).toBe(0)
+        })
+
+        it('removes the understudy when it dies', () => {
+            const understudy = Understudies.create('TestBot')
+            understudy.join({ location: { x: 0, y: 0, z: 0 }, dimension: world.getDimension('overworld') })
+            advanceTicks(1)
+            const event = { deadEntity: { typeId: 'minecraft:player', name: 'TestBot' } }
+            Understudies.onEntityDie(event)
+            advanceTicks(1)
+            expect(Understudies.understudies.length).toBe(0)
+        })
+    })
+
+    describe('onPlayerGameModeChange', () => {
+        it('saves player info when game mode changes', () => {
+            const understudy = Understudies.create('TestBot')
+            const savePlayerInfoSpy = vi.spyOn(understudy, 'savePlayerInfo').mockImplementation(() => {})
+            const event = { player: { name: 'TestBot' } }
+            Understudies.onPlayerGameModeChange(event)
+            expect(savePlayerInfoSpy).toHaveBeenCalled()
+        })
     })
 
     describe('create', () => {
+        let understudy;
+        beforeEach(() => {
+            understudy = Understudies.create('TestBot')
+        })
         it('creates and returns a new Understudy with the given name', () => {
-            const player = Understudies.create('Alice')
-            expect(player.name).toBe('Alice')
+            expect(understudy.name).toBe('TestBot')
         })
 
         it('adds the understudy to the list', () => {
-            Understudies.create('Alice')
             expect(Understudies.length()).toBe(1)
         })
 
         it('throws if a player with that name already exists', () => {
-            Understudies.create('Alice')
-            expect(() => Understudies.create('Alice')).toThrow()
+            expect(() => Understudies.create('TestBot')).toThrow()
         })
     })
 
     describe('get', () => {
         it('returns the understudy with the given name', () => {
-            Understudies.create('Alice')
-            expect(Understudies.get('Alice')?.name).toBe('Alice')
+            Understudies.create('TestBot')
+            expect(Understudies.get('TestBot')?.name).toBe('TestBot')
         })
 
         it('returns undefined when no understudy has that name', () => {
-            expect(Understudies.get('Alice')).toBeUndefined()
+            expect(Understudies.get('TestBot')).toBeUndefined()
         })
     })
 
     describe('isOnline', () => {
         it('returns true when the understudy exists', () => {
-            Understudies.create('Alice')
-            expect(Understudies.isOnline('Alice')).toBe(true)
+            Understudies.create('TestBot')
+            expect(Understudies.isOnline('TestBot')).toBe(true)
         })
 
         it('returns false when the understudy does not exist', () => {
-            expect(Understudies.isOnline('Alice')).toBe(false)
+            expect(Understudies.isOnline('TestBot')).toBe(false)
         })
     })
 
     describe('length', () => {
         it('returns the number of understudies', () => {
-            Understudies.create('Alice')
+            Understudies.create('TestBot')
             Understudies.create('Bob')
             expect(Understudies.length()).toBe(2)
         })
@@ -59,26 +109,25 @@ describe('Understudies', () => {
     })
 
     describe('remove', () => {
-        it('removes the understudy once simulatedPlayer becomes null', () => {
-            const mockPlayer = { name: 'Alice', simulatedPlayer: {} }
-            Understudies.understudies.push(mockPlayer)
-            let intervalCb
-            system.runInterval.mockImplementation(cb => { intervalCb = cb })
-            Understudies.remove(mockPlayer)
-            mockPlayer.simulatedPlayer = null
-            intervalCb()
-            expect(Understudies.understudies).not.toContain(mockPlayer)
+        it('removes the understudy once it is no longer connected', () => {
+            const understudy = Understudies.create('TestBot')
+            understudy.join({ location: { x: 0, y: 0, z: 0 }, dimension: world.getDimension('overworld') })
+            advanceTicks(1)
+            understudy.leave()
+            Understudies.remove(understudy)
+            advanceTicks(1)
+            expect(Understudies.understudies.length).toBe(0)
         })
 
         it('clears the run interval after removing', () => {
-            const runnerId = 42
-            const mockPlayer = { name: 'Alice', simulatedPlayer: null }
-            Understudies.understudies.push(mockPlayer)
-            let intervalCb
-            system.runInterval.mockImplementation(cb => { intervalCb = cb; return runnerId })
-            Understudies.remove(mockPlayer)
-            intervalCb()
-            expect(system.clearRun).toHaveBeenCalledWith(runnerId)
+            const understudy = Understudies.create('TestBot')
+            understudy.join({ location: { x: 0, y: 0, z: 0 }, dimension: world.getDimension('overworld') })
+            advanceTicks(1)
+            understudy.leave()
+            const clearRunSpy = vi.spyOn(system, 'clearRun')
+            Understudies.remove(understudy)
+            advanceTicks(1)
+            expect(clearRunSpy).toHaveBeenCalled()
         })
     })
 
@@ -89,31 +138,31 @@ describe('Understudies', () => {
         })
 
         it('sets nametags with prefix format when prefix is non-empty', () => {
-            const mockPlayer = { name: 'Alice', simulatedPlayer: { nameTag: '' } }
+            const mockPlayer = { name: 'TestBot', simulatedPlayer: { nameTag: '' } }
             Understudies.understudies = [mockPlayer]
             Understudies.setNametagPrefix('BOT')
-            expect(mockPlayer.simulatedPlayer.nameTag).toBe('[BOT§r] Alice')
+            expect(mockPlayer.simulatedPlayer.nameTag).toBe('[BOT§r] TestBot')
         })
 
         it('resets nametags to plain name when prefix is empty string', () => {
-            const mockPlayer = { name: 'Alice', simulatedPlayer: { nameTag: '[BOT§r] Alice' } }
+            const mockPlayer = { name: 'TestBot', simulatedPlayer: { nameTag: '[BOT§r] TestBot' } }
             Understudies.understudies = [mockPlayer]
             Understudies.setNametagPrefix('')
-            expect(mockPlayer.simulatedPlayer.nameTag).toBe('Alice')
+            expect(mockPlayer.simulatedPlayer.nameTag).toBe('TestBot')
         })
     })
 
     describe('addNametagPrefix', () => {
         it('sets nametag when prefix is defined', () => {
             world.getDynamicProperty.mockReturnValue('BOT')
-            const mockPlayer = { name: 'Alice', simulatedPlayer: { nameTag: '' } }
+            const mockPlayer = { name: 'TestBot', simulatedPlayer: { nameTag: '' } }
             Understudies.addNametagPrefix(mockPlayer)
-            expect(mockPlayer.simulatedPlayer.nameTag).toBe('[BOT§r] Alice')
+            expect(mockPlayer.simulatedPlayer.nameTag).toBe('[BOT§r] TestBot')
         })
 
         it('does not change nametag when prefix is not set', () => {
             world.getDynamicProperty.mockReturnValue(undefined)
-            const mockPlayer = { name: 'Alice', simulatedPlayer: { nameTag: 'original' } }
+            const mockPlayer = { name: 'TestBot', simulatedPlayer: { nameTag: 'original' } }
             Understudies.addNametagPrefix(mockPlayer)
             expect(mockPlayer.simulatedPlayer.nameTag).toBe('original')
         })
@@ -121,80 +170,11 @@ describe('Understudies', () => {
 
     describe('message helpers', () => {
         it('getNotOnlineMessage returns the correct string', () => {
-            expect(Understudies.getNotOnlineMessage('Alice')).toBe("§cSimplayer 'Alice' is not online.")
+            expect(Understudies.getNotOnlineMessage('TestBot')).toBe("§cSimplayer 'TestBot' is not online.")
         })
 
         it('getAlreadyOnlineMessage returns the correct string', () => {
-            expect(Understudies.getAlreadyOnlineMessage('Alice')).toBe("§cSimplayer 'Alice' is already online.")
-        })
-    })
-
-    describe('subscribeToEvents', () => {
-        it('subscribes to the entityDie event', () => {
-            Understudies.subscribeToEvents()
-            expect(world.afterEvents.entityDie.subscribe).toHaveBeenCalled()
-        })
-
-        it('subscribes to the playerGameModeChange event', () => {
-            Understudies.subscribeToEvents()
-            expect(world.afterEvents.playerGameModeChange.subscribe).toHaveBeenCalled()
-        })
-
-        it('calls leave and remove when a tracked player entity dies', () => {
-            let entityDieHandler
-            world.afterEvents.entityDie.subscribe.mockImplementation(cb => { entityDieHandler = cb })
-            const mockUnderstudy = { name: 'Alice', leave: vi.fn(), simulatedPlayer: null }
-            Understudies.understudies = [mockUnderstudy]
-            system.runInterval.mockImplementation(() => {})
-            Understudies.subscribeToEvents()
-            entityDieHandler({ deadEntity: { typeId: 'minecraft:player', name: 'Alice' } })
-            expect(mockUnderstudy.leave).toHaveBeenCalled()
-        })
-
-        it('does nothing when an untracked entity dies', () => {
-            let entityDieHandler
-            world.afterEvents.entityDie.subscribe.mockImplementation(cb => { entityDieHandler = cb })
-            Understudies.subscribeToEvents()
-            expect(() =>
-                entityDieHandler({ deadEntity: { typeId: 'minecraft:player', name: 'Unknown' } })
-            ).not.toThrow()
-        })
-
-        it('calls savePlayerInfo when a tracked player changes game mode', () => {
-            let gameModeHandler
-            world.afterEvents.playerGameModeChange.subscribe.mockImplementation(cb => { gameModeHandler = cb })
-            const mockUnderstudy = { name: 'Alice', savePlayerInfo: vi.fn() }
-            Understudies.understudies = [mockUnderstudy]
-            Understudies.subscribeToEvents()
-            gameModeHandler({ player: { name: 'Alice' } })
-            expect(mockUnderstudy.savePlayerInfo).toHaveBeenCalled()
-        })
-    })
-
-    describe('startProcessingPlayers', () => {
-        it('registers a run interval', () => {
-            Understudies.startProcessingPlayers()
-            expect(system.runInterval).toHaveBeenCalled()
-        })
-
-        it('calls onConnectedTick for each connected understudy', () => {
-            const mockUnderstudy = { isConnected: true, onConnectedTick: vi.fn() }
-            Understudies.understudies = [mockUnderstudy]
-            let intervalCb
-            system.runInterval.mockImplementation(cb => { intervalCb = cb })
-            Understudies.startProcessingPlayers()
-            intervalCb()
-            expect(mockUnderstudy.onConnectedTick).toHaveBeenCalled()
-        })
-
-        it('skips onConnectedTick for disconnected understudies', () => {
-            const mockUnderstudy = { isConnected: false, onConnectedTick: vi.fn() }
-            Understudies.understudies = [mockUnderstudy]
-            let intervalCb
-            system.runInterval.mockImplementation(cb => { intervalCb = cb })
-            Understudies.startProcessingPlayers()
-            intervalCb()
-            expect(mockUnderstudy.onConnectedTick).not.toHaveBeenCalled()
+            expect(Understudies.getAlreadyOnlineMessage('TestBot')).toBe("§cSimplayer 'TestBot' is already online.")
         })
     })
 })

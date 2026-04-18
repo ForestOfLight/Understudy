@@ -112,13 +112,14 @@ describe('PlayerInfoSaver', () => {
                 dimensionId: 'minecraft:overworld', gameMode: 'Creative', projectileIds: [],
             }
             dynamicPropertyStore.set('TestBot:playerinfo', JSON.stringify(playerInfo))
+            dynamicPropertyStore.set('bot_TestBot_inventory', JSON.stringify({ 0: { typeId: 'minecraft:stone', amount: 1 } }))
             infoSaver.loadInventoryAndProjectileOwnership()
             expect(understudy.getInventory().setItem).toHaveBeenCalled()
         })
 
         it('loads claimed projectiles when data exists', () => {
-            const projectile = { id: 'proj1', getComponent: vi.fn().mockReturnValue({ owner: null }) }
-            world.getEntity.mockImplementation(id => id === 'proj1' ? projectile : null)
+            const projectile = { id: 'proj1', getComponent: vi.fn().mockReturnValue({ owner: void 0 }) }
+            world.getEntity.mockImplementation(id => id === 'proj1' ? projectile : void 0)
             const playerInfo = {
                 location: { x: 1, y: 64, z: 2 }, rotation: { x: 0, y: 90 },
                 dimensionId: 'minecraft:overworld', gameMode: 'Creative', projectileIds: ['proj1'],

@@ -3,6 +3,7 @@ import { system, world, EntityComponentTypes, Block, Entity, Player, dynamicProp
 import { spawnSimulatedPlayer } from '@minecraft/server-gametest'
 import Understudy from '../../packs/BP/scripts/classes/Understudy.js'
 import { MOVE_OPTIONS } from '../../packs/BP/scripts/commands/move.js'
+import { advanceTicks } from '../../__mocks__/@minecraft/server.js'
 
 describe('Understudy', () => {
     let understudy
@@ -84,6 +85,7 @@ describe('Understudy', () => {
             })
             const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {})
             understudy.join({ location: { x: 0, y: 64, z: 0 }, dimension: world.getDimension() })
+            advanceTicks(1)
             expect(warnSpy).toHaveBeenCalled()
         })
 
@@ -96,7 +98,10 @@ describe('Understudy', () => {
                     return original.call(world, key, value)
             })
             const savedInfo = { location: { x: 1, y: 64, z: 2 }, dimensionId: 'minecraft:overworld', rotation: { x: 0, y: 90 }, gameMode: 'Creative' }
-            expect(() => understudy.join({ location: { x: 0, y: 64, z: 0 }, dimension: world.getDimension() })).toThrow()
+            expect(() => {
+                understudy.join({ location: { x: 0, y: 64, z: 0 }, dimension: world.getDimension() })
+                advanceTicks(1)
+            }).toThrow()
         })
     })
 

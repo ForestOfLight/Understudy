@@ -1,6 +1,8 @@
-export class UnderstudySaveInfoError extends Error {
+import { UnderstudyError } from "./UnderstudyError";
+
+export class UnderstudySaveInfoError extends UnderstudyError {
     constructor(message) {
-        super(`[Understudy] ${message}`);
+        super(message);
         this.name = 'UnderstudySaveInfoError';
     }
 }

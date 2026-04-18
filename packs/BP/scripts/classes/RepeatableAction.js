@@ -1,6 +1,7 @@
 import { system } from "@minecraft/server";
 import { REPEATABLE_ACTIONS } from "../commands/action";
 import { swapSlots } from "../utils";
+import { UnknownRepeatingActionError } from "../errors/UnknownRepeatingActionError";
 
 export class RepeatableAction {
     understudy;
@@ -13,10 +14,6 @@ export class RepeatableAction {
         this.type = type;
         this.intervalTicks = intervalTicks;
         this.startTick = system.currentTick;
-    }
-
-    start() {
-        this.runner = system.runInterval(() => this.onTick(), this.intervalTicks);
     }
 
     onTick() {
@@ -34,8 +31,6 @@ export class RepeatableAction {
 
     perform() {
         const simulatedPlayer = this.understudy.simulatedPlayer;
-        if (simulatedPlayer === null)
-            throw new Error(`[Understudy] Failed to run a repeating action on nonexistant player '${this.understudy.name}': ${this.type}`);
         switch (this.type) {
             case REPEATABLE_ACTIONS.ATTACK:
                 simulatedPlayer.attack();
@@ -47,30 +42,29 @@ export class RepeatableAction {
                 simulatedPlayer.useItemInSlot(simulatedPlayer.selectedSlotIndex);
                 break;
             case REPEATABLE_ACTIONS.BUILD:
-                this.build();
+                this.#build();
                 break;
             case REPEATABLE_ACTIONS.BREAK:
-                this.break();
+                this.#break();
                 break;
             case REPEATABLE_ACTIONS.DROP:
-                this.drop();
+                this.#drop();
                 break;
             case REPEATABLE_ACTIONS.DROP_STACK:
                 simulatedPlayer.dropSelectedItem();
                 break;
             case REPEATABLE_ACTIONS.DROP_ALL:
-                this.dropAll();
+                this.#dropAll();
                 break;
             case REPEATABLE_ACTIONS.JUMP:
                 simulatedPlayer.jump();
                 break;
             default:
-                console.warn(`[Understudy] Invalid repeating action for ${this.understudy.name}: ${this.type}`);
-                break;
+                throw new UnknownRepeatingActionError(this.understudy.name, this.type);
         }
     }
     
-    build() {
+    #build() {
         const simulatedPlayer = this.understudy.simulatedPlayer;
         const selectedSlot = simulatedPlayer.selectedSlotIndex;
         swapSlots(simulatedPlayer, 0, selectedSlot);
@@ -80,21 +74,19 @@ export class RepeatableAction {
         simulatedPlayer.selectedSlotIndex = selectedSlot;
     }
     
-    break() {
+    #break() {
         const simulatedPlayer = this.understudy.simulatedPlayer;
         const lookingAtLocation = simulatedPlayer.getBlockFromViewDirection({ maxDistance: 6 })?.block?.location;
-        if (lookingAtLocation === undefined)
+        if (lookingAtLocation === void 0)
             return;
         simulatedPlayer.breakBlock(lookingAtLocation);
     }
     
-    drop() {
+    #drop() {
         const invContainer = this.understudy.getInventory();
-        if (!invContainer)
-            return;
         const simulatedPlayer = this.understudy.simulatedPlayer;
         const itemStack = invContainer.getItem(simulatedPlayer.selectedSlotIndex);
-        if (itemStack === undefined)
+        if (itemStack === void 0)
             return;
         const savedAmount = itemStack.amount;
         if (savedAmount > 1) {
@@ -108,10 +100,8 @@ export class RepeatableAction {
         }
     }
     
-    dropAll() {
+    #dropAll() {
         const invContainer = this.understudy.getInventory();
-        if (!invContainer)
-            return;
         const simulatedPlayer = this.understudy.simulatedPlayer;
         const selectedSlot = simulatedPlayer.selectedSlotIndex;
         simulatedPlayer.selectedSlotIndex = 0;
