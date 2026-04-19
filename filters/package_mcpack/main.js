@@ -25,7 +25,13 @@ function main() {
 
     console.log(`[package-mcpack] Creating ${projectName}-v${version}.mcpack...`);
     const bpDir = path.join(process.cwd(), 'BP');
-    execFileSync('zip', ['-r', outputPath, '.'], { cwd: bpDir, stdio: 'inherit' });
+    const licenseDst = path.join(bpDir, 'LICENSE');
+    fs.copyFileSync(path.join(projectRoot, 'LICENSE'), licenseDst);
+    try {
+        execFileSync('zip', ['-r', outputPath, '.'], { cwd: bpDir, stdio: 'inherit' });
+    } finally {
+        fs.unlinkSync(licenseDst);
+    }
     console.log(`[package-mcpack] Saved to: ${outputPath}`);
 }
 
