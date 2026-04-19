@@ -8,7 +8,16 @@
 	},
 	"regolith": {
 		"dataPath": "./packs/data",
-		"filterDefinitions": {},
+		"filterDefinitions": {
+			"bump_version": {
+				"runWith": "nodejs",
+				"script": "filters/bump_version/main.js"
+			},
+			"package_mcpack": {
+				"runWith": "nodejs",
+				"script": "filters/package_mcpack/main.js"
+			}
+		},
 		"formatVersion": "1.7.0",
 		"profiles": {
 			"default": {
@@ -28,6 +37,22 @@
 					"bpName": "project.name"
 				},
 				"filters": []
+			},
+			"release": {
+				"export": {
+					"target": "none"
+				},
+				"filters": [
+					{ "filter": "package_mcpack" }
+				]
+			},
+			"bump-version": {
+				"export": {
+					"target": "none"
+				},
+				"filters": [
+					{ "filter": "bump_version" }
+				]
 			}
 		}
 	}
