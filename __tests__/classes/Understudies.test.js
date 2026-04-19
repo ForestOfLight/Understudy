@@ -129,6 +129,22 @@ describe('Understudies', () => {
             advanceTicks(1)
             expect(clearRunSpy).toHaveBeenCalled()
         })
+
+        it('throws an error if leave throws an unknown error', () => {
+            const understudy = Understudies.create('TestBot')
+            understudy.leave = () => { throw new Error('Unknown error') }
+            expect(() => Understudies.remove(understudy)).toThrow('Unknown error')
+        })
+    })
+
+    describe('removeAll', () => {
+        it('removes all understudies', () => {
+            Understudies.create('TestBot')
+            Understudies.create('Bob')
+            Understudies.removeAll()
+            advanceTicks(1)
+            expect(Understudies.length()).toBe(0)
+        })
     })
 
     describe('setNametagPrefix', () => {

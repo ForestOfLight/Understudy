@@ -45,29 +45,27 @@ export class LookCommand extends Command {
             case LOOK_OPTIONS.SOUTH:
             case LOOK_OPTIONS.EAST:
             case LOOK_OPTIONS.WEST:
-                this.lookAtCardinal(understudy, lookOption);
+                this.#lookAtCardinal(understudy, lookOption);
                 break;
             case LOOK_OPTIONS.BLOCK:
-                this.lookAtBlock(origin, understudy);
-                break;
+                return this.#lookAtBlock(origin, understudy);
             case LOOK_OPTIONS.ENTITY:
-                this.lookAtEntity(origin, understudy);
-                break;
+                return this.#lookAtEntity(origin, understudy);
             case LOOK_OPTIONS.ME:
-                this.lookAtMe(origin, understudy);
-                break;
+                return this.#lookAtMe(origin, understudy);
             case LOOK_OPTIONS.AT:
-                this.lookAtLocation(understudy, location);
+                this.#lookAtLocation(understudy, location);
                 break;
             case LOOK_OPTIONS.STOP:
-                this.stopLooking(understudy);
+                this.#stopLooking(understudy);
                 break;
             default:
                 return { status: CustomCommandStatus.Failure, message: `§cInvalid look option: '${lookOption}'` };
         }
+        return { status: CustomCommandStatus.Success };
     }
 
-    lookAtCardinal(understudy, direction) {
+    #lookAtCardinal(understudy, direction) {
         const directions = {
             'up': { x: -90, y: 0 },
             'down': { x: 90, y: 0 },
@@ -79,7 +77,7 @@ export class LookCommand extends Command {
         system.run(() => understudy.look(directions[direction]));
     }
 
-    lookAtBlock(origin, understudy) {
+    #lookAtBlock(origin, understudy) {
         const source = origin.getSource();
         if (source instanceof Entity === false)
             return { status: CustomCommandStatus.Failure, message: '§cBlock targeting may only be used by entities.' };
@@ -87,9 +85,10 @@ export class LookCommand extends Command {
         if (block === void 0)
             return { status: CustomCommandStatus.Failure, message: '§cNo block in view.' };
         system.run(() => understudy.look(block));
+        return { status: CustomCommandStatus.Success };
     }
 
-    lookAtEntity(origin, understudy) {
+    #lookAtEntity(origin, understudy) {
         const source = origin.getSource();
         if (source instanceof Entity === false)
             return { status: CustomCommandStatus.Failure, message: '§cEntity targeting may only be used by entities.' };
@@ -97,19 +96,21 @@ export class LookCommand extends Command {
         if (entity === void 0)
             return { status: CustomCommandStatus.Failure, message: '§cNo entity in view.' };
         system.run(() => understudy.look(entity));
+        return { status: CustomCommandStatus.Success };
     }
 
-    lookAtMe(origin, understudy) {
+    #lookAtMe(origin, understudy) {
         if (origin instanceof ServerCommandOrigin)
             return { status: CustomCommandStatus.Failure, message: '§cSelf-targeting cannot be used by the server.' };
         system.run(() => understudy.look(origin.getSource()));
+        return { status: CustomCommandStatus.Success };
     }
 
-    lookAtLocation(understudy, location) {
+    #lookAtLocation(understudy, location) {
         system.run(() => understudy.look(Vector.from(location)));
     }
 
-    stopLooking(understudy) {
+    #stopLooking(understudy) {
         system.run(() => understudy.stopLooking());
     }
 }

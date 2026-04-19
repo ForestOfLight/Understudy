@@ -14,7 +14,7 @@ export const REPEATABLE_ACTIONS = Object.freeze({
     JUMP: 'jump'
 });
 
-const TIMING_OPTIONS = Object.freeze({
+export const TIMING_OPTIONS = Object.freeze({
     ONCE: 'once',
     CONTINUOUS: 'continuous',
     INTERVAL: 'interval',
@@ -58,30 +58,33 @@ export class ActionCommand extends Command {
                 actions.once(action);
                 break;
             case TIMING_OPTIONS.AFTER:
-                return this.singleAfterAction(actions, action, timingOption, ticks);
+                return this.#singleAfterAction(actions, action, timingOption, ticks);
             case TIMING_OPTIONS.CONTINUOUS:
                 actions.repeat(action);
                 break;
             case TIMING_OPTIONS.INTERVAL:
-                return this.intervalAction(actions, action, timingOption, ticks);
+                return this.#intervalAction(actions, action, timingOption, ticks);
             case TIMING_OPTIONS.STOP:
                 actions.remove(action);
                 break;
             default:
                 return { status: CustomCommandStatus.Failure, message: `§cInvalid ${action} timing: ${timingOption}.` };
         }
+        return { status: CustomCommandStatus.Success };
     }
 
-    singleAfterAction(actions, action, timingOption, ticks) {
+    #singleAfterAction(actions, action, timingOption, ticks) {
         if (ticks === void 0)
             return { status: CustomCommandStatus.Failure, message: `§cInvalid '${timingOption}' tick duration: ${ticks}. Expected an integer.` };
         actions.once(action, ticks);
+        return { status: CustomCommandStatus.Success };
     }
 
-    intervalAction(actions, action, timingOption, ticks) {
+    #intervalAction(actions, action, timingOption, ticks) {
         if (ticks === void 0)
             return { status: CustomCommandStatus.Failure, message: `§cInvalid '${timingOption}' tick duration: ${ticks}. Expected an integer.` };
         actions.repeat(action, ticks);
+        return { status: CustomCommandStatus.Success };
     }
 }
 

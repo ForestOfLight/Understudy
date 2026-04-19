@@ -1,6 +1,5 @@
 import { vi, describe, it, expect, beforeEach } from 'vitest'
-import { world, system, DimensionTypes, EntityComponentTypes, TicksPerSecond } from '@minecraft/server'
-import { makeSimulatedPlayer } from '@minecraft/server-gametest'
+import { world, system, EntityComponentTypes, TicksPerSecond } from '@minecraft/server'
 import { PlayerInfoSaver } from '../../packs/BP/scripts/classes/PlayerInfoSaver.js'
 import Understudy from '../../packs/BP/scripts/classes/Understudy.js'
 import { UnderstudySaveInfoError } from '../../packs/BP/scripts/errors/UnderstudySaveInfoError.js'

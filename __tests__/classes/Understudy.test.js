@@ -1,6 +1,5 @@
 import { vi, describe, it, expect, beforeEach } from 'vitest'
-import { system, world, EntityComponentTypes, Block, Entity, Player, dynamicPropertyStore } from '@minecraft/server'
-import { spawnSimulatedPlayer } from '@minecraft/server-gametest'
+import { system, world, Block, Entity, Player, dynamicPropertyStore } from '@minecraft/server'
 import Understudy from '../../packs/BP/scripts/classes/Understudy.js'
 import { MOVE_OPTIONS } from '../../packs/BP/scripts/commands/move.js'
 import { advanceTicks } from '../../__mocks__/@minecraft/server.js'
@@ -78,7 +77,7 @@ describe('Understudy', () => {
         })
 
         it('warns if loading player info hits a known error', () => {
-            vi.spyOn(world, 'getDynamicProperty').mockImplementation((key, value) => {
+            vi.spyOn(world, 'getDynamicProperty').mockImplementation((key) => {
                 if (key === 'TestBot:playerinfo')
                     return 'invalid json'
                 return void 0
@@ -97,7 +96,6 @@ describe('Understudy', () => {
                 else
                     return original.call(world, key, value)
             })
-            const savedInfo = { location: { x: 1, y: 64, z: 2 }, dimensionId: 'minecraft:overworld', rotation: { x: 0, y: 90 }, gameMode: 'Creative' }
             expect(() => {
                 understudy.join({ location: { x: 0, y: 64, z: 0 }, dimension: world.getDimension() })
                 advanceTicks(1)
@@ -381,7 +379,7 @@ describe('Understudy', () => {
                 understudy.look(target)
                 understudy.stopLooking()
                 expect(understudy.lookTarget).toBeUndefined()
-                expect(understudy.simulatedPlayer.lookAtLocation).toHaveBeenCalled()
+                expect(understudy.simulatedPlayer.lookAtLocation).toHaveBeenCalledWith(target.location)
             })
 
             it('looks at the head location for a Player target', () => {
@@ -390,7 +388,7 @@ describe('Understudy', () => {
                 understudy.look(target)
                 understudy.stopLooking()
                 expect(understudy.lookTarget).toBeUndefined()
-                expect(understudy.simulatedPlayer.lookAtLocation).toHaveBeenCalled()
+                expect(understudy.simulatedPlayer.lookAtLocation).toHaveBeenCalledWith(target.getHeadLocation())
             })
 
             it('looks at the location for other types of targets', () => {
@@ -398,10 +396,11 @@ describe('Understudy', () => {
                 target.x = 20
                 target.y = 45
                 target.z = 20
+                target.location = { x: 20, y: 45, z: 20 }
                 understudy.look(target)
                 understudy.stopLooking()
                 expect(understudy.lookTarget).toBeUndefined()
-                expect(understudy.simulatedPlayer.lookAtLocation).toHaveBeenCalledWith(target)
+                expect(understudy.simulatedPlayer.lookAtLocation).toHaveBeenCalledWith(target.location)
             })
 
             it('throws when understudy is not connected', () => {
@@ -516,7 +515,6 @@ describe('Understudy', () => {
 
         describe('claimProjectiles', () => {
             it('claims projectiles within the given radius', () => {
-                const mockProjectile = { isValid: true }
                 const mockComponent = { owner: null, isValid: true }
                 const mockEntity = { getComponent: vi.fn(() => mockComponent) }
                 const mockDimension = { getEntities: vi.fn(() => [mockEntity]) }
@@ -631,7 +629,6 @@ describe('Understudy', () => {
 
             it('throws when understudy is not connected', () => {
                 understudy.leave()
-                const targetPlayer = { getComponent: vi.fn(() => ({ container: {} })), selectedSlotIndex: 0 }
                 expect(() => understudy.swapHeldItemWithPlayer(targetPlayer)).toThrow()
             })
         })

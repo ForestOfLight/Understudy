@@ -41,27 +41,31 @@ export class MoveCommand extends Command {
             case MOVE_OPTIONS.BACKWARD:
             case MOVE_OPTIONS.LEFT:
             case MOVE_OPTIONS.RIGHT:
-                return this.moveRelatively(understudy, moveOption);
+                this.#moveRelatively(understudy, moveOption);
+                break;
             case MOVE_OPTIONS.BLOCK:
-                return this.moveToBlock(origin, understudy);
+                return this.#moveToBlock(origin, understudy);
             case MOVE_OPTIONS.ENTITY:
-                return this.moveToEntity(origin, understudy);
+                return this.#moveToEntity(origin, understudy);
             case MOVE_OPTIONS.ME:
-                return this.moveToMe(origin, understudy);
+                return this.#moveToMe(origin, understudy);
             case MOVE_OPTIONS.TO:
-                return this.moveToLocation(understudy, location);
+                this.#moveToLocation(understudy, location);
+                break;
             case MOVE_OPTIONS.STOP:
-                return this.stopMoving(understudy);
+                this.#stopMoving(understudy);
+                break;
             default:
                 return { status: CustomCommandStatus.Failure, message: `§cInvalid move option: '${moveOption}'` };
         }
+        return { status: CustomCommandStatus.Success };
     }
 
-    moveRelatively(understudy, direction) {
+    #moveRelatively(understudy, direction) {
         system.run(() => understudy.moveRelative(direction));
     }
 
-    moveToBlock(origin, understudy) {
+    #moveToBlock(origin, understudy) {
         const source = origin.getSource();
         if (source instanceof Entity === false)
             return { status: CustomCommandStatus.Failure, message: '§cMoving to a block may only be used by entities.' };
@@ -69,9 +73,10 @@ export class MoveCommand extends Command {
         if (block === void 0)
             return { status: CustomCommandStatus.Failure, message: '§cNo block in view.' };
         system.run(() => understudy.moveLocation(block));
+        return { status: CustomCommandStatus.Success };
     }
 
-    moveToEntity(origin, understudy) {
+    #moveToEntity(origin, understudy) {
         const source = origin.getSource();
         if (source instanceof Entity === false)
             return { status: CustomCommandStatus.Failure, message: '§cMoving to an entity may only be used by entities.' };
@@ -79,19 +84,21 @@ export class MoveCommand extends Command {
         if (entity === void 0)
             return { status: CustomCommandStatus.Failure, message: '§cNo entity in view.' };
         system.run(() => understudy.moveLocation(entity));
+        return { status: CustomCommandStatus.Success };
     }
 
-    moveToMe(origin, understudy) {
+    #moveToMe(origin, understudy) {
         if (origin instanceof ServerCommandOrigin)
             return { status: CustomCommandStatus.Failure, message: '§cMoving to yourself cannot be used by the server.' };
         system.run(() => understudy.moveLocation(origin.getSource()));
+        return { status: CustomCommandStatus.Success };
     }
 
-    moveToLocation(understudy, location) {
+    #moveToLocation(understudy, location) {
         system.run(() => understudy.moveLocation(Vector.from(location)));
     }
 
-    stopMoving(understudy) {
+    #stopMoving(understudy) {
         system.run(() => understudy.stopMoving());
     }
 }

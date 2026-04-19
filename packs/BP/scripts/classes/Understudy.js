@@ -3,7 +3,6 @@ import { spawnSimulatedPlayer } from "@minecraft/server-gametest";
 import { getLookAtLocation, getLookAtRotation, portOldGameModeToNewUpdate } from "../utils";
 import { Vector } from "../lib/Vector";
 import { MOVE_OPTIONS } from "../commands/move";
-import { RepeatableAction } from "./RepeatableAction";
 import { PlayerInfoSaver } from "./PlayerInfoSaver";
 import { Actions } from "./Actions";
 import { UnderstudyNotConnectedError } from "../errors/UnderstudyNotConnectedError";
@@ -71,13 +70,13 @@ class Understudy {
             return this.#simulatedPlayer.headRotation;
         let targetLocation;
         if (this.#lookTarget instanceof Entity)
-            try {   
+            {try {   
                targetLocation = this.#lookTarget.getHeadLocation();
             } catch {
                 return this.#simulatedPlayer.headRotation;
-            }
+            }}
         else
-            targetLocation = this.#lookTarget.location;
+            {targetLocation = this.#lookTarget.location;}
         return getLookAtRotation(this.#simulatedPlayer.location, targetLocation);
     }
 

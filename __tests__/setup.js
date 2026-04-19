@@ -7,11 +7,10 @@ beforeEach(() => {
     dynamicPropertyStore.clear()
     world.getDynamicProperty.mockImplementation((key) => dynamicPropertyStore.get(key))
     world.setDynamicProperty.mockImplementation((key, value) => {
-        if (value === undefined) {
+        if (value === undefined)
             dynamicPropertyStore.delete(key)
-        } else {
-            dynamicPropertyStore.set(key, value)
-        }
+        else
+            dynamicPropertyStore.set(key, value)  
     })
     world.getDynamicPropertyIds.mockImplementation(() => [...dynamicPropertyStore.keys()])
 })

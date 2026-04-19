@@ -1,6 +1,5 @@
 import { vi, describe, it, expect, beforeEach } from 'vitest'
-import { system, EntityComponentTypes, world } from '@minecraft/server'
-import { makeSimulatedPlayer, makeContainer } from '@minecraft/server-gametest'
+import { system, world } from '@minecraft/server'
 import { RepeatableAction } from '../../packs/BP/scripts/classes/RepeatableAction.js'
 import { REPEATABLE_ACTIONS } from '../../packs/BP/scripts/commands/action.js'
 import Understudy from '../../packs/BP/scripts/classes/Understudy.js'
@@ -75,7 +74,6 @@ describe('RepeatableAction', () => {
 
             it('does not call perform when isActionTick returns false', () => {
                 system.currentTick = 0
-                const sp = makeSimulatedPlayer()
                 const action = new RepeatableAction(understudy, REPEATABLE_ACTIONS.ATTACK, 5)
                 system.currentTick = 3
                 action.onTick()
@@ -85,8 +83,8 @@ describe('RepeatableAction', () => {
 
         describe('perform', () => {
             it('throws when understudy is not connected', () => {
-                const understudy = new Understudy('TestBot')
-                const action = new RepeatableAction(understudy, REPEATABLE_ACTIONS.ATTACK)
+                const offlineUnderstudy = new Understudy('OfflineBot')
+                const action = new RepeatableAction(offlineUnderstudy, REPEATABLE_ACTIONS.ATTACK)
                 expect(() => action.perform()).toThrow(UnderstudyNotConnectedError)
             })
 

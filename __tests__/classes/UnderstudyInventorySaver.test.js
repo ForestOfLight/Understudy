@@ -1,11 +1,11 @@
 import { vi, describe, it, expect, beforeEach } from 'vitest'
 import { world, Container, EquipmentSlot, EntityComponentTypes } from '@minecraft/server'
-import { makeSimulatedPlayer, makeEquippable } from '@minecraft/server-gametest'
+import { makeEquippable } from '@minecraft/server-gametest'
 import { UnderstudyInventorySaver } from '../../packs/BP/scripts/classes/UnderstudyInventorySaver.js'
 import Understudy from '../../packs/BP/scripts/classes/Understudy.js'
 
 describe('UnderstudyInventorySaver', () => {
-    let understudy, inventorySaver
+    let understudy; let inventorySaver
 
     beforeEach(() => {
         understudy = new Understudy('TestBot')

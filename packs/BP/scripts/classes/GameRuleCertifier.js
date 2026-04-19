@@ -27,9 +27,9 @@ export class GameRuleCertifier {
         const gameRuleMap = {};
         for (const gamerule in world.gameRules) {
             const value = world.getDynamicProperty(`gamerule:${gamerule}`);
-            if (value === undefined) {
+            if (value === undefined) 
                 world.setDynamicProperty(`gamerule:${gamerule}`, world.gameRules[gamerule]);
-            }
+            
             gameRuleMap[gamerule] = value || world.gameRules[gamerule];
         }
         return gameRuleMap;

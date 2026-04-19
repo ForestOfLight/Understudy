@@ -1,6 +1,6 @@
 import { vi } from 'vitest'
 import { EntityComponentTypes } from '@minecraft/server'
-import { Container } from './server'
+import { Container, Player } from './server'
 
 export function makeEquippable(items = {}) {
     return {
@@ -9,41 +9,38 @@ export function makeEquippable(items = {}) {
     }
 }
 
-export function makeSimulatedPlayer(overrides = {}) {
-    const container = overrides.container ?? new Container()
-    const equippable = overrides.equippable ?? makeEquippable()
-    delete overrides.container
-    delete overrides.equippable
-    return {
-        teleport: vi.fn(),
-        remove: vi.fn(),
-        selectedSlotIndex: 0,
-        location: { x: 0, y: 64, z: 0 },
-        dimension: { id: 'minecraft:overworld', getEntities: vi.fn(() => []) },
-        getGameMode: vi.fn(() => 'Survival'),
-        getComponent: vi.fn(type => {
-            if (type === EntityComponentTypes.Inventory) return { container }
-            if (type === EntityComponentTypes.Equippable) return equippable
-            return void 0
-        }),
-        navigateToLocation: vi.fn(), navigateToEntity: vi.fn(), navigateToBlock: vi.fn(),
-        moveRelative: vi.fn(), stopMoving: vi.fn(),
-        lookAtBlock: vi.fn(), lookAtEntity: vi.fn(), lookAtLocation: vi.fn(), setRotation: vi.fn(),
-        stopBuild: vi.fn(), stopInteracting: vi.fn(), stopBreakingBlock: vi.fn(),
-        stopUsingItem: vi.fn(), stopSwimming: vi.fn(), stopGliding: vi.fn(),
-        headRotation: { x: 0, y: 0 },
-        isSprinting: false,
-        isSneaking: false,
-        attack: vi.fn(),
-        interact: vi.fn(),
-        useItemInSlot: vi.fn(),
-        dropSelectedItem: vi.fn(),
-        jump: vi.fn(),
-        startBuild: vi.fn(),
-        breakBlock: vi.fn(),
-        getBlockFromViewDirection: vi.fn(() => void 0),
-        ...overrides,
-    }
+export class SimulatedPlayer extends Player {
+    #container = new Container()
+    #equippable = makeEquippable()
+
+    headRotation = { x: 0, y: 0 }
+
+    navigateToLocation = vi.fn()
+    navigateToEntity = vi.fn()
+    navigateToBlock = vi.fn()
+    moveRelative = vi.fn()
+    stopMoving = vi.fn()
+    lookAtBlock = vi.fn()
+    lookAtEntity = vi.fn()
+    lookAtLocation = vi.fn()
+    stopBuild = vi.fn()
+    stopInteracting = vi.fn()
+    stopBreakingBlock = vi.fn()
+    stopUsingItem = vi.fn()
+    stopSwimming = vi.fn()
+    stopGliding = vi.fn()
+    attack = vi.fn()
+    interact = vi.fn()
+    useItemInSlot = vi.fn()
+    dropSelectedItem = vi.fn()
+    jump = vi.fn()
+    startBuild = vi.fn()
+    breakBlock = vi.fn()
+    getComponent = vi.fn((type) => {
+        if (type === EntityComponentTypes.Inventory) return { container: this.#container }
+        if (type === EntityComponentTypes.Equippable) return this.#equippable
+        return void 0
+    })
 }
 
-export const spawnSimulatedPlayer = vi.fn((...args) => makeSimulatedPlayer(...args))
+export const spawnSimulatedPlayer = vi.fn(() => new SimulatedPlayer())

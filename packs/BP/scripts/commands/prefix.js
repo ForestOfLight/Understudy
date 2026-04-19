@@ -10,18 +10,18 @@ export class PrefixCommand extends Command {
             mandatoryParameters: [{ name: 'prefix', type: CustomCommandParamType.String }],
             permissionLevel: CommandPermissionLevel.Any,
             allowedSources: [PlayerCommandOrigin, BlockCommandOrigin, EntityCommandOrigin, ServerCommandOrigin],
-            callback: (origin, ...args) => this.sprintCommand(origin, ...args)
+            callback: (origin, ...args) => this.prefixCommand(origin, ...args)
         });
     }
 
-    sprintCommand(origin, prefix) {
+    prefixCommand(origin, prefix) {
         if (prefix === '-none') {
             system.run(() => Understudies.setNametagPrefix(''));
             return { status: CustomCommandStatus.Success, message: '§7Simplayer prefix removed.' };
-        } else {
+        } 
             system.run(() => Understudies.setNametagPrefix(prefix));
             return { status: CustomCommandStatus.Success, message: `§7Simplayer prefix set to "§r${prefix}§r§7".` };
-        }
+        
     }
 }
 

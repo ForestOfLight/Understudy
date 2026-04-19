@@ -2,11 +2,12 @@ import { defineConfig } from 'vitest/config'
 import { fileURLToPath } from 'url'
 import { dirname, resolve } from 'path'
 
-const __dirname = dirname(fileURLToPath(import.meta.url))
+const workingDirName = dirname(fileURLToPath(import.meta.url))
 
 export default defineConfig({
   test: {
-    setupFiles: [resolve(__dirname, '__tests__/setup.js')],
+    setupFiles: [resolve(workingDirName, '__tests__/setup.js')],
+    exclude: ['**/node_modules/**', '.claude/**'],
   },
   plugins: [
     {
@@ -17,8 +18,8 @@ export default defineConfig({
   ],
   resolve: {
     alias: {
-      '@minecraft/server': resolve(__dirname, '__mocks__/@minecraft/server.js'),
-      '@minecraft/server-gametest': resolve(__dirname, '__mocks__/@minecraft/server-gametest.js'),
+      '@minecraft/server': resolve(workingDirName, '__mocks__/@minecraft/server.js'),
+      '@minecraft/server-gametest': resolve(workingDirName, '__mocks__/@minecraft/server-gametest.js'),
     },
   },
 })

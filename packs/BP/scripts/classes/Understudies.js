@@ -1,3 +1,4 @@
+import { UnderstudyNotConnectedError } from "../errors/UnderstudyNotConnectedError";
 import Understudy from "./Understudy";
 import { system, world } from "@minecraft/server";
 
@@ -58,6 +59,12 @@ class Understudies {
     }
 
     static remove(understudy) {
+        try {
+            understudy.leave();
+        } catch(error) {
+            if (!(error instanceof UnderstudyNotConnectedError))
+                throw error;
+        }
         const runner = system.runInterval(() => {
             if (!understudy.isConnected()) {
                 system.clearRun(runner);
@@ -66,6 +73,12 @@ class Understudies {
             }
         });
     }
+
+    static removeAll() {
+        for (const understudy of [...this.understudies])
+            this.remove(understudy);
+    }
+
 
     static length() {
         return this.understudies.length;

@@ -19,6 +19,7 @@ export class StopCommand extends Command {
         if (!understudy)
             return { status: CustomCommandStatus.Failure, message: Understudies.getNotOnlineMessage(playername) };
         system.run(() => understudy.stopAll());
+        return { status: CustomCommandStatus.Success };
     }
 }
 

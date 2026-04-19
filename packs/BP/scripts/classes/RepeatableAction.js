@@ -66,11 +66,12 @@ export class RepeatableAction {
     
     #build() {
         const simulatedPlayer = this.understudy.simulatedPlayer;
+        const invContainer = this.understudy.getInventory();
         const selectedSlot = simulatedPlayer.selectedSlotIndex;
-        swapSlots(simulatedPlayer, 0, selectedSlot);
+        swapSlots(invContainer, 0, selectedSlot);
         simulatedPlayer.startBuild();
         simulatedPlayer.stopBuild();
-        swapSlots(simulatedPlayer, 0, selectedSlot);
+        swapSlots(invContainer, 0, selectedSlot);
         simulatedPlayer.selectedSlotIndex = selectedSlot;
     }
     

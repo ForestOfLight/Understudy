@@ -5,7 +5,7 @@ import { RepeatableAction } from '../../packs/BP/scripts/classes/RepeatableActio
 import { REPEATABLE_ACTIONS } from '../../packs/BP/scripts/commands/action.js'
 
 describe('Actions', () => {
-    let mockUnderstudy, actions, performSpy, repeatableActionOnTickSpy
+    let mockUnderstudy; let actions; let performSpy; let repeatableActionOnTickSpy
 
     beforeEach(() => {
         mockUnderstudy = { name: 'TestBot' }

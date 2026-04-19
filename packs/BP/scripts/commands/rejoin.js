@@ -20,14 +20,19 @@ export class RejoinCommand extends Command {
             return { status: CustomCommandStatus.Failure, message: Understudies.getAlreadyOnlineMessage(playername) };
         system.run(() => {
             const understudy = Understudies.create(playername);
-            try {
-                understudy.rejoin();
-            } catch (error) {
-                console.warn(`[Understudy] Error while rejoing. Joining instead. Error: ${String(error)}`)
-                understudy.join(getLocationInfoFromSource(origin.getSource()));
-            }
-            Understudies.addNametagPrefix(understudy);
+            this.#tryRejoin(origin, understudy);
         });
+        return { status: CustomCommandStatus.Success };
+    }
+
+    #tryRejoin(origin, understudy) {
+        try {
+            understudy.rejoin();
+        } catch (error) {
+            console.warn(`[Understudy] Error while rejoining. Joining normally instead. Error: ${String(error)}`)
+            understudy.join(getLocationInfoFromSource(origin.getSource()));
+        }
+        Understudies.addNametagPrefix(understudy);
     }
 }
 

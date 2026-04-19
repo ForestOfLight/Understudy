@@ -18,19 +18,19 @@ export class InventoryCommand extends Command {
         const understudy = Understudies.get(playername);
         if (!understudy)
             return { status: CustomCommandStatus.Failure, message: Understudies.getNotOnlineMessage(playername) };
-        return { status: CustomCommandStatus.Success, message: this.getInventoryMessage(understudy) };
+        return { status: CustomCommandStatus.Success, message: this.#getInventoryMessage(understudy) };
     }
 
-    getInventoryMessage(understudy) {
+    #getInventoryMessage(understudy) {
         const playerInventory = understudy.getInventory();
         if (!playerInventory)
             return `§cNo inventory found`;
         if (playerInventory.size === playerInventory.emptySlotsCount)
             return `§7${understudy.name}'s inventory is empty.`;
-        return this.getFormattedInventoryMessage(understudy, playerInventory);
+        return this.#getFormattedInventoryMessage(understudy, playerInventory);
     }
 
-    getFormattedInventoryMessage(understudy, playerInventory) {
+    #getFormattedInventoryMessage(understudy, playerInventory) {
         let message = `${understudy.name}'s inventory:`;
         for (let i = 0; i < playerInventory.size; i++) {
             const itemStack = playerInventory.getItem(i);

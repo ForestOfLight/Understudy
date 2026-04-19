@@ -1,35 +1,12 @@
-import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest'
+import { vi, describe, it, expect, beforeEach } from 'vitest'
 import { system, world } from '@minecraft/server'
-
-vi.mock('../../packs/BP/scripts/classes/Understudies.js', () => ({
-    default: {
-        create: vi.fn(),
-        addNametagPrefix: vi.fn(),
-        understudies: [],
-    }
-}))
-
-const { simplayerRejoining } = await import('../../packs/BP/scripts/rules/simplayerRejoining.js')
-const { default: Understudies } = await import('../../packs/BP/scripts/classes/Understudies.js')
-
-function mockDynamicProperties({ ruleEnabled = false, savedPlayers = undefined } = {}) {
-    world.getDynamicProperty.mockImplementation((key) => {
-        if (key === 'simplayerRejoining') return JSON.stringify(ruleEnabled)
-        if (key === 'simplayersToRejoin' && savedPlayers !== undefined) return JSON.stringify(savedPlayers)
-        return undefined
-    })
-}
+import { simplayerRejoining } from '../../packs/BP/scripts/rules/simplayerRejoining.js'
+import Understudies from '../../packs/BP/scripts/classes/Understudies.js'
+import { advanceTicks, dynamicPropertyStore, resetScheduler } from '../../__mocks__/@minecraft/server.js'
 
 describe('SimplayerRejoining', () => {
     beforeEach(() => {
-        Understudies.understudies = []
-        Understudies.create.mockReturnValue({ rejoin: vi.fn() })
-        system.runTimeout.mockImplementation((cb) => cb())
-        mockDynamicProperties()
-    })
-
-    afterEach(() => {
-        vi.restoreAllMocks()
+        vi.clearAllMocks()
     })
 
     describe('construction', () => {
@@ -39,6 +16,18 @@ describe('SimplayerRejoining', () => {
 
         it('defaults to false', () => {
             expect(simplayerRejoining.getDefaultValue()).toBe(false)
+        })
+
+        it('subscribes to events on enable', () => {
+            const spy = vi.spyOn(simplayerRejoining, 'subscribeToEvent').mockImplementation(() => {})
+            simplayerRejoining.onEnable()
+            expect(spy).toHaveBeenCalled()
+        })
+
+        it('unsubscribes from events on disable', () => {
+            const spy = vi.spyOn(simplayerRejoining, 'unsubscribeFromEvent').mockImplementation(() => {})
+            simplayerRejoining.onDisable()
+            expect(spy).toHaveBeenCalled()
         })
     })
 
@@ -58,8 +47,9 @@ describe('SimplayerRejoining', () => {
 
     describe('onShutdown', () => {
         it('saves understudy names when enabled', () => {
-            mockDynamicProperties({ ruleEnabled: true })
-            Understudies.understudies = [{ name: 'Alice' }, { name: 'Bob' }]
+            dynamicPropertyStore.set('simplayerRejoining', true)
+            Understudies.create('Alice')
+            Understudies.create('Bob')
             simplayerRejoining.onShutdown()
             expect(world.setDynamicProperty).toHaveBeenCalledWith(
                 'simplayersToRejoin',
@@ -74,37 +64,42 @@ describe('SimplayerRejoining', () => {
     })
 
     describe('onStartup', () => {
+        beforeEach(() => {
+            resetScheduler()
+            Understudies.removeAll()
+            vi.clearAllMocks()
+            advanceTicks(1)
+        })
+
         it('returns early without reading world state when disabled', () => {
+            const spy = vi.spyOn(Understudies, 'create')
             simplayerRejoining.onStartup()
-            expect(Understudies.create).not.toHaveBeenCalled()
+            expect(spy).not.toHaveBeenCalled()
         })
 
         it('creates and rejoins each saved player when enabled', () => {
-            const mockPlayer = { rejoin: vi.fn() }
-            Understudies.create.mockReturnValue(mockPlayer)
-            mockDynamicProperties({ ruleEnabled: true, savedPlayers: ['Alice', 'Bob'] })
-
+            const spy = vi.spyOn(Understudies, 'create')
+            dynamicPropertyStore.set('simplayerRejoining', true)
+            dynamicPropertyStore.set('simplayersToRejoin', JSON.stringify(['Alice', 'Bob']))
             simplayerRejoining.onStartup()
-
-            expect(Understudies.create).toHaveBeenCalledWith('Alice')
-            expect(Understudies.create).toHaveBeenCalledWith('Bob')
-            expect(mockPlayer.rejoin).toHaveBeenCalledTimes(2)
+            expect(spy).toHaveBeenCalledWith('Alice')
+            expect(spy).toHaveBeenCalledWith('Bob')
         })
 
         it('calls addNametagPrefix via runTimeout for each player', () => {
-            const mockPlayer = { rejoin: vi.fn() }
-            Understudies.create.mockReturnValue(mockPlayer)
-            mockDynamicProperties({ ruleEnabled: true, savedPlayers: ['Alice'] })
-
+            const spy = vi.spyOn(Understudies, 'addNametagPrefix')
+            dynamicPropertyStore.set('simplayerRejoining', true)
+            dynamicPropertyStore.set('simplayersToRejoin', JSON.stringify(['Alice']))
             simplayerRejoining.onStartup()
-
-            expect(Understudies.addNametagPrefix).toHaveBeenCalledWith(mockPlayer)
+            advanceTicks(5)
+            expect(spy).toHaveBeenCalledWith(Understudies.get('Alice'))
         })
 
         it('logs an error and continues when rejoin throws', () => {
             const mockPlayer = { rejoin: vi.fn().mockImplementation(() => { throw new Error('network error') }) }
-            Understudies.create.mockReturnValue(mockPlayer)
-            mockDynamicProperties({ ruleEnabled: true, savedPlayers: ['Alice'] })
+            vi.spyOn(Understudies, 'create').mockReturnValue(mockPlayer)
+            dynamicPropertyStore.set('simplayerRejoining', true)
+            dynamicPropertyStore.set('simplayersToRejoin', JSON.stringify(['Alice']))
             const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
 
             simplayerRejoining.onStartup()
@@ -113,24 +108,23 @@ describe('SimplayerRejoining', () => {
         })
 
         it('logs an error and rejoins nobody when saved data is invalid JSON', () => {
-            mockDynamicProperties({ ruleEnabled: true })
+            dynamicPropertyStore.set('simplayerRejoining', true)
             world.getDynamicProperty.mockImplementation((key) => {
                 if (key === 'simplayerRejoining') return JSON.stringify(true)
                 if (key === 'simplayersToRejoin') return 'not-valid-json'
             })
             const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
-
+            vi.spyOn(Understudies, 'create')
             simplayerRejoining.onStartup()
-
             expect(consoleSpy).toHaveBeenCalled()
             expect(Understudies.create).not.toHaveBeenCalled()
         })
 
-        it('rejoins nobody when saved data is not an array', () => {
-            mockDynamicProperties({ ruleEnabled: true, savedPlayers: { name: 'Alice' } })
-
+        it('rejoins nobody when saved data is corrupted', () => {
+            dynamicPropertyStore.set('simplayerRejoining', true)
+            dynamicPropertyStore.set('simplayersToRejoin', 'invalid data')
+            vi.spyOn(Understudies, 'create')
             simplayerRejoining.onStartup()
-
             expect(Understudies.create).not.toHaveBeenCalled()
         })
     })

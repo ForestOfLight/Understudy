@@ -12,7 +12,7 @@ world.afterEvents.worldLoad.subscribe(() => {
 });
 
 world.afterEvents.playerJoin.subscribe((event) => {
-    let runner = system.runInterval(() => {
+    const runner = system.runInterval(() => {
         const players = world.getPlayers({ name: event.playerName });
         if (world.getAllPlayers().length !== players.length) {
             system.clearRun(runner);

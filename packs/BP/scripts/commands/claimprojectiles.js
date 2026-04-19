@@ -20,6 +20,7 @@ export class ClaimProjectilesCommand extends Command {
         if (!understudy)
             return { status: CustomCommandStatus.Failure, message: Understudies.getNotOnlineMessage(playername) };
         system.run(() => understudy.claimProjectiles(radius));
+        return { status: CustomCommandStatus.Success };
     }
 }
 

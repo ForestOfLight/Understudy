@@ -1,7 +1,6 @@
-import { vi, describe, it, expect, beforeEach } from 'vitest'
+import { describe, it, expect, beforeEach } from 'vitest'
 import { world } from '@minecraft/server'
-
-const { noSimplayerSaving } = await import('../../packs/BP/scripts/rules/noSimplayerSaving.js')
+import { noSimplayerSaving } from '../../packs/BP/scripts/rules/noSimplayerSaving.js'
 
 describe('NoSimplayerSaving', () => {
     beforeEach(() => {

@@ -1,4 +1,4 @@
-/* eslint-disable new-cap */
+ 
 import { PROTO } from '../ipc/ipc'
 
 const rawtext = PROTO.Object({

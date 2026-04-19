@@ -2,46 +2,161 @@ import { vi } from 'vitest'
 
 export const dynamicPropertyStore = new Map()
 
-let _nextRunId = 1
-const _scheduled = new Map() // id → { callback, nextTick, interval: number | null }
-let _currentTick = 0
+let nextRunId = 1
+const scheduled = new Map() // id → { callback, nextTick, interval: number | null }
+let currentTick = 0
 
 export function advanceTicks(n = 1) {
     for (let i = 0; i < n; i++) {
-        _currentTick++
-        system.currentTick = _currentTick
-        for (const [id, entry] of [..._scheduled.entries()]) {
-            if (!_scheduled.has(id)) continue
-            if (entry.nextTick <= _currentTick) {
+        currentTick++
+        system.currentTick = currentTick
+        for (const [id, entry] of [...scheduled.entries()]) {
+            if (!scheduled.has(id)) continue
+            if (entry.nextTick <= currentTick) {
                 entry.callback()
-                if (entry.interval !== null) {
-                    if (_scheduled.has(id))
-                        entry.nextTick = _currentTick + entry.interval
-                } else {
-                    _scheduled.delete(id)
-                }
+                if (entry.interval === null) 
+                    scheduled.delete(id)
+                else if (scheduled.has(id))
+                    entry.nextTick = currentTick + entry.interval
             }
         }
     }
 }
 
 export function resetScheduler() {
-    _nextRunId = 1
-    _scheduled.clear()
-    _currentTick = 0
+    nextRunId = 1
+    scheduled.clear()
+    currentTick = 0
     system.currentTick = 0
 }
 
-export const ScriptEventSource = { Block: 'Block', Entity: 'Entity', NPCDialogue: 'NPCDialogue', Server: 'Server' }
-
-export const CustomCommandSource = {}
-export const CustomCommandStatus = {}
+export const ScriptEventSource = { Entity: 'Entity', Block: 'Block', Server: 'Server', NPCDialogue: 'NPCDialogue' }
+export const CustomCommandSource = { Entity: 'Entity', Block: 'Block', Server: 'Server', NPCDialogue: 'NPCDialogue' }
+export const CustomCommandStatus = { Failure: 'Failure', Success: 'Success' }
 export const CommandPermissionLevel = {}
 export const CustomCommandParamType = {}
-export const Entity = class Entity {}
-export const Player = class Player extends Entity {}
-export const Block = class Block {}
 export const GameMode = { Adventure: 'Adventure', Creative: 'Creative', Spectator: 'Spectator', Survival: 'Survival' }
+export class Entity {
+    dimension = world.getDimension('overworld')
+    id = 'entity'
+    isClimbing = false
+    isFalling = false
+    isInWater = false
+    isOnGround = true
+    isSleeping = false
+    isSneaking = false
+    isSprinting = false
+    isSwimming = false
+    isValid = true
+    localizationKey = ''
+    location = { x: 0, y: 64, z: 0 }
+    x = 0
+    y = 64
+    z = 0
+    nameTag = ''
+    scoreboardIdentity = void 0
+    target = void 0
+    typeId = 'minecraft:entity'
+
+    addEffect = vi.fn()
+    addItem = vi.fn()
+    addTag = vi.fn(() => true)
+    applyDamage = vi.fn(() => false)
+    applyImpulse = vi.fn()
+    applyKnockback = vi.fn()
+    clearDynamicProperties = vi.fn()
+    clearVelocity = vi.fn()
+    extinguishFire = vi.fn(() => false)
+    getAABB = vi.fn()
+    getAllBlocksStandingOn = vi.fn(() => [])
+    getBlockFromViewDirection = vi.fn(() => void 0)
+    getBlockStandingOn = vi.fn(() => void 0)
+    getComponent = vi.fn(() => void 0)
+    getComponents = vi.fn(() => [])
+    getDynamicProperty = vi.fn()
+    getDynamicPropertyIds = vi.fn(() => [])
+    getDynamicPropertyTotalByteCount = vi.fn(() => 0)
+    getEffect = vi.fn()
+    getEffects = vi.fn(() => [])
+    getEntitiesFromViewDirection = vi.fn(() => [])
+    getHeadLocation = vi.fn(() => ({ x: 0, y: 66, z: 0 }))
+    getProperty = vi.fn()
+    getRotation = vi.fn(() => ({ x: 0, y: 0 }))
+    getTags = vi.fn(() => [])
+    getVelocity = vi.fn(() => ({ x: 0, y: 0, z: 0 }))
+    getViewDirection = vi.fn(() => ({ x: 0, y: 0, z: 1 }))
+    hasComponent = vi.fn(() => false)
+    hasTag = vi.fn(() => false)
+    kill = vi.fn(() => true)
+    lookAt = vi.fn()
+    matches = vi.fn(() => false)
+    playAnimation = vi.fn()
+    remove = vi.fn()
+    removeEffect = vi.fn(() => false)
+    removeTag = vi.fn(() => false)
+    resetProperty = vi.fn()
+    runCommand = vi.fn()
+    setDynamicProperties = vi.fn()
+    setDynamicProperty = vi.fn()
+    setOnFire = vi.fn(() => false)
+    setProperty = vi.fn()
+    setRotation = vi.fn()
+    teleport = vi.fn()
+    triggerEvent = vi.fn()
+    tryTeleport = vi.fn(() => true)
+}
+
+export class Player extends Entity {
+    camera = {}
+    clientSystemInfo = {}
+    commandPermissionLevel = void 0
+    graphicsMode = {}
+    inputInfo = {}
+    inputPermissions = {}
+    isEmoting = false
+    isFlying = false
+    isGliding = false
+    isJumping = false
+    level = 0
+    locatorBar = {}
+    name = ''
+    onScreenDisplay = {}
+    partyId = void 0
+    playerPermissionLevel = void 0
+    selectedSlotIndex = 0
+    totalXpNeededForNextLevel = 0
+    xpEarnedAtCurrentLevel = 0
+    typeId = 'minecraft:player'
+
+    addExperience = vi.fn(() => 0)
+    addLevels = vi.fn(() => 0)
+    clearPropertyOverridesForEntity = vi.fn()
+    eatItem = vi.fn()
+    getAimAssist = vi.fn()
+    getControlScheme = vi.fn()
+    getGameMode = vi.fn(() => GameMode.Survival)
+    getItemCooldown = vi.fn(() => 0)
+    getSpawnPoint = vi.fn()
+    getTotalXp = vi.fn(() => 0)
+    playMusic = vi.fn()
+    playSound = vi.fn()
+    postClientMessage = vi.fn()
+    queueMusic = vi.fn()
+    removePropertyOverrideForEntity = vi.fn()
+    resetLevel = vi.fn()
+    sendMessage = vi.fn()
+    setControlScheme = vi.fn()
+    setGameMode = vi.fn()
+    setPropertyOverrideForEntity = vi.fn()
+    setSpawnPoint = vi.fn()
+    spawnParticle = vi.fn()
+    startItemCooldown = vi.fn()
+    stopAllSounds = vi.fn()
+    stopMusic = vi.fn()
+    stopSound = vi.fn()
+}
+
+export const Block = class Block {}
 export const EntityComponentTypes = {
     Inventory: 'minecraft:inventory',
     Equippable: 'minecraft:equippable',
@@ -82,9 +197,9 @@ export const Container = class Container {
         return i === -1 ? void 0 : i
     })
     findLast = vi.fn(itemStack => {
-        for (let i = this.size - 1; i >= 0; i--) {
+        for (let i = this.size - 1; i >= 0; i--) 
             if (this.#slots[i]?.typeId === itemStack?.typeId) return i
-        }
+        
         return void 0
     })
     firstEmptySlot = vi.fn(() => {
@@ -121,14 +236,14 @@ export const Container = class Container {
     })
 }
 export const EquipmentSlot = { Body: 'Body', Chest: 'Chest', Feet: 'Feet', Head: 'Head', Legs: 'Legs', Mainhand: 'Mainhand', Offhand: 'Offhand' }
-export const DimensionTypes = { getAll: vi.fn(() => [new DimensionType("minecraft:overworld"), new DimensionType('minecraft:nether'), new DimensionType('minecraft:the_end')]) }
-export const DimensionType = class DimensionType { 
+export const DimensionType = class DimensionType {
     typeId = 'minecraft:overworld' 
-
+    
     constructor(typeId = void 0) {
         if (typeId) this.typeId = typeId
     }
 }
+export const DimensionTypes = { getAll: vi.fn(() => [new DimensionType("minecraft:overworld"), new DimensionType('minecraft:nether'), new DimensionType('minecraft:the_end')]) }
 export const TicksPerSecond = 20.0
 export const BlockVolume = class BlockVolume {}
 export const EntityItemComponent = class EntityItemComponent { static componentId = 'minecraft:item' }
@@ -144,23 +259,23 @@ export const system = {
     },
     runJob: vi.fn(),
     run: vi.fn(callback => {
-        const id = _nextRunId++
-        _scheduled.set(id, { callback, nextTick: _currentTick + 1, interval: null })
+        const id = nextRunId++
+        scheduled.set(id, { callback, nextTick: currentTick + 1, interval: null })
         return id
     }),
     runTimeout: vi.fn((callback, tickDelay = 0) => {
-        const id = _nextRunId++
-        _scheduled.set(id, { callback, nextTick: _currentTick + Math.max(tickDelay, 1), interval: null })
+        const id = nextRunId++
+        scheduled.set(id, { callback, nextTick: currentTick + Math.max(tickDelay, 1), interval: null })
         return id
     }),
     runInterval: vi.fn((callback, tickInterval = 0) => {
-        const id = _nextRunId++
+        const id = nextRunId++
         const interval = Math.max(tickInterval, 1)
-        _scheduled.set(id, { callback, nextTick: _currentTick + interval, interval })
+        scheduled.set(id, { callback, nextTick: currentTick + interval, interval })
         return id
     }),
     clearRun: vi.fn(runId => {
-        _scheduled.delete(runId)
+        scheduled.delete(runId)
     }),
     currentTick: 0,
 }
@@ -173,9 +288,7 @@ export const world = {
         gameRuleChange: { subscribe: vi.fn() },
         worldLoad: { subscribe: vi.fn(cb => cb()) },
     },
-    getDynamicProperty: vi.fn((key) => {
-        return dynamicPropertyStore.get(key)
-    }),
+    getDynamicProperty: vi.fn((key) => dynamicPropertyStore.get(key)),
     setDynamicProperty: vi.fn((key, value) => {
         if (value === void 0)
             dynamicPropertyStore.delete(key)
@@ -184,7 +297,7 @@ export const world = {
     }),
     getDynamicPropertyIds: vi.fn(() => [...dynamicPropertyStore.keys()]),
     getDimension: vi.fn((() => {
-        const dim = { runCommand: vi.fn(), fillBlocks: vi.fn(), getEntities: vi.fn(() => []), spawnItem: vi.fn() }
+        const dim = { id: 'minecraft:overworld', runCommand: vi.fn(), fillBlocks: vi.fn(), getEntities: vi.fn(() => []), spawnItem: vi.fn() }
         return () => dim
     })()),
     getPlayers: vi.fn(() => []),

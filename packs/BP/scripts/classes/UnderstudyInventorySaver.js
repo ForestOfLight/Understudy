@@ -33,10 +33,10 @@ export class UnderstudyInventorySaver {
         if (inventoryContainer !== void 0) {
             for (let i = 0; i < inventoryContainer.size; i++) {
                 const itemStack = inventoryContainer.getItem(i);
-                if (!itemStack)
-                    inventoryItems[i] = void 0;
-                else
+                if (itemStack)
                     inventoryItems[i] = itemStack;
+                else
+                    inventoryItems[i] = void 0;
             }
             this.#saveItemsWithoutNBT(this.inventoryDP, inventoryItems);
             if (saveNBT)
@@ -61,10 +61,10 @@ export class UnderstudyInventorySaver {
 
     #saveItemsWithoutNBT(dynamicProperty, itemStacks) {
         const items = {};
-        for (let [key, itemStack] of Object.entries(itemStacks)) {
-            if (itemStack) {
+        for (const [key, itemStack] of Object.entries(itemStacks)) {
+            if (itemStack) 
                 items[key] = { typeId: itemStack.typeId, amount: itemStack.amount };
-            }
+            
         }
         const itemsWithoutNBT = JSON.stringify(items);
         world.setDynamicProperty(dynamicProperty, itemsWithoutNBT);
