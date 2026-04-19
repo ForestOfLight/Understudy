@@ -18,7 +18,7 @@ Vector.angleBetween = function angleBetween(a, b) { return Math.acos(Vector.dot(
 Vector.subtract = function subtract(a, b) { return { x: a.x - b.x, y: a.y - b.y, z: a.z - b.z, __proto__: Vector.prototype } };
 Vector.add = function add(a, b) { return { x: a.x + b.x, y: a.y + b.y, z: a.z + b.z, __proto__: Vector.prototype } };
 Vector.scale = function scale(vec, num) {
-    if (typeof num == "number") return { x: vec.x * num, y: vec.y * num, z: vec.z * num, __proto__: Vector.prototype };
+    if (typeof num === "number") return { x: vec.x * num, y: vec.y * num, z: vec.z * num, __proto__: Vector.prototype };
     else return { x: vec.x * num.x, y: vec.y * num.y, z: vec.z * num.z, __proto__: Vector.prototype };
 }
 Vector.isVec3 = function isVec3(vec) { return vec[isVec3Symbol] === true; }

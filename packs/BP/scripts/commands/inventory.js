@@ -14,7 +14,7 @@ export class InventoryCommand extends Command {
         });
     }
 
-    inventoryCommand(origin, playername) {
+    inventoryCommand(_origin, playername) {
         const understudy = Understudies.get(playername);
         if (!understudy)
             return { status: CustomCommandStatus.Failure, message: Understudies.getNotOnlineMessage(playername) };

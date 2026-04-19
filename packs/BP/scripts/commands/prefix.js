@@ -14,7 +14,7 @@ export class PrefixCommand extends Command {
         });
     }
 
-    prefixCommand(origin, prefix) {
+    prefixCommand(_origin, prefix) {
         if (prefix === '-none') {
             system.run(() => Understudies.setNametagPrefix(''));
             return { status: CustomCommandStatus.Success, message: '§7Simplayer prefix removed.' };

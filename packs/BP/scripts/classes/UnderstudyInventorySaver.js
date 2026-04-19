@@ -4,7 +4,7 @@ import SRCItemDatabase from "../lib/SRCItemDatabase/ItemDatabase.js";
 export class UnderstudyInventorySaver {
     constructor(understudy) {
         this.understudy = understudy;
-        const tableName = 'bot_' + understudy.name.substr(0, 8);
+        const tableName = `bot_${understudy.name.substr(0, 8)}`;
         this.itemDatabase = new SRCItemDatabase(tableName);
         this.inventoryDP = `${tableName}_inventory`;
         this.equippableDP = `${tableName}_equippable`;

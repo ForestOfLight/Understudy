@@ -17,7 +17,7 @@ export class SneakCommand extends Command {
         });
     }
 
-    sprintCommand(origin, playername, shouldSneak) {
+    sprintCommand(_origin, playername, shouldSneak) {
         const understudy = Understudies.get(playername);
         if (!understudy)
             return { status: CustomCommandStatus.Failure, message: Understudies.getNotOnlineMessage(playername) };

@@ -6,7 +6,7 @@ export class GameRuleCertifier {
     }
 
     static fixGameRules() {
-        this.setGameRules(this.getGameRules());
+        GameRuleCertifier.setGameRules(GameRuleCertifier.getGameRules());
     }
 
     static setGameRules(newGameRules) {

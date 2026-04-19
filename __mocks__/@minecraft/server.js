@@ -203,7 +203,7 @@ export const Container = class Container {
         return void 0
     })
     firstEmptySlot = vi.fn(() => {
-        const i = this.#slots.findIndex(s => s === void 0)
+        const i = this.#slots.indexOf(s => s === void 0)
         return i === -1 ? void 0 : i
     })
     firstItem = vi.fn(() => {
@@ -246,7 +246,7 @@ export const DimensionType = class DimensionType {
 export const DimensionTypes = { getAll: vi.fn(() => [new DimensionType("minecraft:overworld"), new DimensionType('minecraft:nether'), new DimensionType('minecraft:the_end')]) }
 export const TicksPerSecond = 20.0
 export const BlockVolume = class BlockVolume {}
-export const EntityItemComponent = class EntityItemComponent { static componentId = 'minecraft:item' }
+export const EntityItemComponent = class EntityItemComponent { get componentId() { return 'minecraft:item' } }
 export const StructureSaveMode = { Memory: 'Memory', World: 'World' }
 
 export const system = {

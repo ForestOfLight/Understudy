@@ -17,7 +17,7 @@ export class SelectCommand extends Command {
         });
     }
 
-    selectCommand(origin, playername, slotNumber) {
+    selectCommand(_origin, playername, slotNumber) {
         const understudy = Understudies.get(playername);
         if (!understudy)
             return { status: CustomCommandStatus.Failure, message: Understudies.getNotOnlineMessage(playername) };

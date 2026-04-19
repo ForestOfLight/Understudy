@@ -45,7 +45,7 @@ export class ActionCommand extends Command {
         });
     }
 
-    actionCommand(origin, playername, action, timingOption = TIMING_OPTIONS.ONCE, ticks) {
+    actionCommand(_origin, playername, action, timingOption = TIMING_OPTIONS.ONCE, ticks) {
         const understudy = Understudies.get(playername);
         if (!understudy)
             return { status: CustomCommandStatus.Failure, message: Understudies.getNotOnlineMessage(playername) };

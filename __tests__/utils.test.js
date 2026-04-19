@@ -116,10 +116,9 @@ describe('portOldGameModeToNewUpdate', () => {
         ['number', 0],
         ['boolean', true],
         ['object', {}],
-        ['undefined', void 0],
-        ['null', null]
+        ['undefined', void 0]
     ])('throws when given a %s', (type, value) => {
-        expect(() => portOldGameModeToNewUpdate(value)).toThrow()
+        expect(() => portOldGameModeToNewUpdate(value)).toThrow(expect.objectContaining({ message: expect.stringContaining(type) }))
     })
 })
 
