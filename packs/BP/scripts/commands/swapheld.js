@@ -19,6 +19,7 @@ export class SwapHeldCommand extends Command {
         if (!understudy)
             return { status: CustomCommandStatus.Failure, message: Understudies.getNotOnlineMessage(playername) };
         system.run(() => understudy.swapHeldItemWithPlayer(origin.getSource()));
+        return { status: CustomCommandStatus.Success };
     }
 }
 

@@ -1,4 +1,4 @@
-import { Block, Entity, EntityComponentTypes, GameMode, Player } from "@minecraft/server";
+import { Block, Entity, GameMode, Player } from "@minecraft/server";
 
 const PLAYER_EYE_HEIGHT = 1.62001002;
 
@@ -23,14 +23,9 @@ function getLookAtRotation(baseLocation, targetLocation) {
     return { x: pitch, y: yaw };
 }
 
-function isNumeric(value) {
-    return !isNaN(parseFloat(value)) && isFinite(value);
-}
-
-function swapSlots(player, slotNumber1, slotNumber2) {
-    const invContainer = player?.getComponent(EntityComponentTypes.Inventory)?.container;
+function swapSlots(invContainer, slotNumber1, slotNumber2) {
     if (!invContainer)
-        throw new Error('[Understudy] Player does not have an inventory container.');
+        throw new Error('[Understudy] Inventory container is not available.');
     const slot1 = invContainer.getItem(slotNumber1);
     const slot2 = invContainer.getItem(slotNumber2);
     invContainer.setItem(slotNumber1, slot2);
@@ -62,10 +57,9 @@ function getLocationInfoFromSource(source) {
         return { location: source.location, dimension: source.dimension, rotation: source.getRotation(), gameMode: source.getGameMode() };
     else if (source instanceof Entity)
         return { location: source.location, dimension: source.dimension, rotation: source.getRotation() };
-    else
-        throw new Error(`[Understudy] Invalid source`);
+    throw new Error(`[Understudy] Invalid source`);
 }
 
 export { 
-    PLAYER_EYE_HEIGHT, getLookAtLocation, isNumeric, getLookAtRotation, swapSlots, portOldGameModeToNewUpdate, getLocationInfoFromSource
+    PLAYER_EYE_HEIGHT, getLookAtLocation, getLookAtRotation, swapSlots, portOldGameModeToNewUpdate, getLocationInfoFromSource
 };

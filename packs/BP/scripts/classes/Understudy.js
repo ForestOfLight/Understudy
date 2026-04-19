@@ -3,133 +3,119 @@ import { spawnSimulatedPlayer } from "@minecraft/server-gametest";
 import { getLookAtLocation, getLookAtRotation, portOldGameModeToNewUpdate } from "../utils";
 import { Vector } from "../lib/Vector";
 import { MOVE_OPTIONS } from "../commands/move";
-import { RepeatableAction } from "./RepeatableAction";
 import { PlayerInfoSaver } from "./PlayerInfoSaver";
+import { Actions } from "./Actions";
+import { UnderstudyNotConnectedError } from "../errors/UnderstudyNotConnectedError";
+import { UnderstudyConnectedError } from "../errors/UnderstudyConnectedError";
+import { UnderstudySaveInfoError } from "../errors/UnderstudySaveInfoError";
 
 class Understudy {
     name;
-    isConnected = false;
-    simulatedPlayer = null;
-    createdTick;
-    singleActions = [];
-    repeatingActions = [];
+    #simulatedPlayer = null;
+    #createdTick;
+    #isConnected = false;
     #lookTarget;
-    playerInfoSaver;
+    #actions;
+    #playerInfoSaver;
 
     constructor(name) {
         this.name = name;
-        this.createdTick = system.currentTick;
-        this.playerInfoSaver = new PlayerInfoSaver(this);
+        this.#createdTick = system.currentTick;
+        this.#playerInfoSaver = new PlayerInfoSaver(this);
+        this.#actions = new Actions(this);
+    }
+
+    isConnected() {
+        return this.#isConnected;
     }
 
     onConnectedTick() {
-        this.playerInfoSaver.onConnectedTick();
-        if (!this.getLookTarget()?.isValid)
-            this.removeLookTarget();
-        if (this.simulatedPlayer !== null)
+        this.#playerInfoSaver.onConnectedTick();
+        if (!this.#lookTarget?.isValid)
+            this.clearLookTarget();
+        if (this.#simulatedPlayer !== null)
             this.refreshHeldItem();
-        for (const singleAction of this.singleActions)
-            singleAction.perform();
-        this.singleActions.length = 0;
-        for (const repeatingAction of this.repeatingActions)
-            repeatingAction.onTick();
+        this.#actions.onTick();
     }
 
-    savePlayerInfo() {
-        this.playerInfoSaver.save();
+    get createdTick() {
+        return this.#createdTick;
     }
 
-    getLookTarget() {
+    get simulatedPlayer() {
+        this.#assertConnected();
+        return this.#simulatedPlayer;
+    }
+
+    get actions() {
+        this.#assertConnected();
+        return this.#actions;
+    }
+
+    get lookTarget() {
+        this.#assertConnected();
         return this.#lookTarget;
     }
 
-    removeLookTarget() {
+    clearLookTarget() {
+        this.#assertConnected();
         this.#lookTarget = void 0;
     }
 
-    getHeadRotation() {
+    get headRotation() {
+        this.#assertConnected();
         if (!this.#lookTarget?.isValid)
-            this.removeLookTarget();
+            this.clearLookTarget();
         if (this.#lookTarget === void 0) 
-            return this.simulatedPlayer.headRotation;
+            return this.#simulatedPlayer.headRotation;
         let targetLocation;
         if (this.#lookTarget instanceof Entity)
-            try {   
+            {try {   
                targetLocation = this.#lookTarget.getHeadLocation();
             } catch {
-                return this.simulatedPlayer.headRotation;
-            }
+                return this.#simulatedPlayer.headRotation;
+            }}
         else
-            targetLocation = this.#lookTarget.location;
-        return getLookAtRotation(this.simulatedPlayer.location, targetLocation);
+            {targetLocation = this.#lookTarget.location;}
+        return getLookAtRotation(this.#simulatedPlayer.location, targetLocation);
     }
 
-    addRepeatingAction(repeatingAction) {
-        if (this.hasRepeatingAction(repeatingAction.type)) {
-            const existingRepeatingAction = this.getRepeatingAction(repeatingAction.type) || repeatingAction;
-            existingRepeatingAction.setInterval(repeatingAction.intervalTicks);
-            return;
-        }
-        this.repeatingActions.push(repeatingAction);
-    }
-
-    getRepeatingAction(type) {
-        return this.repeatingActions.find(action => action.type === type);
-    }
-
-    hasRepeatingAction(type) {
-        if (!type) 
-            return this.repeatingActions.length > 0;
-        return this.repeatingActions.some(action => action.type === type);
-    }
-
-    removeRepeatingAction(type) {
-        this.repeatingActions = this.repeatingActions.filter(action => action.type !== type);
-    }
-
-    clearRepeatingActions() {
-        this.repeatingActions.length = 0;
-    }
-
-    singleRepeatableAction(type, afterTicks = void 0) {
-        const repeatableAction = new RepeatableAction(this, type);
-        if (afterTicks === void 0)
-            this.singleActions.push(repeatableAction);
-        else
-            system.runTimeout(() => this.singleActions.push(repeatableAction), afterTicks);
-    }
-
-    repeatingAction(type, intervalTicks = 0) {
-        if (this.hasRepeatingAction(type))
-            this.removeRepeatingAction(type);
-        const repeatingAction = new RepeatableAction(this, type, intervalTicks);
-        this.addRepeatingAction(repeatingAction);
+    savePlayerInfo() {
+        this.#assertConnected();
+        this.#playerInfoSaver.save();
     }
 
     join({ location, dimension, rotation = { x: 0, y: 0 }, gameMode = GameMode.Survival }) {
+        this.#assertNotConnected();
         const updatedGameMode = portOldGameModeToNewUpdate(gameMode);
-        const dimensionLocation = location;
-        dimensionLocation.dimension = dimension;
-        this.simulatedPlayer = spawnSimulatedPlayer(dimensionLocation, this.name, updatedGameMode);
+        this.#simulatedPlayer = spawnSimulatedPlayer({ ...location, dimension }, this.name, updatedGameMode);
+        this.#isConnected = true;
         this.teleport({ location, rotation, dimension });
-        system.run(() => this.playerInfoSaver.load());
-        this.isConnected = true;
+        system.run(() => {
+            try{
+                this.#playerInfoSaver.loadInventoryAndProjectileOwnership();
+            } catch (error) {
+                if (error instanceof UnderstudySaveInfoError)
+                    console.warn(`[Understudy] Failed to load player info for ${this.name}:`, error);
+                else
+                    throw error;
+            }
+        });
     }
 
     leave() {
+        this.#assertConnected();
         this.savePlayerInfo();
-        if (this.simulatedPlayer === null)
-            throw new Error(`[Understudy] Player ${this.name} is not connected`);
-        this.savePlayerInfo();
-        this.simulatedPlayer.remove();
-        this.simulatedPlayer = null;
-        this.removeLookTarget();
-        this.isConnected = false;
+        this.#simulatedPlayer.remove();
+        this.#simulatedPlayer = void 0;
+        this.clearLookTarget();
+        this.#isConnected = false;
         world.sendMessage(`§e${this.name} left the game`);
     }
 
     rejoin() {
-        const playerInfo = this.playerInfoSaver.get();
+        this.#assertNotConnected();
+        const playerInfo = this.#playerInfoSaver.get();
         this.join({
             location: playerInfo.location,
             rotation: playerInfo.rotation,
@@ -165,10 +151,10 @@ class Understudy {
     }
 
     stopLooking() {
-        const target = this.getLookTarget();
+        const target = this.lookTarget;
         if (target === void 0)
             return;
-        this.removeLookTarget();
+        this.clearLookTarget();
         if (target instanceof Player)
             this.look(Vector.from(target.getHeadLocation()));
         else if (target instanceof Block)
@@ -217,15 +203,16 @@ class Understudy {
     }
 
     claimProjectiles(radius) {
-        const projectileComponents = this.getProjectileComponentsInRange(this.simulatedPlayer, radius);
-        if (projectileComponents.length === 0)
-            return world.sendMessage(`<${this.simulatedPlayer.name}> §7No projectiles found within ${radius} blocks.`);
-        const numChanged = this.changeProjectileOwner(projectileComponents, this.simulatedPlayer);
-        world.sendMessage(`<${this.simulatedPlayer.name}> §7Successfully became the owner of ${numChanged} projectiles.`);
+        const simulatedPlayer = this.simulatedPlayer;
+        const projectileComponents = this.#getProjectileComponentsInRange(simulatedPlayer, radius);
+        const numChanged = this.#changeProjectileOwner(projectileComponents, simulatedPlayer);
+        if (numChanged === 0)
+            return world.sendMessage(`<${simulatedPlayer.name}> §7No claimable projectiles found within ${radius} blocks.`);
+        world.sendMessage(`<${simulatedPlayer.name}> §7Successfully became the owner of ${numChanged} projectiles.`);
         this.savePlayerInfo();
     }
 
-    getProjectileComponentsInRange(player, radius) {
+    #getProjectileComponentsInRange(player, radius) {
         const projectileComponents = [];
         const radiusEntities = player.dimension.getEntities({ location: player.location, maxDistance: radius });
         for (const entity of radiusEntities) {
@@ -236,51 +223,44 @@ class Understudy {
         return projectileComponents;
     }
 
-    changeProjectileOwner(projectileComponents, newOwner) {
+    #changeProjectileOwner(projectileComponents, newOwner) {
+        const successfullyChanged = [];
         for (const projectileComponent of projectileComponents) {
             if (!projectileComponent?.isValid)
                 continue;
             projectileComponent.owner = newOwner;
+            successfullyChanged.push(projectileComponent);
         }
-        return projectileComponents.length;
+        return successfullyChanged.length;
     }
 
     stopAll() {
-        this.clearRepeatingActions();
+        this.actions.clear();
         this.stopMoving();
-        this.simulatedPlayer.stopBuild();
-        this.simulatedPlayer.stopInteracting();
-        this.simulatedPlayer.stopBreakingBlock();
-        this.simulatedPlayer.stopUsingItem();
-        this.simulatedPlayer.stopSwimming();
-        this.simulatedPlayer.stopGliding();
-        this.simulatedPlayer.stopUsingItem();
+        this.#simulatedPlayer.stopBuild();
+        this.#simulatedPlayer.stopInteracting();
+        this.#simulatedPlayer.stopBreakingBlock();
+        this.#simulatedPlayer.stopUsingItem();
+        this.#simulatedPlayer.stopSwimming();
+        this.#simulatedPlayer.stopGliding();
+        this.#simulatedPlayer.stopUsingItem();
         this.sprint(false);
         this.sneak(false);
-        this.stopHeadRotationInPlace();
+        this.clearLookTarget();
         this.savePlayerInfo();
     }
 
-    stopHeadRotationInPlace() {
-        const target = this.getLookTarget();
-        if (target === void 0)
-            return;
-        this.removeLookTarget();
-        if (target instanceof Player)
-            this.look(Vector.from(target.getHeadLocation()));
-        else
-            this.look(Vector.from(target));
-    }
-
     getInventory() {
-        return this.simulatedPlayer.getComponent(EntityComponentTypes.Inventory)?.container;
+        const simulatedPlayer = this.simulatedPlayer;
+        const inventoryComponent = simulatedPlayer.getComponent(EntityComponentTypes.Inventory);
+        return inventoryComponent?.container;
     }
 
     swapHeldItemWithPlayer(targetPlayer) {
         const playerInvContainer = this.getInventory();
         const targetInvContainer = targetPlayer.getComponent(EntityComponentTypes.Inventory)?.container;
         try {
-            playerInvContainer.swapItems(this.simulatedPlayer.selectedSlotIndex, targetPlayer.selectedSlotIndex, targetInvContainer);
+            playerInvContainer.swapItems(this.#simulatedPlayer.selectedSlotIndex, targetPlayer.selectedSlotIndex, targetInvContainer);
         } catch(error) {
             targetPlayer.sendMessage(`§cError while swapping items: ${error.name}`);
             console.warn(error);
@@ -290,7 +270,17 @@ class Understudy {
     }
 
     refreshHeldItem() {
-        this.simulatedPlayer.selectedSlotIndex = this.simulatedPlayer.selectedSlotIndex;
+        this.#simulatedPlayer.selectedSlotIndex = this.simulatedPlayer.selectedSlotIndex;
+    }
+
+    #assertConnected() {
+        if (!this.isConnected())
+            throw new UnderstudyNotConnectedError(this.name);
+    }
+
+    #assertNotConnected() {
+        if (this.isConnected())
+            throw new UnderstudyConnectedError(this.name);
     }
 }
 

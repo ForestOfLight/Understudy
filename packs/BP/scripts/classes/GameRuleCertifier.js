@@ -1,8 +1,12 @@
 import { system, world } from "@minecraft/server";
 
 export class GameRuleCertifier {
+    static onGameRuleChange(event) {
+        world.setDynamicProperty(`gamerule:${event.rule}`, event.value);
+    }
+
     static fixGameRules() {
-        this.setGameRules(this.getGameRules());
+        GameRuleCertifier.setGameRules(GameRuleCertifier.getGameRules());
     }
 
     static setGameRules(newGameRules) {
@@ -23,15 +27,13 @@ export class GameRuleCertifier {
         const gameRuleMap = {};
         for (const gamerule in world.gameRules) {
             const value = world.getDynamicProperty(`gamerule:${gamerule}`);
-            if (value === undefined) {
+            if (value === undefined) 
                 world.setDynamicProperty(`gamerule:${gamerule}`, world.gameRules[gamerule]);
-            }
+            
             gameRuleMap[gamerule] = value || world.gameRules[gamerule];
         }
         return gameRuleMap;
     }
 }
 
-world.afterEvents.gameRuleChange.subscribe((event) => {
-    world.setDynamicProperty(`gamerule:${event.rule}`, event.value);
-});
+world.afterEvents.gameRuleChange.subscribe(GameRuleCertifier.onGameRuleChange);

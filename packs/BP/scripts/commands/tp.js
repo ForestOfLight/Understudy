@@ -19,7 +19,12 @@ export class TeleportCommand extends Command {
         const understudy = Understudies.get(playername);
         if (!understudy)
             return { status: CustomCommandStatus.Failure, message: Understudies.getNotOnlineMessage(playername) };
-        system.run(() => understudy.teleport(getLocationInfoFromSource(origin.getSource())));
+        system.run(() => this.#teleportToOrigin(origin, understudy));
+        return { status: CustomCommandStatus.Success };
+    }
+
+    #teleportToOrigin(origin, understudy) {
+        understudy.teleport(getLocationInfoFromSource(origin.getSource()));
     }
 }
 

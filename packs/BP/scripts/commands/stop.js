@@ -14,11 +14,12 @@ export class StopCommand extends Command {
         });
     }
 
-    stopCommand(origin, playername) {
+    stopCommand(_origin, playername) {
         const understudy = Understudies.get(playername);
         if (!understudy)
             return { status: CustomCommandStatus.Failure, message: Understudies.getNotOnlineMessage(playername) };
         system.run(() => understudy.stopAll());
+        return { status: CustomCommandStatus.Success };
     }
 }
 

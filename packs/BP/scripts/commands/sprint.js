@@ -17,11 +17,12 @@ export class SprintCommand extends Command {
         });
     }
 
-    sprintCommand(origin, playername, shouldSprint) {
+    sprintCommand(_origin, playername, shouldSprint) {
         const understudy = Understudies.get(playername);
         if (!understudy)
             return { status: CustomCommandStatus.Failure, message: Understudies.getNotOnlineMessage(playername) };
         system.run(() => understudy.sprint(shouldSprint));
+        return { status: CustomCommandStatus.Success };
     }
 }
 
