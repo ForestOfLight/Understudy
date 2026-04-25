@@ -1,6 +1,6 @@
 import { vi, describe, it, expect, beforeAll } from 'vitest'
-import { Player, world } from '@minecraft/server'
-import { advanceTicks, CustomCommandStatus } from '@forestoflight/minecraft-vitest-mocks/server'
+import { CustomCommandStatus, Player, world } from '@minecraft/server'
+import { scheduler } from '@forestoflight/minecraft-vitest-mocks'
 import Understudies from '../../packs/BP/scripts/classes/Understudies.js'
 import { teleportCommand } from '../../packs/BP/scripts/commands/tp.js'
 import { PlayerCommandOrigin } from '../../packs/BP/scripts/lib/canopy/PlayerCommandOrigin.js'
@@ -41,7 +41,7 @@ describe('TeleportCommand', () => {
             const origin = new PlayerCommandOrigin({ sourceEntity: player })
             const spy = vi.spyOn(understudy, 'teleport')
             teleportCommand.teleportCommand(origin, 'TestBot')
-            advanceTicks(1)
+            scheduler.advanceTicks(1)
             expect(spy).toHaveBeenCalledWith(
                 expect.objectContaining({ location: player.location })
             )

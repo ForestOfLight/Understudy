@@ -1,5 +1,5 @@
 import { vi, describe, it, expect, beforeAll } from 'vitest'
-import { advanceTicks } from '@forestoflight/minecraft-vitest-mocks/server'
+import { scheduler } from '@forestoflight/minecraft-vitest-mocks'
 import Understudies from '../../packs/BP/scripts/classes/Understudies.js'
 import { selectCommand } from '../../packs/BP/scripts/commands/select.js'
 import { CustomCommandStatus, world } from '@minecraft/server'
@@ -41,7 +41,7 @@ describe('SelectCommand', () => {
         it.each([0, 1, 2, 3, 4, 5, 6, 7, 8])('schedules selectSlot for valid slot (%i)', (slot) => {
             const spy = vi.spyOn(understudy, 'selectSlot')
             selectCommand.selectCommand({}, 'TestBot', slot)
-            advanceTicks(1)
+            scheduler.advanceTicks(1)
             expect(spy).toHaveBeenCalledWith(slot)
         })
 

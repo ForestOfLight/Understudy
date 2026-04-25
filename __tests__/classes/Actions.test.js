@@ -2,7 +2,7 @@ import { vi, describe, it, expect, beforeEach } from 'vitest'
 import { Actions } from '../../packs/BP/scripts/classes/Actions.js'
 import { RepeatableAction } from '../../packs/BP/scripts/classes/RepeatableAction.js'
 import { REPEATABLE_ACTIONS } from '../../packs/BP/scripts/commands/action.js'
-import { advanceTicks } from '@forestoflight/minecraft-vitest-mocks/server'
+import { scheduler } from '@forestoflight/minecraft-vitest-mocks'
 
 describe('Actions', () => {
     let mockUnderstudy; let actions; let performSpy; let repeatableActionOnTickSpy
@@ -51,7 +51,7 @@ describe('Actions', () => {
 
         it('performs the action after the tick delay elapses', () => {
             actions.once(REPEATABLE_ACTIONS.ATTACK, 5)
-            advanceTicks(5)
+            scheduler.advanceTicks(5)
             actions.onTick()
             expect(performSpy).toHaveBeenCalledOnce()
         })

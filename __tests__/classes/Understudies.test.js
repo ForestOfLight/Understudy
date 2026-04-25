@@ -1,12 +1,12 @@
 import { vi, describe, it, expect, beforeEach } from 'vitest'
 import { world, system } from '@minecraft/server'
 import Understudies from '../../packs/BP/scripts/classes/Understudies.js'
-import { advanceTicks, resetScheduler } from '@forestoflight/minecraft-vitest-mocks/server'
+import { scheduler } from '@forestoflight/minecraft-vitest-mocks'
 
 describe('Understudies', () => {
     beforeEach(() => {
         Understudies.understudies = []
-        resetScheduler()
+        scheduler.reset()
     })
 
     describe('onStartup', () => {
@@ -23,7 +23,7 @@ describe('Understudies', () => {
             const understudy = Understudies.create('TestBot')
             understudy.join({ location: { x: 0, y: 0, z: 0 }, dimension: world.getDimension('overworld') })
             const onConnectedTickSpy = vi.spyOn(understudy, 'onConnectedTick').mockImplementation(() => {})
-            advanceTicks(1)
+            scheduler.advanceTicks(1)
             expect(onConnectedTickSpy).toHaveBeenCalled()
         })
     })
@@ -38,10 +38,10 @@ describe('Understudies', () => {
         it('removes the understudy when it dies', () => {
             const understudy = Understudies.create('TestBot')
             understudy.join({ location: { x: 0, y: 0, z: 0 }, dimension: world.getDimension('overworld') })
-            advanceTicks(1)
+            scheduler.advanceTicks(1)
             const event = { deadEntity: { typeId: 'minecraft:player', name: 'TestBot' } }
             Understudies.onEntityDie(event)
-            advanceTicks(1)
+            scheduler.advanceTicks(1)
             expect(Understudies.understudies.length).toBe(0)
         })
     })
@@ -112,21 +112,21 @@ describe('Understudies', () => {
         it('removes the understudy once it is no longer connected', () => {
             const understudy = Understudies.create('TestBot')
             understudy.join({ location: { x: 0, y: 0, z: 0 }, dimension: world.getDimension('overworld') })
-            advanceTicks(1)
+            scheduler.advanceTicks(1)
             understudy.leave()
             Understudies.remove(understudy)
-            advanceTicks(1)
+            scheduler.advanceTicks(1)
             expect(Understudies.understudies.length).toBe(0)
         })
 
         it('clears the run interval after removing', () => {
             const understudy = Understudies.create('TestBot')
             understudy.join({ location: { x: 0, y: 0, z: 0 }, dimension: world.getDimension('overworld') })
-            advanceTicks(1)
+            scheduler.advanceTicks(1)
             understudy.leave()
             const clearRunSpy = vi.spyOn(system, 'clearRun')
             Understudies.remove(understudy)
-            advanceTicks(1)
+            scheduler.advanceTicks(1)
             expect(clearRunSpy).toHaveBeenCalled()
         })
 
@@ -142,7 +142,7 @@ describe('Understudies', () => {
             Understudies.create('TestBot')
             Understudies.create('Bob')
             Understudies.removeAll()
-            advanceTicks(1)
+            scheduler.advanceTicks(1)
             expect(Understudies.length()).toBe(0)
         })
     })

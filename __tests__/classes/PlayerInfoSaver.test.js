@@ -3,7 +3,7 @@ import { world, system, EntityComponentTypes, TicksPerSecond } from '@minecraft/
 import { PlayerInfoSaver } from '../../packs/BP/scripts/classes/PlayerInfoSaver.js'
 import Understudy from '../../packs/BP/scripts/classes/Understudy.js'
 import { UnderstudySaveInfoError } from '../../packs/BP/scripts/errors/UnderstudySaveInfoError.js'
-import { dynamicPropertyStore } from '@forestoflight/minecraft-vitest-mocks/server'
+import { worldDynamicPropertyStore } from '@forestoflight/minecraft-vitest-mocks'
 import { UnderstudyNotConnectedError } from '../../packs/BP/scripts/errors/UnderstudyNotConnectedError.js'
 
 describe('PlayerInfoSaver', () => {
@@ -15,7 +15,7 @@ describe('PlayerInfoSaver', () => {
         understudy = new Understudy('TestBot')
         understudy.join({ location: { x: 0, y: 64, z: 0 }, dimension: world.getDimension("minecraft:overworld") })
         infoSaver = new PlayerInfoSaver(understudy)
-        dynamicPropertyStore.set('noSimplayerSaving', false)
+        worldDynamicPropertyStore.set('noSimplayerSaving', false)
     })
 
     describe('get', () => {
@@ -24,17 +24,17 @@ describe('PlayerInfoSaver', () => {
         })
 
         it('throws when noSimplayerSaving is enabled', () => {
-            dynamicPropertyStore.set('noSimplayerSaving', true)
+            worldDynamicPropertyStore.set('noSimplayerSaving', true)
             expect(() => infoSaver.get()).toThrow(UnderstudySaveInfoError)
         })
 
         it('throws when no player info has been saved', () => {
-            dynamicPropertyStore.set('TestBot:playerinfo', undefined)
+            worldDynamicPropertyStore.set('TestBot:playerinfo', undefined)
             expect(() => infoSaver.get()).toThrow(UnderstudySaveInfoError)
         })
 
         it('throws when player info is corrupted', () => {
-            dynamicPropertyStore.set('TestBot:playerinfo', 'this is not valid json')
+            worldDynamicPropertyStore.set('TestBot:playerinfo', 'this is not valid json')
             expect(() => infoSaver.get()).toThrow(UnderstudySaveInfoError)
         })
 
@@ -43,7 +43,7 @@ describe('PlayerInfoSaver', () => {
                 location: { x: 0, y: 64, z: 0 }, rotation: { x: 0, y: 0 },
                 dimensionId: 'minecraft:overworld', gameMode: 'Survival', projectileIds: [],
             }
-            dynamicPropertyStore.set('TestBot:playerinfo', JSON.stringify(playerInfo))
+            worldDynamicPropertyStore.set('TestBot:playerinfo', JSON.stringify(playerInfo))
             expect(infoSaver.get()).toEqual(playerInfo)
         })
 
@@ -70,7 +70,7 @@ describe('PlayerInfoSaver', () => {
         })
 
         it('does not save when noSimplayerSaving is enabled', () => {
-            dynamicPropertyStore.set('noSimplayerSaving', true) 
+            worldDynamicPropertyStore.set('noSimplayerSaving', true)
             infoSaver.save()
             expect(world.setDynamicProperty).not.toHaveBeenCalledWith('TestBot:playerinfo', expect.any(String))
         })
@@ -101,7 +101,7 @@ describe('PlayerInfoSaver', () => {
 
     describe('loadInventoryAndProjectileOwnership', () => {
         it('throws when noSimplayerSaving is enabled', () => {
-            dynamicPropertyStore.set('noSimplayerSaving', true)
+            worldDynamicPropertyStore.set('noSimplayerSaving', true)
             expect(() => infoSaver.loadInventoryAndProjectileOwnership()).toThrow(UnderstudySaveInfoError)
         })
 
@@ -110,8 +110,8 @@ describe('PlayerInfoSaver', () => {
                 location: { x: 1, y: 64, z: 2 }, rotation: { x: 0, y: 90 },
                 dimensionId: 'minecraft:overworld', gameMode: 'Creative', projectileIds: [],
             }
-            dynamicPropertyStore.set('TestBot:playerinfo', JSON.stringify(playerInfo))
-            dynamicPropertyStore.set('bot_TestBot_inventory', JSON.stringify({ 0: { typeId: 'minecraft:stone', amount: 1 } }))
+            worldDynamicPropertyStore.set('TestBot:playerinfo', JSON.stringify(playerInfo))
+            worldDynamicPropertyStore.set('bot_TestBot_inventory', JSON.stringify({ 0: { typeId: 'minecraft:stone', amount: 1 } }))
             infoSaver.loadInventoryAndProjectileOwnership()
             expect(understudy.getInventory().setItem).toHaveBeenCalled()
         })
@@ -123,7 +123,7 @@ describe('PlayerInfoSaver', () => {
                 location: { x: 1, y: 64, z: 2 }, rotation: { x: 0, y: 90 },
                 dimensionId: 'minecraft:overworld', gameMode: 'Creative', projectileIds: ['proj1'],
             }
-            dynamicPropertyStore.set('TestBot:playerinfo', JSON.stringify(playerInfo))
+            worldDynamicPropertyStore.set('TestBot:playerinfo', JSON.stringify(playerInfo))
             infoSaver.loadInventoryAndProjectileOwnership()
             expect(projectile.getComponent(EntityComponentTypes.Projectile).owner).toBe(understudy.simulatedPlayer)
         })
@@ -136,7 +136,7 @@ describe('PlayerInfoSaver', () => {
         })
 
         it('does nothing when noSimplayerSaving is enabled', () => {
-            dynamicPropertyStore.set('noSimplayerSaving', true)
+            worldDynamicPropertyStore.set('noSimplayerSaving', true)
             infoSaver.onConnectedTick()
             expect(world.setDynamicProperty).not.toHaveBeenCalledWith('TestBot:playerinfo', expect.any(String))
         })

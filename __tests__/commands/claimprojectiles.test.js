@@ -1,5 +1,5 @@
 import { vi, describe, it, expect, beforeEach, beforeAll } from 'vitest'
-import { advanceTicks } from '@forestoflight/minecraft-vitest-mocks/server'
+import { scheduler } from '@forestoflight/minecraft-vitest-mocks'
 import Understudies from '../../packs/BP/scripts/classes/Understudies.js'
 import { world, CustomCommandStatus } from '@minecraft/server'
 import { claimProjectilesCommand } from '../../packs/BP/scripts/commands/claimprojectiles.js'
@@ -33,13 +33,13 @@ describe('ClaimProjectilesCommand', () => {
 
         it('schedules claimProjectiles with the default radius of 25', () => {
             claimProjectilesCommand.claimprojectilesCommand({}, 'TestBot')
-            advanceTicks(1)
+            scheduler.advanceTicks(1)
             expect(understudy.claimProjectiles).toHaveBeenCalledWith(25)
         })
 
         it('schedules claimProjectiles with a custom radius', () => {
             claimProjectilesCommand.claimprojectilesCommand({}, 'TestBot', 50)
-            advanceTicks(1)
+            scheduler.advanceTicks(1)
             expect(understudy.claimProjectiles).toHaveBeenCalledWith(50)
         })
     })

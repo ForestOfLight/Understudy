@@ -1,6 +1,6 @@
 import { vi, describe, it, expect, beforeAll } from 'vitest'
 import { Entity, Block, CustomCommandStatus, world } from '@minecraft/server'
-import { advanceTicks } from '@forestoflight/minecraft-vitest-mocks/server'
+import { scheduler } from '@forestoflight/minecraft-vitest-mocks'
 import { ServerCommandOrigin } from '../../packs/BP/scripts/lib/canopy/ServerCommandOrigin.js'
 import Understudies from '../../packs/BP/scripts/classes/Understudies.js'
 import { moveCommand, MOVE_OPTIONS } from '../../packs/BP/scripts/commands/move.js'
@@ -45,7 +45,7 @@ describe('MoveCommand', () => {
             ])('routes %s to moveRelatively', (direction) => {
                 const spy = vi.spyOn(understudy, 'moveRelative')
                 moveCommand.moveCommand({}, 'TestBot', direction)
-                advanceTicks(1)
+                scheduler.advanceTicks(1)
                 expect(spy).toHaveBeenCalledWith(direction)
             })
 
@@ -80,7 +80,7 @@ describe('MoveCommand', () => {
                 origin.getSource().getBlockFromViewDirection.mockReturnValue({ block })
                 const spy = vi.spyOn(understudy, 'moveLocation')
                 moveCommand.moveCommand(origin, 'TestBot', MOVE_OPTIONS.BLOCK)
-                advanceTicks(1)
+                scheduler.advanceTicks(1)
                 expect(spy).toHaveBeenCalledWith(block)
             })
 
@@ -112,7 +112,7 @@ describe('MoveCommand', () => {
                 origin.getSource().getEntitiesFromViewDirection.mockReturnValue([{ entity: targetEntity }])
                 const spy = vi.spyOn(understudy, 'moveLocation')
                 moveCommand.moveCommand(origin, 'TestBot', MOVE_OPTIONS.ENTITY)
-                advanceTicks(1)
+                scheduler.advanceTicks(1)
                 expect(spy).toHaveBeenCalledWith(targetEntity)
             })
 
@@ -137,7 +137,7 @@ describe('MoveCommand', () => {
                 const origin = makeEntityOrigin()
                 const spy = vi.spyOn(understudy, 'moveLocation')
                 moveCommand.moveCommand(origin, 'TestBot', MOVE_OPTIONS.ME)
-                advanceTicks(1)
+                scheduler.advanceTicks(1)
                 expect(spy).toHaveBeenCalledWith(origin.getSource())
             })
 
@@ -154,7 +154,7 @@ describe('MoveCommand', () => {
                 const location = { x: 10, y: 64, z: 20 }
                 const spy = vi.spyOn(understudy, 'moveLocation')
                 moveCommand.moveCommand(origin, 'TestBot', MOVE_OPTIONS.TO, location)
-                advanceTicks(1)
+                scheduler.advanceTicks(1)
                 expect(spy).toHaveBeenCalledWith(
                     expect.objectContaining({ x: 10, y: 64, z: 20 })
                 )
@@ -172,7 +172,7 @@ describe('MoveCommand', () => {
                 const origin = makeEntityOrigin()
                 const spy = vi.spyOn(understudy, 'stopMoving')
                 moveCommand.moveCommand(origin, 'TestBot', MOVE_OPTIONS.STOP)
-                advanceTicks(1)
+                scheduler.advanceTicks(1)
                 expect(spy).toHaveBeenCalled()
             })
 

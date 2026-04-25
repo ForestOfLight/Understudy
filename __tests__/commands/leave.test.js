@@ -1,5 +1,5 @@
 import { vi, describe, it, expect, beforeEach, beforeAll } from 'vitest'
-import { advanceTicks } from '@forestoflight/minecraft-vitest-mocks/server'
+import { scheduler } from '@forestoflight/minecraft-vitest-mocks'
 import Understudies from '../../packs/BP/scripts/classes/Understudies.js'
 import { leaveCommand } from '../../packs/BP/scripts/commands/leave.js'
 import { CustomCommandStatus, world } from '@minecraft/server'
@@ -23,7 +23,7 @@ describe('LeaveCommand', () => {
     describe('leaveCommand', () => {
         beforeEach(() => {
             Understudies.removeAll()
-            advanceTicks(1)
+            scheduler.advanceTicks(1)
             understudy = Understudies.create('TestBot')
             understudy.join({ location: { x: 0, y: 0, z: 0 }, dimension: world.getDimension('overworld') })
         })
@@ -36,14 +36,14 @@ describe('LeaveCommand', () => {
         it('schedules leave when the understudy is found', () => {
             vi.spyOn(understudy, 'leave')
             leaveCommand.leaveCommand({}, 'TestBot')
-            advanceTicks(1)
+            scheduler.advanceTicks(1)
             expect(understudy.leave).toHaveBeenCalled()
         })
 
         it('schedules remove after leave', () => {
             const spy = vi.spyOn(Understudies, 'remove')
             leaveCommand.leaveCommand({}, 'TestBot')
-            advanceTicks(1)
+            scheduler.advanceTicks(1)
             expect(spy).toHaveBeenCalledWith(understudy)
         })
 

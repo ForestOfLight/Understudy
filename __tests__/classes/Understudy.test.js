@@ -2,7 +2,7 @@ import { vi, describe, it, expect, beforeEach } from 'vitest'
 import { system, world, Block, Entity, Player, dynamicPropertyStore } from '@minecraft/server'
 import Understudy from '../../packs/BP/scripts/classes/Understudy.js'
 import { MOVE_OPTIONS } from '../../packs/BP/scripts/commands/move.js'
-import { advanceTicks } from '@forestoflight/minecraft-vitest-mocks/server'
+import { scheduler, worldDynamicPropertyStore } from '@forestoflight/minecraft-vitest-mocks'
 
 describe('Understudy', () => {
     let understudy
@@ -84,7 +84,7 @@ describe('Understudy', () => {
             })
             const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {})
             understudy.join({ location: { x: 0, y: 64, z: 0 }, dimension: world.getDimension() })
-            advanceTicks(1)
+            scheduler.advanceTicks(1)
             expect(warnSpy).toHaveBeenCalled()
         })
 
@@ -98,7 +98,7 @@ describe('Understudy', () => {
             })
             expect(() => {
                 understudy.join({ location: { x: 0, y: 64, z: 0 }, dimension: world.getDimension() })
-                advanceTicks(1)
+                scheduler.advanceTicks(1)
             }).toThrow()
         })
     })
@@ -106,7 +106,7 @@ describe('Understudy', () => {
     describe('rejoin', () => {
         it('calls join with saved player info', () => {
             const savedInfo = { location: { x: 0, y: 64, z: 0 }, dimensionId: 'minecraft:overworld', rotation: { x: 0, y: 0 }, gameMode: 'Survival' }
-            dynamicPropertyStore.set('TestBot:playerinfo', JSON.stringify(savedInfo))
+            worldDynamicPropertyStore.set('TestBot:playerinfo', JSON.stringify(savedInfo))
             vi.spyOn(understudy, 'join')
             understudy.rejoin()
             expect(understudy.join).toHaveBeenCalledWith({ location: savedInfo.location, dimension: world.getDimension(), rotation: savedInfo.rotation, gameMode: savedInfo.gameMode })

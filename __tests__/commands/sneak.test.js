@@ -1,5 +1,5 @@
 import { vi, describe, it, expect, beforeAll } from 'vitest'
-import { advanceTicks } from '@forestoflight/minecraft-vitest-mocks/server'
+import { scheduler } from '@forestoflight/minecraft-vitest-mocks'
 import Understudies from '../../packs/BP/scripts/classes/Understudies.js'
 import { sneakCommand } from '../../packs/BP/scripts/commands/sneak.js'
 import { CustomCommandStatus, world } from '@minecraft/server'
@@ -29,7 +29,7 @@ describe('SneakCommand', () => {
         it.each([true, false])('schedules sneak(%s) when shouldSneak is %s', (shouldSneak) => {
             const spy = vi.spyOn(understudy, 'sneak')
             sneakCommand.sprintCommand({}, 'TestBot', shouldSneak)
-            advanceTicks(1)
+            scheduler.advanceTicks(1)
             expect(spy).toHaveBeenCalledWith(shouldSneak)
         })
 

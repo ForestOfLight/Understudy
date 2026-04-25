@@ -1,6 +1,6 @@
 import { vi, describe, it, expect, beforeEach, beforeAll } from 'vitest'
 import { CustomCommandStatus, Player, world } from '@minecraft/server'
-import { advanceTicks } from '@forestoflight/minecraft-vitest-mocks/server'
+import { scheduler } from '@forestoflight/minecraft-vitest-mocks'
 import Understudies from '../../packs/BP/scripts/classes/Understudies.js'
 import { rejoinCommand } from '../../packs/BP/scripts/commands/rejoin.js'
 import Understudy from '../../packs/BP/scripts/classes/Understudy.js'
@@ -33,7 +33,7 @@ describe('RejoinCommand', () => {
         beforeEach(() => {
             vi.clearAllMocks()
             Understudies.removeAll()
-            advanceTicks(1)
+            scheduler.advanceTicks(1)
         })
 
         it('returns failure when the understudy is already online', () => {
@@ -47,7 +47,7 @@ describe('RejoinCommand', () => {
             const createSpy = vi.spyOn(Understudies, 'create')
             const rejoinSpy = vi.spyOn(Understudy.prototype, 'rejoin')
             rejoinCommand.rejoinCommand(makePlayerOrigin(), 'TestBot')
-            advanceTicks(1)
+            scheduler.advanceTicks(1)
             expect(createSpy).toHaveBeenCalledWith('TestBot')
             expect(rejoinSpy).toHaveBeenCalled()
         })
@@ -57,14 +57,14 @@ describe('RejoinCommand', () => {
             vi.spyOn(console, 'warn').mockImplementation(() => {})
             const joinSpy = vi.spyOn(Understudy.prototype, 'join')
             rejoinCommand.rejoinCommand(makePlayerOrigin(), 'TestBot')
-            advanceTicks(1)
+            scheduler.advanceTicks(1)
             expect(joinSpy).toHaveBeenCalled()
         })
 
         it('adds the nametag prefix after rejoining/joining', () => {
             const spy = vi.spyOn(Understudies, 'addNametagPrefix')
             rejoinCommand.rejoinCommand(makePlayerOrigin(), 'TestBot')
-            advanceTicks(1)
+            scheduler.advanceTicks(1)
             expect(spy).toHaveBeenCalledWith(expect.any(Understudy))
         })
 

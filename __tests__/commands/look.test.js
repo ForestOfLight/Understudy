@@ -1,6 +1,6 @@
 import { vi, describe, it, expect, beforeEach } from 'vitest'
 import { Entity, Block, world, CustomCommandStatus } from '@minecraft/server'
-import { advanceTicks } from '@forestoflight/minecraft-vitest-mocks/server'
+import { scheduler } from '@forestoflight/minecraft-vitest-mocks'
 import { ServerCommandOrigin } from '../../packs/BP/scripts/lib/canopy/ServerCommandOrigin.js'
 import Understudies from '../../packs/BP/scripts/classes/Understudies.js'
 import { lookCommand } from '../../packs/BP/scripts/commands/look.js'
@@ -19,7 +19,7 @@ describe('LookCommand', () => {
 
     beforeEach(() => {
         Understudies.removeAll()
-        advanceTicks(1)
+        scheduler.advanceTicks(1)
         understudy = Understudies.create('TestBot')
         understudy.join({ location: { x: 0, y: 0, z: 0 }, dimension: world.getDimension('overworld') })
     })
@@ -49,7 +49,7 @@ describe('LookCommand', () => {
             ])('routes %s to lookAtCardinal and schedules looking %s', (direction, expected) => {
                 const spy = vi.spyOn(understudy, 'look')
                 lookCommand.lookCommand({}, 'TestBot', direction)
-                advanceTicks(1)
+                scheduler.advanceTicks(1)
                 expect(spy).toHaveBeenCalledWith(expected)
             })
         })
@@ -73,7 +73,7 @@ describe('LookCommand', () => {
                 origin.getSource().getBlockFromViewDirection.mockReturnValue({ block })
                 const spy = vi.spyOn(understudy, 'look')
                 lookCommand.lookCommand(origin, 'TestBot', 'block')
-                advanceTicks(1)
+                scheduler.advanceTicks(1)
                 expect(spy).toHaveBeenCalledWith(block)
             })
         })
@@ -97,7 +97,7 @@ describe('LookCommand', () => {
                 origin.getSource().getEntitiesFromViewDirection.mockReturnValue([{ entity: targetEntity }])
                 const spy = vi.spyOn(understudy, 'look')
                 lookCommand.lookCommand(origin, 'TestBot', 'entity')
-                advanceTicks(1)
+                scheduler.advanceTicks(1)
                 expect(spy).toHaveBeenCalledWith(targetEntity)
             })
         })
@@ -114,7 +114,7 @@ describe('LookCommand', () => {
                 const origin = { getSource: vi.fn(() => mockSource) }
                 const spy = vi.spyOn(understudy, 'look')
                 lookCommand.lookCommand(origin, 'TestBot', 'me')
-                advanceTicks(1)
+                scheduler.advanceTicks(1)
                 expect(spy).toHaveBeenCalledWith(mockSource)
             })
         })
@@ -124,7 +124,7 @@ describe('LookCommand', () => {
                 const location = { x: 10, y: 64, z: 20 }
                 const spy = vi.spyOn(understudy, 'look')
                 lookCommand.lookCommand({}, 'TestBot', 'at', location)
-                advanceTicks(1)
+                scheduler.advanceTicks(1)
                 expect(spy).toHaveBeenCalledWith(
                     expect.objectContaining({ x: 10, y: 64, z: 20 })
                 )
@@ -135,7 +135,7 @@ describe('LookCommand', () => {
             it('schedules stopLooking on the understudy', () => {
                 const spy = vi.spyOn(understudy, 'stopLooking')
                 lookCommand.lookCommand({}, 'TestBot', 'stop')
-                advanceTicks(1)
+                scheduler.advanceTicks(1)
                 expect(spy).toHaveBeenCalled()
             })
         })

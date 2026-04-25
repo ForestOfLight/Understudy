@@ -2,7 +2,7 @@ import { vi, describe, it, expect, beforeEach } from 'vitest'
 import { system, world } from '@minecraft/server'
 import { simplayerRejoining } from '../../packs/BP/scripts/rules/simplayerRejoining.js'
 import Understudies from '../../packs/BP/scripts/classes/Understudies.js'
-import { advanceTicks, dynamicPropertyStore, resetScheduler } from '@forestoflight/minecraft-vitest-mocks/server'
+import { scheduler, worldDynamicPropertyStore } from '@forestoflight/minecraft-vitest-mocks'
 
 describe('SimplayerRejoining', () => {
     beforeEach(() => {
@@ -47,7 +47,7 @@ describe('SimplayerRejoining', () => {
 
     describe('onShutdown', () => {
         it('saves understudy names when enabled', () => {
-            dynamicPropertyStore.set('simplayerRejoining', true)
+            worldDynamicPropertyStore.set('simplayerRejoining', true)
             Understudies.create('Alice')
             Understudies.create('Bob')
             simplayerRejoining.onShutdown()
@@ -65,10 +65,10 @@ describe('SimplayerRejoining', () => {
 
     describe('onStartup', () => {
         beforeEach(() => {
-            resetScheduler()
+            scheduler.reset()
             Understudies.removeAll()
             vi.clearAllMocks()
-            advanceTicks(1)
+            scheduler.advanceTicks(1)
         })
 
         it('returns early without reading world state when disabled', () => {
@@ -79,8 +79,8 @@ describe('SimplayerRejoining', () => {
 
         it('creates and rejoins each saved player when enabled', () => {
             const spy = vi.spyOn(Understudies, 'create')
-            dynamicPropertyStore.set('simplayerRejoining', true)
-            dynamicPropertyStore.set('simplayersToRejoin', JSON.stringify(['Alice', 'Bob']))
+            worldDynamicPropertyStore.set('simplayerRejoining', true)
+            worldDynamicPropertyStore.set('simplayersToRejoin', JSON.stringify(['Alice', 'Bob']))
             simplayerRejoining.onStartup()
             expect(spy).toHaveBeenCalledWith('Alice')
             expect(spy).toHaveBeenCalledWith('Bob')
@@ -88,18 +88,18 @@ describe('SimplayerRejoining', () => {
 
         it('calls addNametagPrefix via runTimeout for each player', () => {
             const spy = vi.spyOn(Understudies, 'addNametagPrefix')
-            dynamicPropertyStore.set('simplayerRejoining', true)
-            dynamicPropertyStore.set('simplayersToRejoin', JSON.stringify(['Alice']))
+            worldDynamicPropertyStore.set('simplayerRejoining', true)
+            worldDynamicPropertyStore.set('simplayersToRejoin', JSON.stringify(['Alice']))
             simplayerRejoining.onStartup()
-            advanceTicks(5)
+            scheduler.advanceTicks(5)
             expect(spy).toHaveBeenCalledWith(Understudies.get('Alice'))
         })
 
         it('logs an error and continues when rejoin throws', () => {
             const mockPlayer = { rejoin: vi.fn().mockImplementation(() => { throw new Error('network error') }) }
             vi.spyOn(Understudies, 'create').mockReturnValue(mockPlayer)
-            dynamicPropertyStore.set('simplayerRejoining', true)
-            dynamicPropertyStore.set('simplayersToRejoin', JSON.stringify(['Alice']))
+            worldDynamicPropertyStore.set('simplayerRejoining', true)
+            worldDynamicPropertyStore.set('simplayersToRejoin', JSON.stringify(['Alice']))
             const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
 
             simplayerRejoining.onStartup()
@@ -108,7 +108,7 @@ describe('SimplayerRejoining', () => {
         })
 
         it('logs an error and rejoins nobody when saved data is invalid JSON', () => {
-            dynamicPropertyStore.set('simplayerRejoining', true)
+            worldDynamicPropertyStore.set('simplayerRejoining', true)
             world.getDynamicProperty.mockImplementation((key) => {
                 if (key === 'simplayerRejoining') return JSON.stringify(true)
                 if (key === 'simplayersToRejoin') return 'not-valid-json'
@@ -121,8 +121,8 @@ describe('SimplayerRejoining', () => {
         })
 
         it('rejoins nobody when saved data is corrupted', () => {
-            dynamicPropertyStore.set('simplayerRejoining', true)
-            dynamicPropertyStore.set('simplayersToRejoin', 'invalid data')
+            worldDynamicPropertyStore.set('simplayerRejoining', true)
+            worldDynamicPropertyStore.set('simplayersToRejoin', 'invalid data')
             vi.spyOn(Understudies, 'create')
             simplayerRejoining.onStartup()
             expect(Understudies.create).not.toHaveBeenCalled()

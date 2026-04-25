@@ -1,5 +1,5 @@
 import { vi, describe, it, expect, beforeAll } from 'vitest'
-import { advanceTicks } from '@forestoflight/minecraft-vitest-mocks/server'
+import { scheduler } from '@forestoflight/minecraft-vitest-mocks'
 import Understudies from '../../packs/BP/scripts/classes/Understudies.js'
 import { swapHeldCommand } from '../../packs/BP/scripts/commands/swapheld.js'
 import { CustomCommandStatus, world, Player } from '@minecraft/server'
@@ -32,7 +32,7 @@ describe('SwapHeldCommand', () => {
             const origin = new PlayerCommandOrigin({ sourceEntity: new Player() })
             const spy = vi.spyOn(understudy, 'swapHeldItemWithPlayer')
             swapHeldCommand.swapHeldCommand(origin, 'TestBot')
-            advanceTicks(1)
+            scheduler.advanceTicks(1)
             expect(spy).toHaveBeenCalledWith(origin.getSource())
         })
 
