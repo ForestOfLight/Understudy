@@ -1,6 +1,6 @@
 import { vi, describe, it, expect, beforeEach } from 'vitest'
 import Understudies from '../../packs/BP/scripts/classes/Understudies.js'
-import { advanceTicks } from '../../__mocks__/@minecraft/server.js'
+import { advanceTicks } from '@forestoflight/minecraft-vitest-mocks/server'
 import { world } from '@minecraft/server'
 import { actionCommand, REPEATABLE_ACTIONS, TIMING_OPTIONS } from '../../packs/BP/scripts/commands/action.js'
 

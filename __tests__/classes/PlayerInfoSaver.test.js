@@ -3,7 +3,7 @@ import { world, system, EntityComponentTypes, TicksPerSecond } from '@minecraft/
 import { PlayerInfoSaver } from '../../packs/BP/scripts/classes/PlayerInfoSaver.js'
 import Understudy from '../../packs/BP/scripts/classes/Understudy.js'
 import { UnderstudySaveInfoError } from '../../packs/BP/scripts/errors/UnderstudySaveInfoError.js'
-import { dynamicPropertyStore } from '../../__mocks__/@minecraft/server.js'
+import { dynamicPropertyStore } from '@forestoflight/minecraft-vitest-mocks/server'
 import { UnderstudyNotConnectedError } from '../../packs/BP/scripts/errors/UnderstudyNotConnectedError.js'
 
 describe('PlayerInfoSaver', () => {

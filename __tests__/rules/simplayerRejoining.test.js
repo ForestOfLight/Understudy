@@ -2,7 +2,7 @@ import { vi, describe, it, expect, beforeEach } from 'vitest'
 import { system, world } from '@minecraft/server'
 import { simplayerRejoining } from '../../packs/BP/scripts/rules/simplayerRejoining.js'
 import Understudies from '../../packs/BP/scripts/classes/Understudies.js'
-import { advanceTicks, dynamicPropertyStore, resetScheduler } from '../../__mocks__/@minecraft/server.js'
+import { advanceTicks, dynamicPropertyStore, resetScheduler } from '@forestoflight/minecraft-vitest-mocks/server'
 
 describe('SimplayerRejoining', () => {
     beforeEach(() => {

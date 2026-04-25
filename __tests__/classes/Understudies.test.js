@@ -1,7 +1,7 @@
 import { vi, describe, it, expect, beforeEach } from 'vitest'
 import { world, system } from '@minecraft/server'
 import Understudies from '../../packs/BP/scripts/classes/Understudies.js'
-import { advanceTicks, resetScheduler } from '../../__mocks__/@minecraft/server.js'
+import { advanceTicks, resetScheduler } from '@forestoflight/minecraft-vitest-mocks/server'
 
 describe('Understudies', () => {
     beforeEach(() => {

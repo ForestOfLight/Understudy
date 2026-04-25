@@ -2,7 +2,7 @@ import { vi, describe, it, expect, beforeEach } from 'vitest'
 import { system, world, Block, Entity, Player, dynamicPropertyStore } from '@minecraft/server'
 import Understudy from '../../packs/BP/scripts/classes/Understudy.js'
 import { MOVE_OPTIONS } from '../../packs/BP/scripts/commands/move.js'
-import { advanceTicks } from '../../__mocks__/@minecraft/server.js'
+import { advanceTicks } from '@forestoflight/minecraft-vitest-mocks/server'
 
 describe('Understudy', () => {
     let understudy

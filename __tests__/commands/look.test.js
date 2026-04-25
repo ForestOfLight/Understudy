@@ -1,6 +1,6 @@
 import { vi, describe, it, expect, beforeEach } from 'vitest'
 import { Entity, Block, world, CustomCommandStatus } from '@minecraft/server'
-import { advanceTicks } from '../../__mocks__/@minecraft/server.js'
+import { advanceTicks } from '@forestoflight/minecraft-vitest-mocks/server'
 import { ServerCommandOrigin } from '../../packs/BP/scripts/lib/canopy/ServerCommandOrigin.js'
 import Understudies from '../../packs/BP/scripts/classes/Understudies.js'
 import { lookCommand } from '../../packs/BP/scripts/commands/look.js'

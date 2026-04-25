@@ -1,8 +1,8 @@
 import { vi, describe, it, expect, beforeEach } from 'vitest'
-import { advanceTicks } from '../../__mocks__/@minecraft/server.js'
 import { Actions } from '../../packs/BP/scripts/classes/Actions.js'
 import { RepeatableAction } from '../../packs/BP/scripts/classes/RepeatableAction.js'
 import { REPEATABLE_ACTIONS } from '../../packs/BP/scripts/commands/action.js'
+import { advanceTicks } from '@forestoflight/minecraft-vitest-mocks/server'
 
 describe('Actions', () => {
     let mockUnderstudy; let actions; let performSpy; let repeatableActionOnTickSpy

@@ -1,5 +1,5 @@
 import { vi, describe, it, expect, beforeEach, beforeAll } from 'vitest'
-import { advanceTicks } from '../../__mocks__/@minecraft/server.js'
+import { advanceTicks } from '@forestoflight/minecraft-vitest-mocks/server'
 import Understudies from '../../packs/BP/scripts/classes/Understudies.js'
 import { leaveCommand } from '../../packs/BP/scripts/commands/leave.js'
 import { CustomCommandStatus, world } from '@minecraft/server'
