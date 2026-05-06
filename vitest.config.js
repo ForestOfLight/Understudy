@@ -3,7 +3,12 @@ import { defineConfig } from 'vitest/config'
 export default defineConfig({
   test: {
     setupFiles: '@forestoflight/minecraft-vitest-mocks/setup',
-    exclude: ['**/node_modules/**', '.claude/**'],
+    server: {
+      deps: {
+        inline: ['@forestoflight/minecraft-vitest-mocks']
+      }
+    },
+    include: ['__tests__/**/*.test.js']
   },
   plugins: [
     {
