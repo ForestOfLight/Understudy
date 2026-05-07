@@ -70,16 +70,6 @@ export default [
     }
   },
   {
-    files: ["**/__mocks__/**"],
-    rules: {
-      "max-lines-per-function": "off",
-      "max-lines": "off",
-      "max-classes-per-file": "off",
-      "max-depth": "off",
-      "no-use-before-define": "off"
-    }
-  },
-  {
     files: ["**/__tests__/**"],
     rules: {
       "max-lines-per-function": "off",

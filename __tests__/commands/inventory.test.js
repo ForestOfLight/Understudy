@@ -1,7 +1,7 @@
 import { vi, describe, it, expect, beforeAll } from 'vitest'
 import Understudies from '../../packs/BP/scripts/classes/Understudies.js'
 import { CustomCommandStatus, world } from '@minecraft/server'
-import { Container } from '../../__mocks__/@minecraft/server.js'
+import { Container } from '@forestoflight/minecraft-vitest-mocks/server'
 import { inventoryCommand } from '../../packs/BP/scripts/commands/inventory.js'
 
 describe('InventoryCommand', () => {

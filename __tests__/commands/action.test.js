@@ -1,6 +1,6 @@
 import { vi, describe, it, expect, beforeEach } from 'vitest'
 import Understudies from '../../packs/BP/scripts/classes/Understudies.js'
-import { advanceTicks } from '../../__mocks__/@minecraft/server.js'
+import { scheduler } from '@forestoflight/minecraft-vitest-mocks'
 import { world } from '@minecraft/server'
 import { actionCommand, REPEATABLE_ACTIONS, TIMING_OPTIONS } from '../../packs/BP/scripts/commands/action.js'
 
@@ -10,7 +10,7 @@ describe('ActionCommand', () => {
 
     beforeEach(() => {
         Understudies.removeAll()
-        advanceTicks(1)
+        scheduler.advanceTicks(1)
         understudy = Understudies.create('TestBot')
         understudy.join({ location: { x: 0, y: 0, z: 0 }, dimension: world.getDimension('overworld') })
         actions = understudy.actions

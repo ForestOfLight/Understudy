@@ -1,5 +1,5 @@
 import { vi, describe, it, expect, beforeAll } from 'vitest'
-import { advanceTicks } from '../../__mocks__/@minecraft/server.js'
+import { scheduler } from '@forestoflight/minecraft-vitest-mocks'
 import Understudies from '../../packs/BP/scripts/classes/Understudies.js'
 import { CustomCommandStatus, world } from '@minecraft/server'
 import { stopCommand } from '../../packs/BP/scripts/commands/stop.js'
@@ -29,7 +29,7 @@ describe('StopCommand', () => {
         it('schedules stopAll when the understudy is found', () => {
             const spy = vi.spyOn(understudy, 'stopAll')
             stopCommand.stopCommand({}, 'TestBot')
-            advanceTicks(1)
+            scheduler.advanceTicks(1)
             expect(spy).toHaveBeenCalled()
         })
 
