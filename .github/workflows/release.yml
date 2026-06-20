@@ -35,6 +35,7 @@ jobs:
       - name: Upload asset to GitHub Release
         uses: softprops/action-gh-release@e798e6a1ede8d07b74ac4cdac6bdfa4cc1653907
         with:
+          tag_name: ${{ github.event.release.tag_name }}
           files: ${{ env.PROJECT_NAME }}-${{ github.event.release.tag_name }}.mcpack
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
