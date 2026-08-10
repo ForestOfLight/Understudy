@@ -10,6 +10,8 @@
 [![BuyMeACoffee](https://raw.githubusercontent.com/pachadotdev/buymeacoffee-badges/main/bmc-donate-yellow.svg)](https://buymeacoffee.com/forestoflight)
 </div>
 
+## As of Minecraft 26.40, this pack is now deprecated. Please use [Canopy](https://github.com/ForestOfLight/Canopy) instead.
+
 Understudy gives you complete control over simulated players in your Minecraft Bedrock world. Afk your farms, load areas, and more -- all through a set of powerful, intuitive commands!
 
 > [!IMPORTANT]
